@@ -127,7 +127,9 @@ export function Schedule() {
             >
               <span className="dow" aria-hidden="true">{HEB_DAYS_SHORT[d.getDay()]}</span>
               <span className="dnum" aria-hidden="true">{d.getDate()}</span>
-              <span className="cnt" aria-hidden="true">{n > 0 ? `${n} שיעורים` : "—"}</span>
+              <span className="cnt" aria-hidden="true">
+                {n > 0 ? `${n} ש׳` : "—"}
+              </span>
             </button>
           );
         })}

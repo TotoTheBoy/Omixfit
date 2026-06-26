@@ -53,6 +53,16 @@ async function shot(name, { viewport, hash = "", userId, click, then, wait = 700
     await page.waitForSelector(".appbar", { timeout: 8000 });
   }
   await new Promise((r) => setTimeout(r, wait));
+  // On the schedule, land on a day that has classes (today may be Shabbat).
+  if (hash === "") {
+    await page.evaluate(() => {
+      const col = [...document.querySelectorAll(".daycol")].find((c) =>
+        /,\s*[1-9]\d*\s*שיעורים/.test(c.getAttribute("aria-label") || ""),
+      );
+      col?.click();
+    });
+    await new Promise((r) => setTimeout(r, 400));
+  }
   if (click) {
     await page.click(click).catch(() => console.log(`  (no ${click} to click)`));
     await new Promise((r) => setTimeout(r, 600));

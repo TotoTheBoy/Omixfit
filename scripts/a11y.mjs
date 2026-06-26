@@ -36,6 +36,17 @@ async function audit(label, { hash = "", userId, open, then } = {}) {
     await page.waitForSelector(".appbar");
   }
   await new Promise((r) => setTimeout(r, 500));
+  // If we need a class card, select a day that actually has classes (today may
+  // be Shabbat / an empty day) so the test is date-independent.
+  if (open && open.includes("class-card")) {
+    await page.evaluate(() => {
+      const col = [...document.querySelectorAll(".daycol")].find((c) =>
+        /,\s*[1-9]\d*\s*שיעורים/.test(c.getAttribute("aria-label") || ""),
+      );
+      col?.click();
+    });
+    await new Promise((r) => setTimeout(r, 400));
+  }
   // Open a modal/sheet before auditing (and optionally a 2nd click).
   if (open) {
     await page.click(open);

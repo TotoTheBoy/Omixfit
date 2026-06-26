@@ -5,6 +5,14 @@ const b = await puppeteer.launch({ executablePath: CHROME, headless: "new", args
 const p = await b.newPage();
 await p.setViewport({ width: 1280, height: 900 });
 await p.goto(BASE + "/#schedule", { waitUntil: "networkidle2" });
+await p.waitForSelector(".daycol");
+// Select a day that has classes (today may be Shabbat / empty) — date-robust.
+await p.evaluate(() => {
+  const col = [...document.querySelectorAll(".daycol")].find((c) =>
+    /,\s*[1-9]\d*\s*שיעורים/.test(c.getAttribute("aria-label") || ""),
+  );
+  col?.click();
+});
 await p.waitForSelector(".class-card .cc-cover");
 
 let pass = 0, fail = 0;

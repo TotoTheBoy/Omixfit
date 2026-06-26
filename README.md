@@ -121,6 +121,11 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
 - [x] **i11** — Audited CSS/JSX for RTL physical‑direction leaks (none — all
       logical); added an **end‑to‑end UI test** (`npm run e2e`) driving the real
       booking journey (book → My Bookings → cancel) through Chrome (7 checks).
+- [x] **i12** — Viewport stress test (`npm run responsive`, 320/768/1920) caught
+      real **horizontal overflow at 320px** → fixed the install banner (CTA wraps),
+      the manager tab bar (scrolls), the day strip (shrinkable columns), and the
+      app bar (avatar‑only switcher on narrow). Made the browser tests
+      date‑robust (Shabbat/empty‑day safe).
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,

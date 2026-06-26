@@ -14,6 +14,7 @@
     "a11y": "node scripts/a11y.mjs",
     "focus": "node scripts/focus.mjs",
     "e2e": "node scripts/e2e.mjs",
+    "responsive": "node scripts/responsive.mjs",
     "test": "esbuild test/smoke.ts --bundle --platform=node --format=cjs --outfile=test/smoke.cjs --log-level=error && node test/runner.mjs"
   },
   "dependencies": {
