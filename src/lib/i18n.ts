@@ -122,6 +122,23 @@ export const t = {
   visits: (n: number) => `${n} כניסות`,
   bookingsCount: (n: number) => `${n} הזמנות`,
 
+  // members (plan.md §4.6 + §4.1 role assignment)
+  membersTab: "מתאמנים",
+  membersTitle: "ניהול מתאמנים",
+  searchMembers: "חיפוש לפי שם או טלפון…",
+  noMembers: "לא נמצאו מתאמנים",
+  allMembers: (n: number) => `${n} מתאמנים`,
+  roleLabel: "תפקיד",
+  membershipActiveLabel: "מנוי פעיל",
+  memberSince2: "הצטרף/ה",
+  recentActivity: "פעילות אחרונה",
+  changeRole: "שינוי תפקיד",
+  setActive: "הפעלת מנוי",
+  setInactive: "השהיית מנוי",
+  attendedShort: "נוכחות",
+  upcomingShort: "קרובים",
+  callMember: "התקשרות",
+
   // catalog (ClassType management — plan.md §4.2)
   catalog: "קטלוג שיעורים",
   scheduleTab: "לוח שבועי",

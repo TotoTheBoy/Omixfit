@@ -95,10 +95,13 @@ export function Schedule() {
                 isToday(key) ? "is-today" : ""
               } ${isShabbat(d) ? "is-shabbat" : ""}`}
               onClick={() => setActiveKey(key)}
+              aria-pressed={key === activeKey}
+              aria-current={isToday(key) ? "date" : undefined}
+              aria-label={`${fmtDayHeading(d)}, ${n} שיעורים`}
             >
-              <span className="dow">{HEB_DAYS_SHORT[d.getDay()]}</span>
-              <span className="dnum">{d.getDate()}</span>
-              <span className="cnt">{n > 0 ? `${n} שיעורים` : "—"}</span>
+              <span className="dow" aria-hidden="true">{HEB_DAYS_SHORT[d.getDay()]}</span>
+              <span className="dnum" aria-hidden="true">{d.getDate()}</span>
+              <span className="cnt" aria-hidden="true">{n > 0 ? `${n} שיעורים` : "—"}</span>
             </button>
           );
         })}
@@ -109,6 +112,7 @@ export function Schedule() {
         <button
           className={`filter-chip ${cats.size === 0 ? "on" : ""}`}
           onClick={() => setCats(new Set())}
+          aria-pressed={cats.size === 0}
         >
           הכול
         </button>
@@ -117,8 +121,9 @@ export function Schedule() {
             key={c}
             className={`filter-chip ${cats.has(c) ? "on" : ""}`}
             onClick={() => toggleCat(c)}
+            aria-pressed={cats.has(c)}
           >
-            <span className="swatch" style={{ background: `hsl(${CATEGORY_META[c].hue} 80% 50%)` }} />
+            <span className="swatch" aria-hidden="true" style={{ background: `hsl(${CATEGORY_META[c].hue} 80% 50%)` }} />
             {CATEGORY_META[c].label}
           </button>
         ))}

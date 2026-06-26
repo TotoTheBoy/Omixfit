@@ -31,15 +31,20 @@
 
   /* text */
   --text: #11161d;
-  --text-2: #5a6472;
-  --text-3: #8b95a3;
+  --text-2: #525c6a;
+  /* --text-3 darkened from #8b95a3 to meet WCAG AA (≥4.5:1 on white) — IS 5568 */
+  --text-3: #646e7b;
   --on-ink: #eef2f6;
   --on-ink-2: #9aa6b6;
 
-  /* status */
+  /* status — bright fills for bars/icons */
   --ok: #1fb574;
   --warn: #f0a020;
   --danger: #ec3f4d;
+  /* status — darker variants for TEXT, meet WCAG AA (≥4.5:1 on white) */
+  --ok-ink: #0a7d52;
+  --warn-ink: #8a5300;
+  --danger-ink: #c4202e;
 
   /* shape */
   --r-sm: 10px;
@@ -100,6 +105,38 @@ textarea {
 ::selection {
   background: var(--lime);
   color: var(--ink-900);
+}
+
+/* Accessibility: visible focus ring for every interactive element, and a
+   skip-to-content link (IS 5568 / WCAG 2.0 AA — plan.md §5.5). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.skip-link {
+  position: fixed;
+  inset-inline-start: 50%;
+  top: -60px;
+  transform: translateX(50%);
+  z-index: 100;
+  background: var(--ink-900);
+  color: var(--lime);
+  padding: 10px 18px;
+  border-radius: 0 0 12px 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.18s var(--ease);
+}
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--lime);
 }
 
 /* scrollbars */

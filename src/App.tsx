@@ -63,6 +63,9 @@ export default function App() {
 
   return (
     <div className="app">
+      <a className="skip-link" href="#main">
+        דלג לתוכן הראשי
+      </a>
       <header className="appbar">
         <div className="brand">
           <span className="logo">
@@ -73,12 +76,13 @@ export default function App() {
           </span>
         </div>
 
-        <nav className="appbar-nav">
+        <nav className="appbar-nav" aria-label="ניווט ראשי">
           {nav.map((n) => (
             <a
               key={n.id}
               href={`#${n.id}`}
               className={view === n.id ? "active" : ""}
+              aria-current={view === n.id ? "page" : undefined}
               onClick={(e) => {
                 e.preventDefault();
                 go(n.id);
@@ -102,19 +106,20 @@ export default function App() {
         </button>
       </header>
 
-      <main>
+      <main id="main" tabIndex={-1}>
         {view === "schedule" && <Schedule />}
         {view === "bookings" && <MyBookings onGoSchedule={() => go("schedule")} />}
         {view === "manage" && <Manage />}
         {view === "profile" && <Profile onSwitchUser={() => setSwitcher(true)} />}
       </main>
 
-      <nav className="tabbar">
+      <nav className="tabbar" aria-label="ניווט תחתון">
         {nav.map((n) => (
           <a
             key={n.id}
             href={`#${n.id}`}
             className={view === n.id ? "active" : ""}
+            aria-current={view === n.id ? "page" : undefined}
             onClick={(e) => {
               e.preventDefault();
               go(n.id);

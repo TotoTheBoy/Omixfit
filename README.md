@@ -18,6 +18,7 @@ npm run preview    # serve the production build on :4173
 npm test           # runtime smoke test of the booking engine (18 checks)
 npm run icons      # regenerate PWA icons
 npm run shots      # visual QA — screenshot every screen via headless Chrome
+npm run a11y       # automated WCAG 2.1 AA audit (axe-core) — 0 violations
 ```
 
 > **Visual QA:** `scripts/shots.mjs` drives system Chrome (via `puppeteer-core`,
@@ -47,6 +48,8 @@ to log in as נועה (manager) or an instructor and see the management side.
 - **Reports dashboard** (plan.md §4.6) — utilization, attendance vs. no‑show
   rate, most‑popular classes, attendance‑by‑weekday (Shabbat shown closed),
   and a member attendance leaderboard.
+- **Member management** (§4.6 / §4.1) — searchable member list; per‑member sheet
+  with role assignment, membership activation toggle, stats, recent activity.
 
 **Profile (everyone)**
 - Membership card (plan, status, validity), personal stats (attended / upcoming
@@ -85,5 +88,8 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
 - [x] **i3** — Headless‑Chrome visual QA harness (real screenshots); fixed
       persist‑on‑load; richer seed (18 members, resolved past attendance);
       manager Reports dashboard. Smoke test now 18 checks.
-- [ ] **Next:** audit log (§4.6), accessibility pass (focus/aria/contrast on the
-      calendar), live spot‑count refresh, member search for managers.
+- [x] **i4** — Member management (search, role assignment, membership toggle);
+      accessibility pass to **WCAG 2.1 AA, 0 axe violations** (contrast, skip
+      link, focus rings, aria‑current/live, fixed a nested‑interactive card).
+- [ ] **Next:** audit log (§4.6), live spot‑count refresh, waitlist groundwork,
+      empty‑state polish, keyboard arrow‑nav across the calendar day strip.

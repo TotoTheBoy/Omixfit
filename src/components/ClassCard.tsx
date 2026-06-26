@@ -29,18 +29,26 @@ export function ClassCard({
 
   const isMember = data.users.find((u) => u.id === data.currentUserId)!.role === "member";
 
+  const summary = `${type.name}, ${fmtTime(session.startMin)}, ${
+    session.cancelled ? t.cancelled : left <= 0 ? t.full : t.spotsLeft(left)
+  }`;
+
   return (
     <article
       className={`class-card ${mine ? "is-mine" : ""} ${
         left <= 0 && !mine ? "is-full" : ""
       } ${session.cancelled ? "is-cancelled" : ""}`}
       style={{ ["--cat-hue" as string]: meta.hue }}
-      onClick={() => onOpen(session)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onOpen(session)}
     >
-      <span className="cat-rail" />
+      <span className="cat-rail" aria-hidden="true" />
+      {/* Stretched cover button: one interactive control for the whole card so
+          screen readers/keyboard get a single target. The Book button below
+          sits above it (z-index) so it stays independently clickable. */}
+      <button
+        className="cc-cover"
+        onClick={() => onOpen(session)}
+        aria-label={`פרטים והרשמה — ${summary}`}
+      />
       <div className="cc-top">
         <div className="cc-time">
           <span className="t">{fmtTime(session.startMin)}</span>
@@ -48,7 +56,7 @@ export function ClassCard({
         </div>
         <div className="cc-main">
           <h4 className="cc-title">
-            <span className="cc-emoji">{meta.emoji}</span>
+            <span className="cc-emoji" aria-hidden="true">{meta.emoji}</span>
             {type.name}
           </h4>
           <div className="cc-meta">
@@ -78,7 +86,7 @@ export function ClassCard({
         )}
 
         {isMember && !session.cancelled && (
-          <div className="cc-action" onClick={(e) => e.stopPropagation()}>
+          <div className="cc-action">
             {mine ? (
               <span className="mine-flag">
                 <IcCheck width={16} height={16} /> {t.booked}

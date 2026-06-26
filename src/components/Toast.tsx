@@ -37,7 +37,7 @@ export function Toaster() {
   }, []);
   if (!list.length) return null;
   return (
-    <div className="toast-wrap">
+    <div className="toast-wrap" role="status" aria-live="polite" aria-atomic="true">
       {list.map((t) => (
         <div key={t.id} className={`toast ${t.kind}`}>
           <span className="ic">

@@ -341,6 +341,27 @@
   width: 5px;
   background: hsl(var(--cat-hue) 90% 55%);
 }
+/* Stretched cover button — fills the card, opens detail. Sits beneath the
+   inner content so the real Book button (z-index) stays clickable. */
+.cc-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.cc-cover:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: -3px;
+  border-radius: var(--r-lg);
+}
+.class-card .cc-action {
+  position: relative;
+  z-index: 2;
+}
 .class-card.is-mine {
   border-color: var(--lime-600);
   box-shadow: 0 0 0 1px var(--lime-600), var(--sh-2);
@@ -1352,6 +1373,102 @@
     -45deg, var(--surface-2), var(--surface-2) 5px, var(--line) 5px, var(--line) 10px
   );
 }
+
+/* ---- members management --------------------------------------------------- */
+.search {
+  position: relative;
+  margin-bottom: 16px;
+}
+.search svg {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+.search input {
+  width: 100%;
+  padding: 13px 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: 0.95rem;
+}
+.search input:focus {
+  outline: none;
+  border-color: var(--ink-700);
+  box-shadow: 0 0 0 3px rgba(17, 22, 29, 0.08);
+}
+.member-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 13px 15px;
+  box-shadow: var(--sh-1);
+  transition: transform 0.14s var(--ease), box-shadow 0.18s, border-color 0.15s;
+  text-align: start;
+  width: 100%;
+}
+.member-row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-2);
+  border-color: var(--line-strong);
+}
+.member-row .mr-body {
+  flex: 1;
+  min-width: 0;
+}
+.member-row .mr-name {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.member-row .mr-sub {
+  color: var(--text-3);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.member-row .mr-stat {
+  text-align: center;
+  flex: none;
+}
+.member-row .mr-stat b {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.member-row .mr-stat small {
+  color: var(--text-3);
+  font-size: 0.68rem;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.tag.role-member { background: #eef2f6; color: #4a5563; }
+.tag.role-instructor { background: #efeaff; color: #5b3fd1; }
+.tag.role-manager { background: #e7fbf3; color: #0a7d56; }
+.tag.role-admin { background: #fff0e6; color: #b3540a; }
+.tag.inactive { background: #fff0f1; color: var(--danger); }
 
 /* ---- celebration ---------------------------------------------------------- */
 .confetti {

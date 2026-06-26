@@ -16,6 +16,7 @@ import { SessionEditor } from "../components/SessionEditor";
 import { SessionDetail } from "../components/SessionDetail";
 import { TypeEditor } from "../components/TypeEditor";
 import { Reports } from "../components/Reports";
+import { Members } from "../components/Members";
 import { IcPlus, IcSpark, IcUsers, IcCalendar } from "../components/icons";
 
 type EditorState =
@@ -25,7 +26,7 @@ type EditorState =
 
 export function Manage() {
   const data = useStore((s) => s);
-  const [tab, setTab] = useState<"schedule" | "catalog" | "reports">("schedule");
+  const [tab, setTab] = useState<"schedule" | "catalog" | "reports" | "members">("schedule");
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
   const [detail, setDetail] = useState<ClassSession | null>(null);
@@ -95,9 +96,13 @@ export function Manage() {
         <button className={tab === "reports" ? "on" : ""} onClick={() => setTab("reports")}>
           {t.reports}
         </button>
+        <button className={tab === "members" ? "on" : ""} onClick={() => setTab("members")}>
+          {t.membersTab}
+        </button>
       </div>
 
       {tab === "reports" && <Reports />}
+      {tab === "members" && <Members />}
 
       {tab === "catalog" && (
         <div className="catalog">

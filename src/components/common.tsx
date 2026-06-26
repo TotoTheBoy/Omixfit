@@ -72,10 +72,10 @@ export function CapacityBar({
           style={{
             color:
               left === 0
-                ? "var(--danger)"
+                ? "var(--danger-ink)"
                 : left <= 3
-                  ? "var(--warn)"
-                  : "var(--ok)",
+                  ? "var(--warn-ink)"
+                  : "var(--ok-ink)",
           }}
         >
           {label}

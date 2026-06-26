@@ -38,7 +38,7 @@ async function setUser(page, userId) {
   );
 }
 
-async function shot(name, { viewport, hash = "", userId, click, wait = 700 }) {
+async function shot(name, { viewport, hash = "", userId, click, then, wait = 700 }) {
   const page = await browser.newPage();
   await page.setViewport(viewport);
   const url = (h) => `${BASE}/?r=${navSeq++}#${h}`;
@@ -55,6 +55,10 @@ async function shot(name, { viewport, hash = "", userId, click, wait = 700 }) {
   await new Promise((r) => setTimeout(r, wait));
   if (click) {
     await page.click(click).catch(() => console.log(`  (no ${click} to click)`));
+    await new Promise((r) => setTimeout(r, 600));
+  }
+  if (then) {
+    await page.click(then).catch(() => console.log(`  (no ${then} to click)`));
     await new Promise((r) => setTimeout(r, 600));
   }
   const file = join(OUT, name + ".png");
@@ -82,6 +86,19 @@ await shot("09-reports-desktop", {
   hash: "manage",
   userId: "u-noa",
   click: ".seg button:nth-child(3)",
+});
+await shot("10-members-desktop", {
+  viewport: desktop,
+  hash: "manage",
+  userId: "u-noa",
+  click: ".seg button:nth-child(4)",
+});
+await shot("11-member-detail", {
+  viewport: desktop,
+  hash: "manage",
+  userId: "u-noa",
+  click: ".seg button:nth-child(4)",
+  then: ".member-row",
 });
 
 await browser.close();
