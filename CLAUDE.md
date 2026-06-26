@@ -71,9 +71,12 @@ copy is meant to be a config change, not a rewrite.
 starts **Sunday** and dates format in Hebrew via `src/lib/date.ts`.
 
 **Auth is a demo stand-in.** There's no login backend: `currentUserId` (in the store)
-is **nullable** — `null` means logged out, and `App.tsx` renders `src/screens/Login.tsx`
-(a seeded-user picker) instead of the app shell when there's no current user. Real auth
-would be phone + SMS OTP (plan.md §4.1). Booking is gated on `user.membershipActive`.
+is **nullable** — `null` means logged out. When it's `null`, `App.tsx` renders the
+logged-out flow instead of the app shell: `src/screens/Landing.tsx` (a marketing page
+for new/unregistered visitors) whose CTAs hand off to `src/screens/Login.tsx` (a
+seeded-user demo picker). `App` holds an `authView: "landing" | "login"` toggle for
+this. Real auth would be phone + SMS OTP (plan.md §4.1). Booking is gated on
+`user.membershipActive`.
 Because the app only renders the inner screens when logged in, components resolve the
 current user with `data.users.find(u => u.id === data.currentUserId)!` and pass `me.id`
 into store helpers — keep that pattern rather than threading the nullable id around.

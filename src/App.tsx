@@ -6,6 +6,7 @@ import { MyBookings } from "./screens/MyBookings";
 import { Manage } from "./screens/Manage";
 import { Profile } from "./screens/Profile";
 import { Login } from "./screens/Login";
+import { Landing } from "./screens/Landing";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { Toaster } from "./components/Toast";
 import { Celebration } from "./components/Celebration";
@@ -32,6 +33,8 @@ export default function App() {
   const isStaff = !!me && me.role !== "member";
   const [view, setView] = useState<View>(readHash);
   const [switcher, setSwitcher] = useState(false);
+  // Logged-out flow: marketing landing first, then the sign-in picker.
+  const [authView, setAuthView] = useState<"landing" | "login">("landing");
 
   useEffect(() => {
     const onHash = () => setView(readHash());
@@ -46,8 +49,15 @@ export default function App() {
     if (view === "bookings" && isStaff) go("schedule");
   }, [me, isStaff, view]);
 
-  // Signed out → show the login screen (and nothing that assumes a user).
-  if (!me) return <Login />;
+  // Signed out → landing page for new visitors, then the sign-in picker.
+  // Neither renders anything that assumes a current user.
+  if (!me) {
+    return authView === "login" ? (
+      <Login onBack={() => setAuthView("landing")} />
+    ) : (
+      <Landing onEnter={() => setAuthView("login")} />
+    );
+  }
 
   function go(v: View) {
     setView(v);

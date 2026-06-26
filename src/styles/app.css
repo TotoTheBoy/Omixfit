@@ -1791,3 +1791,211 @@
 .login-version {
   margin-top: 8px;
 }
+.login-card {
+  position: relative;
+}
+.login-back {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-start: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.login-back:hover {
+  color: var(--text);
+}
+
+/* ---- ghost button on dark (ink) backgrounds ------------------------------- */
+.btn-ghost-ink {
+  background: transparent;
+  color: var(--on-ink);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.btn-ghost-ink:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---- landing page (new / unregistered visitors) --------------------------- */
+.landing {
+  min-height: 100dvh;
+  background: var(--bg);
+  padding-bottom: 8px;
+}
+.landing-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px 56px;
+  border-end-start-radius: 30px;
+  border-end-end-radius: 30px;
+  color: var(--on-ink);
+  background:
+    radial-gradient(110% 90% at 85% -20%, rgba(214, 255, 61, 0.22), transparent 55%),
+    radial-gradient(90% 80% at 0% 0%, rgba(124, 92, 255, 0.18), transparent 55%),
+    var(--ink-900);
+}
+.landing-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  margin-bottom: 30px;
+}
+.landing-bar .brand {
+  color: var(--on-ink);
+}
+.landing-hero-body {
+  max-width: 680px;
+  margin-inline: auto;
+  text-align: center;
+  padding: 14px 0 6px;
+}
+.landing-kicker {
+  display: inline-block;
+  color: var(--lime);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  margin-bottom: 14px;
+}
+.landing-hero h1 {
+  margin: 0 0 14px;
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+.landing-sub {
+  margin: 0 auto 24px;
+  max-width: 540px;
+  color: var(--on-ink-2);
+  font-size: clamp(0.98rem, 2.4vw, 1.15rem);
+  line-height: 1.55;
+}
+.landing-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.landing-section {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding: 36px 20px 8px;
+}
+.landing-h2 {
+  margin: 0 0 18px;
+  text-align: center;
+  font-size: clamp(1.3rem, 3.6vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.landing-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.landing-feature {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px 18px;
+  box-shadow: var(--sh-1);
+}
+.landing-feature .lf-ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  margin-bottom: 12px;
+  color: var(--lime-600);
+  background: hsl(72 90% 95%);
+}
+.landing-feature h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.landing-feature p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.landing-audience {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.aud-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px 18px;
+}
+.aud-card .aud-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ink-900);
+  color: var(--lime);
+}
+.aud-card h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.aud-card p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.landing-final {
+  max-width: 560px;
+  margin: 30px auto 8px;
+  padding: 34px 24px;
+  text-align: center;
+  background: var(--ink-900);
+  color: var(--on-ink);
+  border-radius: var(--r-xl);
+}
+.landing-final h2 {
+  margin: 0 0 6px;
+  font-size: clamp(1.3rem, 3.6vw, 1.7rem);
+  font-weight: 800;
+}
+.landing-final p {
+  margin: 0 0 18px;
+  color: var(--on-ink-2);
+  font-size: 0.95rem;
+}
+.landing-foot {
+  padding: 18px 20px 24px;
+}
+@media (min-width: 560px) {
+  .landing-features {
+    grid-template-columns: 1fr 1fr;
+  }
+  .landing-audience {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (min-width: 940px) {
+  .landing-features {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
