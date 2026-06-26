@@ -8,6 +8,20 @@ tap; trainers/managers publish and manage the schedule.
 > runtime UI dependencies. State persists to `localStorage` (a real backend
 > swaps in behind the same store API).
 
+## Deploy
+
+The app is base‑path aware, so it runs both at a domain root and under a subpath.
+
+- **GitHub Pages (zero‑config):** enable Pages in repo *Settings → Pages →
+  Source: GitHub Actions*. The included [`deploy.yml`](.github/workflows/deploy.yml)
+  builds with `VITE_BASE=/<repo>/` on every push to `master` and publishes — the
+  site goes live at `https://<user>.github.io/<repo>/`.
+- **Netlify / Vercel / any static host:** point it at the repo; build `npm run
+  build`, publish `dist/`. Served from root, so no base path needed.
+
+All paths (assets, service worker, manifest, icons) resolve relative to the
+deploy base, verified at both `/` and `/Omixfit/`.
+
 ## Run it
 
 ```bash
@@ -142,6 +156,11 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
       `npm run offline` loads the app, warms the service‑worker cache, goes
       offline, and confirms the shell renders, state hydrates from localStorage,
       and client‑side nav still works (4 checks).
+- [x] **i17** — Made the app **deployable as a live site**: base‑path‑aware build
+      (assets / service worker / manifest / icons resolve relative to the deploy
+      base), plus a GitHub Pages Actions workflow. Verified at both `/` (root,
+      all tests green) and `/Omixfit/` (subpath, renders + SW active, 0 failed
+      requests).
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,

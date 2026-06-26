@@ -17,7 +17,10 @@ createRoot(document.getElementById("root")!).render(
 // from /public). Safe no-op in dev.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
+    // BASE_URL is "/" at root, "/Omixfit/" on GitHub Pages — keep SW + scope
+    // aligned with the deployed path.
+    const base = import.meta.env.BASE_URL;
+    navigator.serviceWorker.register(`${base}sw.js`, { scope: base }).catch(() => {
       /* offline shell is a progressive enhancement */
     });
   });

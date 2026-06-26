@@ -1,7 +1,10 @@
 // Omixfit service worker — offline app shell (plan.md §5.2).
 // Cache-first for the built shell, network-first for navigations so updates land.
-const CACHE = "omixfit-shell-v1";
-const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/favicon.svg"];
+// Paths are relative to the SW location so this works at any base (root or a
+// GitHub Pages subpath like /Omixfit/).
+const CACHE = "omixfit-shell-v2";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/favicon.svg"];
+const SHELL_FALLBACK = new URL("index.html", self.registration.scope).href;
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -22,7 +25,7 @@ self.addEventListener("fetch", (e) => {
   // Navigations: network-first, fall back to cached shell when offline.
   if (request.mode === "navigate") {
     e.respondWith(
-      fetch(request).catch(() => caches.match("/index.html")),
+      fetch(request).catch(() => caches.match(SHELL_FALLBACK)),
     );
     return;
   }
