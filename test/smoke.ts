@@ -3,16 +3,19 @@
 import { startOfWeek, toKey, addDays, fmtTime } from "../src/lib/date";
 import { buildSeed } from "../src/lib/seed";
 import {
+  actionFor,
   book,
   cancelBooking,
   confirmedCount,
   deleteClassType,
   getState,
+  joinWaitlist,
   memberStats,
   newTypeId,
   updateUser,
   upsertClassType,
   upsertSession,
+  waitlistPosition,
 } from "../src/lib/store";
 import type { ClassSession } from "../src/lib/types";
 
@@ -80,6 +83,25 @@ ok("second user hits capacity -> full", book(synthetic.id, member2.id) === "full
 cancelBooking(synthetic.id, member.id);
 ok("count is 0 after cancel", confirmedCount(synthetic.id) === 0);
 ok("spot reopens after cancel", book(synthetic.id, member2.id) === "ok");
+
+// 3b. Waitlist (Q4) — synthetic (cap 1) is now full with member2 confirmed.
+const m4 = st.users.filter((u) => u.role === "member")[3]!;
+const m5 = st.users.filter((u) => u.role === "member")[4]!;
+ok("join waitlist when full", joinWaitlist(synthetic.id, m4.id) === "ok");
+ok("second waitlister joins", joinWaitlist(synthetic.id, m5.id) === "ok");
+ok("cannot join waitlist twice", joinWaitlist(synthetic.id, m4.id) === "already");
+ok(
+  "waitlist is FIFO",
+  waitlistPosition(synthetic.id, m4.id) === 1 && waitlistPosition(synthetic.id, m5.id) === 2,
+);
+ok("actionFor reports waitlisted", actionFor(synthetic, m4.id).kind === "waitlisted");
+const promo = cancelBooking(synthetic.id, member2.id);
+ok("cancel auto-promotes the first waitlister", promo.promotedUserId === m4.id);
+ok(
+  "promoted member is now confirmed",
+  confirmedCount(synthetic.id) === 1 && actionFor(synthetic, m4.id).kind === "booked",
+);
+ok("remaining waitlister moves up to position 1", waitlistPosition(synthetic.id, m5.id) === 1);
 
 // 4. Membership gating (Q3)
 const blocked: ClassSession = { ...synthetic, id: "test-synth-2", capacity: 5 };

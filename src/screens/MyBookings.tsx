@@ -18,7 +18,10 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
         .filter(
           (b) =>
             b.userId === data.currentUserId &&
-            (b.state === "confirmed" || b.state === "attended" || b.state === "no_show"),
+            (b.state === "confirmed" ||
+              b.state === "attended" ||
+              b.state === "no_show" ||
+              b.state === "waitlisted"),
         )
         .map((b) => b.sessionId),
     );

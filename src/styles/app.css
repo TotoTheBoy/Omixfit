@@ -366,6 +366,38 @@
   border-color: var(--lime-600);
   box-shadow: 0 0 0 1px var(--lime-600), var(--sh-2);
 }
+.class-card.is-waitlisted {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber), var(--sh-2);
+}
+.wl-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--warn-ink);
+  font-weight: 700;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.wl-count {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--warn-ink);
+}
+.wl-pos {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff6e6;
+  color: var(--warn-ink);
+  font-weight: 800;
+  font-size: 0.75rem;
+  flex: none;
+}
 .class-card.is-full {
   background: var(--surface-2);
 }

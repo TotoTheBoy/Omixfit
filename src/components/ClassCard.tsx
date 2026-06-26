@@ -1,11 +1,11 @@
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassSession } from "../lib/types";
 import {
-  bookability,
+  actionFor,
   classTypeOf,
   confirmedCount,
   useStore,
-  userBooking,
+  waitlistCount,
 } from "../lib/store";
 import { fmtTime } from "../lib/date";
 import { CapacityBar } from "./common";
@@ -24,8 +24,10 @@ export function ClassCard({
   const instructor = data.users.find((u) => u.id === session.instructorId)!;
   const booked = confirmedCount(session.id, data);
   const left = session.capacity - booked;
-  const mine = !!userBooking(session.id, data.currentUserId, data);
-  const status = bookability(session, data.currentUserId, data);
+  const action = actionFor(session, data.currentUserId, data);
+  const mine = action.kind === "booked";
+  const onWaitlist = action.kind === "waitlisted";
+  const wlCount = waitlistCount(session.id, data);
 
   const isMember = data.users.find((u) => u.id === data.currentUserId)!.role === "member";
 
@@ -36,8 +38,10 @@ export function ClassCard({
   return (
     <article
       className={`class-card ${mine ? "is-mine" : ""} ${
-        left <= 0 && !mine ? "is-full" : ""
-      } ${session.cancelled ? "is-cancelled" : ""}`}
+        onWaitlist ? "is-waitlisted" : ""
+      } ${left <= 0 && !mine ? "is-full" : ""} ${
+        session.cancelled ? "is-cancelled" : ""
+      }`}
       style={{ ["--cat-hue" as string]: meta.hue }}
     >
       <span className="cat-rail" aria-hidden="true" />
@@ -78,11 +82,16 @@ export function ClassCard({
 
       <div className="cc-bottom">
         {session.cancelled ? (
-          <span className="chip" style={{ background: "#fff0f1", color: "var(--danger)" }}>
+          <span className="chip" style={{ background: "#fff0f1", color: "var(--danger-ink)" }}>
             {t.cancelled}
           </span>
         ) : (
-          <CapacityBar booked={booked} capacity={session.capacity} />
+          <div className="grow">
+            <CapacityBar booked={booked} capacity={session.capacity} />
+            {wlCount > 0 && left <= 0 && (
+              <span className="wl-count">{t.waitlistCountLabel(wlCount)}</span>
+            )}
+          </div>
         )}
 
         {isMember && !session.cancelled && (
@@ -91,17 +100,19 @@ export function ClassCard({
               <span className="mine-flag">
                 <IcCheck width={16} height={16} /> {t.booked}
               </span>
-            ) : status.canBook ? (
+            ) : onWaitlist ? (
+              <span className="wl-flag">{t.waitlistPos(action.pos)}</span>
+            ) : action.kind === "book" ? (
               <button className="btn btn-lime btn-sm" onClick={() => onOpen(session)}>
                 {t.book}
               </button>
-            ) : status.reason === "full" ? (
-              <button className="btn btn-ghost btn-sm" disabled>
-                {t.full}
+            ) : action.kind === "waitlist" ? (
+              <button className="btn btn-wait btn-sm" onClick={() => onOpen(session)}>
+                {t.joinWaitlist}
               </button>
             ) : (
               <button className="btn btn-ghost btn-sm" onClick={() => onOpen(session)}>
-                {t.book}
+                {action.kind === "closed" ? t.closed : t.book}
               </button>
             )}
           </div>

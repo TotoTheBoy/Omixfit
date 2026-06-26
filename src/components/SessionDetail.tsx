@@ -1,14 +1,14 @@
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassSession } from "../lib/types";
 import {
-  bookability,
+  actionFor,
   book,
   cancelBooking,
   classTypeOf,
   confirmedCount,
+  joinWaitlist,
   setAttendance,
   useStore,
-  userBooking,
 } from "../lib/store";
 import { fmtDayHeading, fmtTime, fromKey } from "../lib/date";
 import { Sheet } from "./Sheet";
@@ -32,12 +32,21 @@ export function SessionDetail({
   const meta = CATEGORY_META[type.category];
   const instructor = data.users.find((u) => u.id === session.instructorId)!;
   const booked = confirmedCount(session.id, data);
-  const mine = !!userBooking(session.id, data.currentUserId, data);
-  const status = bookability(session, data.currentUserId, data);
+  const action = actionFor(session, data.currentUserId, data);
+  const mine = action.kind === "booked";
+  const onWaitlist = action.kind === "waitlisted";
   const isStaff = me.role !== "member";
 
   const roster = data.bookings
-    .filter((b) => b.sessionId === session.id && b.state !== "cancelled")
+    .filter(
+      (b) =>
+        b.sessionId === session.id &&
+        (b.state === "confirmed" || b.state === "attended" || b.state === "no_show"),
+    )
+    .map((b) => ({ b, user: data.users.find((u) => u.id === b.userId)! }));
+  const waitlist = data.bookings
+    .filter((b) => b.sessionId === session.id && b.state === "waitlisted")
+    .sort((a, b) => a.createdAt - b.createdAt)
     .map((b) => ({ b, user: data.users.find((u) => u.id === b.userId)! }));
 
   function doBook() {
@@ -52,22 +61,36 @@ export function SessionDetail({
     else if (r === "closed") toast(t.closedToast, "err");
   }
   function doCancel() {
-    cancelBooking(session.id, data.currentUserId);
+    const { promotedUserId } = cancelBooking(session.id, data.currentUserId);
     toast(t.cancelledToast, "info");
+    if (promotedUserId) {
+      const promoted = data.users.find((u) => u.id === promotedUserId);
+      toast(t.promotedOtherToast(promoted?.name ?? ""), "ok");
+    }
+  }
+  function doJoinWaitlist() {
+    const r = joinWaitlist(session.id, data.currentUserId);
+    if (r === "ok") toast(t.waitlistJoinedToast, "ok");
+    else if (r === "membership") toast(t.membershipBlocked, "err");
+    else if (r === "closed") toast(t.closedToast, "err");
+  }
+  function doLeaveWaitlist() {
+    cancelBooking(session.id, data.currentUserId);
+    toast(t.waitlistLeftToast, "info");
   }
 
   const reasonNote = (() => {
     if (session.cancelled) return { cls: "warn", text: t.cancelled };
-    if (mine) return null;
-    switch (status.reason) {
+    switch (action.kind) {
       case "closed":
         return { cls: "warn", text: t.closed };
-      case "membership":
-        return { cls: "warn", text: t.membershipBlocked };
-      case "limit":
-        return { cls: "warn", text: t.limitReached };
-      case "full":
-        return { cls: "info", text: t.fullToast };
+      case "blocked":
+        return {
+          cls: "warn",
+          text: action.reason === "membership" ? t.membershipBlocked : t.limitReached,
+        };
+      case "waitlist":
+        return { cls: "warn", text: t.waitlistNote };
       default:
         return null;
     }
@@ -113,13 +136,21 @@ export function SessionDetail({
             <button className="btn btn-danger btn-lg btn-block" onClick={doCancel}>
               {t.cancel}
             </button>
-          ) : status.canBook ? (
+          ) : onWaitlist ? (
+            <button className="btn btn-ghost btn-lg btn-block" onClick={doLeaveWaitlist}>
+              {t.leaveWaitlist} · {t.waitlistPos(action.kind === "waitlisted" ? action.pos : 0)}
+            </button>
+          ) : action.kind === "book" ? (
             <button className="btn btn-lime btn-lg btn-block" onClick={doBook}>
               {t.book} · {fmtTime(session.startMin)}
             </button>
+          ) : action.kind === "waitlist" ? (
+            <button className="btn btn-wait btn-lg btn-block" onClick={doJoinWaitlist}>
+              {t.joinWaitlist}
+            </button>
           ) : (
             <button className="btn btn-ghost btn-lg btn-block" disabled>
-              {status.reason === "full" ? t.full : t.closed}
+              {action.kind === "closed" ? t.closed : action.kind === "blocked" && action.reason === "membership" ? t.membershipBlocked : t.full}
             </button>
           )
         ) : onEdit ? (
@@ -157,6 +188,13 @@ export function SessionDetail({
         </div>
       )}
 
+      {onWaitlist && (
+        <div className="note warn">
+          <span className="ni">⏳</span>
+          {t.onWaitlist} · {t.waitlistAhead(action.kind === "waitlisted" ? action.pos - 1 : 0)}
+        </div>
+      )}
+
       {/* Roster — staff only (privacy Q2: members see counts, not names) */}
       {isStaff && (
         <div>
@@ -191,6 +229,27 @@ export function SessionDetail({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {waitlist.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <div className="row gap-2" style={{ marginBottom: 8 }}>
+                <h3 className="h2">{t.onWaitlist}</h3>
+                <span className="chip" style={{ background: "#fff6e6", color: "var(--warn-ink)" }}>
+                  {t.waitlistCountLabel(waitlist.length)}
+                </span>
+              </div>
+              <div className="roster">
+                {waitlist.map(({ b, user }, i) => (
+                  <div key={b.id} className="roster-row">
+                    <span className="wl-pos" aria-hidden="true">{i + 1}</span>
+                    <Avatar user={user} size={32} />
+                    <span className="nm">{user.name}</span>
+                    <span className="ph">{user.phone}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -230,11 +230,19 @@ textarea:focus-visible,
 }
 .btn-danger {
   background: #fff0f1;
-  color: var(--danger);
+  color: var(--danger-ink);
   border-color: #ffd7da;
 }
 .btn-danger:hover {
   background: #ffe3e5;
+}
+.btn-wait {
+  background: var(--ink-900);
+  color: var(--amber);
+  border-color: var(--ink-900);
+}
+.btn-wait:hover {
+  background: var(--ink-700);
 }
 .btn-block {
   width: 100%;

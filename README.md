@@ -35,6 +35,8 @@ to log in as נועה (manager) or an instructor and see the management side.
 - Day strip with per‑day class counts; Shabbat marked as reduced activity.
 - Class cards: time, instructor, room, live **spots‑remaining** bar, category color.
 - Category filters; tap a card → detail sheet with description + book/cancel.
+- **Waitlist** (§4.3 / Q4): when full, join the waitlist and see your position;
+  on a cancellation the first in line is **auto‑promoted** to confirmed.
 - **My Bookings** (upcoming / past) with empty‑state onboarding.
 
 **Trainer / Manager**
@@ -97,9 +99,11 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
 - [x] **i5** — Audit log (§4.6: who changed/cancelled what) with live logging on
       every manager mutation + seeded history; keyboard arrow‑nav across the
       calendar day strip. Smoke test now 20 checks.
+- [x] **i6** — Waitlist (§4.3 / Q4): join when full, FIFO position, auto‑promote
+      on cancellation or capacity increase, staff waitlist roster, My‑Bookings
+      badge. Smoke test now 28 checks; axe still 0 violations.
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
-the §6 decisions): payments engine, waitlist auto‑promotion, no‑show penalty
-strikes, multi‑branch UI, and live WebSocket spot‑counts — all have data‑model
-hooks already in place (`membershipActive`, `waitlisted`/`no_show` states,
-`locationId`).
+the §6 decisions): a payments/billing engine, no‑show penalty strikes,
+multi‑branch UI, and live WebSocket spot‑counts — all have data‑model hooks
+already in place (`membershipActive`, `no_show` state, `locationId`).

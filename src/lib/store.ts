@@ -104,6 +104,26 @@ export function userBooking(
   );
 }
 
+export function waitlistCount(sessionId: string, s: AppData = state): number {
+  let n = 0;
+  for (const b of s.bookings)
+    if (b.sessionId === sessionId && b.state === "waitlisted") n++;
+  return n;
+}
+
+/** 1-based position of a user in a session's waitlist (FIFO), or 0. */
+export function waitlistPosition(
+  sessionId: string,
+  userId: string,
+  s: AppData = state,
+): number {
+  const wl = s.bookings
+    .filter((b) => b.sessionId === sessionId && b.state === "waitlisted")
+    .sort((a, b) => a.createdAt - b.createdAt);
+  const idx = wl.findIndex((b) => b.userId === userId);
+  return idx < 0 ? 0 : idx + 1;
+}
+
 export function classTypeOf(
   session: ClassSession,
   s: AppData = state,
@@ -158,6 +178,71 @@ export function bookability(
   return { canBook: true, reason: null, alreadyBooked: false };
 }
 
+// What action a member can take on a session — drives the booking UI.
+export type ActionState =
+  | { kind: "book" }
+  | { kind: "booked" }
+  | { kind: "waitlist"; ahead: number }
+  | { kind: "waitlisted"; pos: number }
+  | { kind: "closed" }
+  | { kind: "cancelled" }
+  | { kind: "blocked"; reason: "membership" | "limit" };
+
+export function actionFor(
+  session: ClassSession,
+  userId: string,
+  s: AppData = state,
+): ActionState {
+  if (session.cancelled) return { kind: "cancelled" };
+  const mine = userBooking(session.id, userId, s);
+  if (mine?.state === "confirmed") return { kind: "booked" };
+  if (mine?.state === "waitlisted")
+    return { kind: "waitlisted", pos: waitlistPosition(session.id, userId, s) };
+
+  const minsToStart = (sessionStartDate(session).getTime() - Date.now()) / 60000;
+  if (minsToStart < s.facility.bookingClosesBeforeMin) return { kind: "closed" };
+
+  const user = s.users.find((u) => u.id === userId)!;
+  if (!user.membershipActive) return { kind: "blocked", reason: "membership" };
+
+  // Full → offer the waitlist (joining doesn't consume a confirmed slot).
+  if (confirmedCount(session.id, s) >= session.capacity)
+    return { kind: "waitlist", ahead: waitlistCount(session.id, s) };
+
+  const active = s.bookings.filter(
+    (b) =>
+      b.userId === userId &&
+      b.state === "confirmed" &&
+      sessionStartDate(s.sessions.find((x) => x.id === b.sessionId)!).getTime() > Date.now(),
+  ).length;
+  if (active >= s.facility.maxActiveBookings) return { kind: "blocked", reason: "limit" };
+
+  return { kind: "book" };
+}
+
+/** Promote earliest-waitlisted members into any open confirmed slots (Q4). */
+function fillFromWaitlist(
+  bookings: Booking[],
+  session: ClassSession,
+): { bookings: Booking[]; promoted: string[] } {
+  if (session.cancelled) return { bookings, promoted: [] };
+  const confirmed = bookings.filter(
+    (b) => b.sessionId === session.id && b.state === "confirmed",
+  ).length;
+  const slots = session.capacity - confirmed;
+  if (slots <= 0) return { bookings, promoted: [] };
+  const wl = bookings
+    .filter((b) => b.sessionId === session.id && b.state === "waitlisted")
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .slice(0, slots);
+  if (!wl.length) return { bookings, promoted: [] };
+  const ids = new Set(wl.map((b) => b.id));
+  return {
+    bookings: bookings.map((b) => (ids.has(b.id) ? { ...b, state: "confirmed" as const } : b)),
+    promoted: wl.map((b) => b.userId),
+  };
+}
+
 // ---- mutations ---------------------------------------------------------------
 
 let idSeq = Date.now();
@@ -200,15 +285,63 @@ export function book(sessionId: string, userId: string): BookOutcome {
   return "ok";
 }
 
-export function cancelBooking(sessionId: string, userId: string): void {
-  const next = state.bookings.map((b) =>
-    b.sessionId === sessionId &&
-    b.userId === userId &&
-    (b.state === "confirmed" || b.state === "waitlisted")
-      ? { ...b, state: "cancelled" as const }
-      : b,
-  );
+/** Cancel a booking; if a confirmed spot opened, auto-promote the waitlist. */
+export function cancelBooking(
+  sessionId: string,
+  userId: string,
+): { promotedUserId: string | null } {
+  let wasConfirmed = false;
+  let next = state.bookings.map((b) => {
+    if (
+      b.sessionId === sessionId &&
+      b.userId === userId &&
+      (b.state === "confirmed" || b.state === "waitlisted")
+    ) {
+      if (b.state === "confirmed") wasConfirmed = true;
+      return { ...b, state: "cancelled" as const };
+    }
+    return b;
+  });
+
+  let promotedUserId: string | null = null;
+  const session = state.sessions.find((s) => s.id === sessionId);
+  if (wasConfirmed && session) {
+    const r = fillFromWaitlist(next, session);
+    next = r.bookings;
+    promotedUserId = r.promoted[0] ?? null;
+  }
   set({ ...state, bookings: next });
+  return { promotedUserId };
+}
+
+export type WaitlistOutcome =
+  | "ok"
+  | "already"
+  | "closed"
+  | "membership"
+  | "cancelled"
+  | "notfull";
+
+export function joinWaitlist(sessionId: string, userId: string): WaitlistOutcome {
+  const session = state.sessions.find((s) => s.id === sessionId);
+  if (!session) return "notfull";
+  if (session.cancelled) return "cancelled";
+  if (userBooking(sessionId, userId)) return "already";
+  const minsToStart = (sessionStartDate(session).getTime() - Date.now()) / 60000;
+  if (minsToStart < state.facility.bookingClosesBeforeMin) return "closed";
+  const user = state.users.find((u) => u.id === userId)!;
+  if (!user.membershipActive) return "membership";
+  if (confirmedCount(sessionId) < session.capacity) return "notfull";
+
+  const booking: Booking = {
+    id: nextId("b"),
+    sessionId,
+    userId,
+    state: "waitlisted",
+    createdAt: Date.now(),
+  };
+  set({ ...state, bookings: [...state.bookings, booking] });
+  return "ok";
 }
 
 export function setCurrentUser(userId: string): void {
@@ -222,11 +355,13 @@ export function upsertSession(session: ClassSession): void {
   const sessions = exists
     ? state.sessions.map((s) => (s.id === session.id ? session : s))
     : [...state.sessions, session];
+  // A capacity increase may open slots — promote from the waitlist (Q4).
+  const { bookings } = fillFromWaitlist(state.bookings, session);
   const entry = auditEntry(
     exists ? "session_updated" : "session_created",
     sessionLabel(session),
   );
-  set({ ...state, sessions, audit: [entry, ...state.audit] });
+  set({ ...state, sessions, bookings, audit: [entry, ...state.audit] });
 }
 
 export function createSessions(
