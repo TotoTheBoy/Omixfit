@@ -12,6 +12,7 @@
     "shots": "node scripts/shots.mjs",
     "shots:waitlist": "node scripts/shot-waitlist.mjs",
     "a11y": "node scripts/a11y.mjs",
+    "focus": "node scripts/focus.mjs",
     "test": "esbuild test/smoke.ts --bundle --platform=node --format=cjs --outfile=test/smoke.cjs --log-level=error && node test/runner.mjs"
   },
   "dependencies": {

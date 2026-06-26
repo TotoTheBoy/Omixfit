@@ -18,7 +18,8 @@ npm run preview    # serve the production build on :4173
 npm test           # runtime smoke test of the booking engine (18 checks)
 npm run icons      # regenerate PWA icons
 npm run shots      # visual QA — screenshot every screen via headless Chrome
-npm run a11y       # automated WCAG 2.1 AA audit (axe-core) — 0 violations
+npm run a11y       # automated WCAG 2.1 AA audit (axe-core) — 0 violations, 9 surfaces
+npm run focus      # keyboard test: modal focus trap + restore (5 checks)
 ```
 
 > **Visual QA:** `scripts/shots.mjs` drives system Chrome (via `puppeteer-core`,
@@ -112,6 +113,10 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
       not 4); found & fixed 6 real violations: unlabeled form controls (session /
       profile / type editors), low‑contrast attendance toggles, and avatar
       initials — now auto‑pick dark/white for AA on any palette color.
+- [x] **i10** — Verified the console is clean across all screens/modals, then
+      fixed a real **modal focus** defect axe can't see: the `Sheet` now moves
+      focus in on open, **traps Tab**, and restores focus to the trigger on
+      close (WCAG 2.4.3). New `npm run focus` keyboard test (5 checks).
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,
