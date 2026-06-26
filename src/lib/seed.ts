@@ -166,7 +166,7 @@ export function buildSeed(): AppData {
       maxActiveBookings: 6,
     },
     currentUserId: "u-dana", // start as a member
-    version: 1,
+    version: 2,
   };
 }
 

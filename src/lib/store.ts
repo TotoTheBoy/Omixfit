@@ -23,7 +23,9 @@ function load(): AppData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as AppData;
-      if (parsed && parsed.version === 1) return parsed;
+      // Bump CURRENT_VERSION (here + seed) whenever the data shape changes so
+      // returning users re-seed instead of rendering against a stale schema.
+      if (parsed && parsed.version === 2) return parsed;
     }
   } catch {
     /* ignore corrupt storage */
