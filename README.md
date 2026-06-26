@@ -176,6 +176,10 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
 - [x] **i18** — Professional repo presentation: curated showcase screenshots
       (`npm run showcase`) committed to `docs/media/` and embedded in this README
       so the project shows the real UI at a glance.
+- [x] **i19** — Self‑hosted the Rubik font (`npm run fonts`): one variable woff2
+      per subset (Hebrew + Latin), bundled by Vite. Removes the render‑blocking
+      third‑party request and the Google dependency, and makes the brand font
+      render **offline**. **Performance 94 → 99** (A11y/BP/SEO still 100).
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,

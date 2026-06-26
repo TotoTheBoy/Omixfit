@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --port 4173",
     "icons": "node scripts/gen-icons.mjs",
+    "fonts": "node scripts/gen-fonts.mjs",
     "shots": "node scripts/shots.mjs",
     "showcase": "node scripts/showcase.mjs",
     "shots:waitlist": "node scripts/shot-waitlist.mjs",
