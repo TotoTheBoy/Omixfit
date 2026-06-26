@@ -1053,11 +1053,11 @@
   color: var(--text-2);
 }
 .att-toggle button.on-yes {
-  background: var(--ok);
+  background: var(--ok-ink);
   color: #fff;
 }
 .att-toggle button.on-no {
-  background: var(--danger);
+  background: var(--danger-ink);
   color: #fff;
 }
 

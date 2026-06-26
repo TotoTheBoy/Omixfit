@@ -108,6 +108,10 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
 - [x] **i8** — Error boundary (§5.6 graceful degradation): a runtime render
       error shows an on‑brand Hebrew fallback with reload + reset‑data recovery,
       instead of a blank page.
+- [x] **i9** — Extended the axe audit to the **modal/sheet states** (9 surfaces,
+      not 4); found & fixed 6 real violations: unlabeled form controls (session /
+      profile / type editors), low‑contrast attendance toggles, and avatar
+      initials — now auto‑pick dark/white for AA on any palette color.
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,

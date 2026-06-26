@@ -120,8 +120,8 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
       }
     >
       <div className="field">
-        <label>{t.typeLabel}</label>
-        <select className="select" value={typeId} onChange={(e) => onTypeChange(e.target.value)}>
+        <label htmlFor="se-type">{t.typeLabel}</label>
+        <select id="se-type" aria-label={t.typeLabel} className="select" value={typeId} onChange={(e) => onTypeChange(e.target.value)}>
           {data.classTypes.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -132,19 +132,21 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
 
       <div className="row gap-3 wrap">
         <div className="field grow" style={{ minWidth: 140 }}>
-          <label>{t.dateLabel}</label>
-          <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <label htmlFor="se-date">{t.dateLabel}</label>
+          <input id="se-date" aria-label={t.dateLabel} className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <div className="field grow" style={{ minWidth: 110 }}>
-          <label>{t.timeLabel}</label>
-          <input className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          <label htmlFor="se-time">{t.timeLabel}</label>
+          <input id="se-time" aria-label={t.timeLabel} className="input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </div>
       </div>
 
       <div className="row gap-3 wrap">
         <div className="field grow" style={{ minWidth: 110 }}>
-          <label>{t.durationLabel}</label>
+          <label htmlFor="se-dur">{t.durationLabel}</label>
           <input
+            id="se-dur"
+            aria-label={t.durationLabel}
             className="input tnum"
             type="number"
             min={15}
@@ -154,8 +156,10 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
           />
         </div>
         <div className="field grow" style={{ minWidth: 110 }}>
-          <label>{t.capacityLabel}</label>
+          <label htmlFor="se-cap">{t.capacityLabel}</label>
           <input
+            id="se-cap"
+            aria-label={t.capacityLabel}
             className="input tnum"
             type="number"
             min={1}
@@ -166,8 +170,8 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
       </div>
 
       <div className="field">
-        <label>{t.instructorLabel}</label>
-        <select className="select" value={instructorId} onChange={(e) => setInstructorId(e.target.value)}>
+        <label htmlFor="se-inst">{t.instructorLabel}</label>
+        <select id="se-inst" aria-label={t.instructorLabel} className="select" value={instructorId} onChange={(e) => setInstructorId(e.target.value)}>
           {instructors.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
@@ -177,8 +181,8 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
       </div>
 
       <div className="field">
-        <label>{t.roomLabel}</label>
-        <input className="input" value={room} onChange={(e) => setRoom(e.target.value)} />
+        <label htmlFor="se-room">{t.roomLabel}</label>
+        <input id="se-room" aria-label={t.roomLabel} className="input" value={room} onChange={(e) => setRoom(e.target.value)} />
       </div>
 
       {!editing && (

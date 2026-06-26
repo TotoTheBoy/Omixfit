@@ -27,7 +27,7 @@ function load(): AppData {
       const parsed = JSON.parse(raw) as AppData;
       // Bump CURRENT_VERSION (here + seed) whenever the data shape changes so
       // returning users re-seed instead of rendering against a stale schema.
-      if (parsed && parsed.version === 4) return parsed;
+      if (parsed && parsed.version === 5) return parsed;
     }
   } catch {
     /* ignore corrupt storage */

@@ -3,12 +3,27 @@ import type { ClassCategory, User } from "../lib/types";
 import { fmtWeekRange, HEB_MONTHS } from "../lib/date";
 import { IcChevL, IcChevR } from "./icons";
 
+// Pick dark or white initials by whichever has the higher WCAG contrast against
+// the avatar background — keeps initials legible (AA) on any palette color.
+function readableInk(hex: string): string {
+  const h = hex.replace("#", "");
+  const ch = (i: number) => {
+    const c = parseInt(h.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const L = 0.2126 * ch(0) + 0.7152 * ch(2) + 0.0722 * ch(4);
+  const cDark = (L + 0.05) / (0.006 + 0.05);
+  const cWhite = 1.05 / (L + 0.05);
+  return cDark >= cWhite ? "var(--ink-900)" : "#ffffff";
+}
+
 export function Avatar({ user, size = 34 }: { user: User; size?: number }) {
   return (
     <span
       className="avatar"
       style={{
         background: user.avatarColor,
+        color: readableInk(user.avatarColor),
         width: size,
         height: size,
         fontSize: size * 0.4,

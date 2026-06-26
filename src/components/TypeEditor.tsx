@@ -66,8 +66,10 @@ export function TypeEditor({
       }
     >
       <div className="field">
-        <label>{t.typeName}</label>
+        <label htmlFor="te-name">{t.typeName}</label>
         <input
+          id="te-name"
+          aria-label={t.typeName}
           className="input"
           value={name}
           placeholder="לדוגמה: ספינינג אקספרס"
@@ -91,8 +93,10 @@ export function TypeEditor({
       </div>
 
       <div className="field">
-        <label>{t.typeDesc}</label>
+        <label htmlFor="te-desc">{t.typeDesc}</label>
         <textarea
+          id="te-desc"
+          aria-label={t.typeDesc}
           className="input"
           rows={3}
           value={desc}
@@ -104,8 +108,10 @@ export function TypeEditor({
 
       <div className="row gap-3 wrap">
         <div className="field grow" style={{ minWidth: 120 }}>
-          <label>{t.defaultCap}</label>
+          <label htmlFor="te-cap">{t.defaultCap}</label>
           <input
+            id="te-cap"
+            aria-label={t.defaultCap}
             className="input tnum"
             type="number"
             min={1}
@@ -114,8 +120,10 @@ export function TypeEditor({
           />
         </div>
         <div className="field grow" style={{ minWidth: 120 }}>
-          <label>{t.defaultDur}</label>
+          <label htmlFor="te-dur">{t.defaultDur}</label>
           <input
+            id="te-dur"
+            aria-label={t.defaultDur}
             className="input tnum"
             type="number"
             min={15}

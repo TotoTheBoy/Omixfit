@@ -3,6 +3,7 @@ import { CATEGORY_META, t } from "../lib/i18n";
 import { useStore } from "../lib/store";
 import { fromKey, HEB_DAYS_SHORT } from "../lib/date";
 import { AuditLog } from "./AuditLog";
+import { Avatar } from "./common";
 
 // Manager analytics (plan.md §4.6): utilization, popular classes, no-show rate.
 // Computed over the last 30 days of (now-resolved) sessions.
@@ -150,12 +151,7 @@ export function Reports() {
             {r.topMembers.map(({ user, n }) => (
               <div className="bar-row" key={user.id} style={{ ["--cat-hue" as string]: 80 }}>
                 <span className="bl">
-                  <span
-                    className="avatar"
-                    style={{ background: user.avatarColor, width: 22, height: 22, fontSize: 10 }}
-                  >
-                    {user.initials}
-                  </span>
+                  <Avatar user={user} size={22} />
                   {user.name}
                 </span>
                 <span className="bar-track">

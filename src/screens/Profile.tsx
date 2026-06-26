@@ -204,12 +204,14 @@ function ProfileEditor({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="field">
-        <label>{t.fullName}</label>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+        <label htmlFor="pe-name">{t.fullName}</label>
+        <input id="pe-name" aria-label={t.fullName} className="input" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className="field">
-        <label>{t.phone}</label>
+        <label htmlFor="pe-phone">{t.phone}</label>
         <input
+          id="pe-phone"
+          aria-label={t.phone}
           className="input"
           dir="ltr"
           value={phone}

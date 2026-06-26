@@ -16,7 +16,7 @@ const LOCATION_ID = "loc-main";
 
 const users: User[] = [
   u("u-noa", "נועה אלון", "050-1112233", "manager", "#D6FF3D"),
-  u("u-yael", "יעל כהן", "052-7654321", "instructor", "#7C5CFF"),
+  u("u-yael", "יעל כהן", "052-7654321", "instructor", "#8E7BFF"),
   u("u-tom", "תום לוי", "054-3219876", "instructor", "#FF8A3D"),
   u("u-ran", "רן מזרחי", "053-4567890", "instructor", "#27E0B0"),
   u("u-dana", "דנה פרץ", "050-9988776", "member", "#FF5A8A"),
@@ -206,7 +206,7 @@ export function buildSeed(): AppData {
     },
     audit: buildAudit(),
     currentUserId: "u-dana", // start as a member
-    version: 4,
+    version: 5,
   };
 }
 
