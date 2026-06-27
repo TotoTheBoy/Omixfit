@@ -5,6 +5,7 @@ import puppeteer from "puppeteer-core";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdirSync } from "node:fs";
+import { signInAs, emailForUser, freshContext } from "./_auth.mjs";
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "screenshots", "empty");
 mkdirSync(OUT, { recursive: true });
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -15,25 +16,21 @@ const b = await puppeteer.launch({ executablePath: CHROME, headless: "new", args
 
 const nanFound = [];
 async function go(name, { hash, userId, seg, emptyTypes = false }) {
-  const p = await b.newPage();
+  const { context, page: p } = await freshContext(b);
   await p.setViewport({ width: 1280, height: 900, deviceScaleFactor: 2 });
   p.on("console", (m) => { if (/NaN|undefined|Infinity/.test(m.text())) nanFound.push(`[${name}] ${m.text()}`); });
-  await p.goto(BASE + "/?e=" + Math.random() + "#" + hash, { waitUntil: "networkidle2" });
-  await p.waitForSelector(".appbar");
+  // Sign in first, then empty the data (auth only sets currentUserId, so the
+  // injected empty state survives the reload).
+  await p.goto(BASE + "/?e=" + Math.random(), { waitUntil: "networkidle2" });
+  await signInAs(p, emailForUser(userId));
   await p.evaluate((k, et) => {
     const d = JSON.parse(localStorage.getItem(k));
     d.sessions = []; d.bookings = []; d.audit = [];
     if (et) d.classTypes = [];
-    d.currentUserId = "u-noa";
     localStorage.setItem(k, JSON.stringify(d));
   }, KEY, emptyTypes);
   await p.goto(BASE + "/?e=" + Math.random() + "#" + (hash || ""), { waitUntil: "networkidle2" });
   await p.waitForSelector(".appbar");
-  if (userId) {
-    await p.evaluate((k, id) => { const d = JSON.parse(localStorage.getItem(k)); d.currentUserId = id; localStorage.setItem(k, JSON.stringify(d)); }, KEY, userId);
-    await p.goto(BASE + "/?e=" + Math.random() + "#" + (hash || ""), { waitUntil: "networkidle2" });
-    await p.waitForSelector(".appbar");
-  }
   await new Promise((r) => setTimeout(r, 400));
   if (seg) { await p.click(`.seg button:nth-child(${seg})`).catch(() => {}); await new Promise((r) => setTimeout(r, 400)); }
   // scan rendered text for NaN / undefined leaking into the UI
@@ -48,7 +45,7 @@ async function go(name, { hash, userId, seg, emptyTypes = false }) {
   if (badText.length) nanFound.push(`[${name}] visible text: ${badText.join(", ")}`);
   await p.screenshot({ path: join(OUT, name + ".png"), fullPage: true });
   console.log(`  ✓ ${name}${badText.length ? "  ⚠ " + badText.join(",") : ""}`);
-  await p.close();
+  await context.close();
 }
 
 console.log("Empty-state probe…");

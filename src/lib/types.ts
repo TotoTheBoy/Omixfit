@@ -18,6 +18,8 @@ export interface User {
   id: string;
   name: string;
   phone: string;
+  /** Firebase Auth identity. Sign-in matches a user by email (case-insensitive). */
+  email?: string;
   role: Role;
   /** Q3: booking is gated on this even before a payment engine exists. */
   membershipActive: boolean;

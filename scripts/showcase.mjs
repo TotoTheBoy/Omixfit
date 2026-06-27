@@ -4,11 +4,11 @@ import puppeteer from "puppeteer-core";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mkdirSync } from "node:fs";
+import { signInAs, emailForUser, freshContext } from "./_auth.mjs";
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "docs", "media");
 mkdirSync(OUT, { recursive: true });
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
-const KEY = "omixfit:v1";
 const VP = { width: 1240, height: 860, deviceScaleFactor: 1.5 };
 
 const b = await puppeteer.launch({ executablePath: CHROME, headless: "new", args: ["--no-sandbox", "--force-color-profile=srgb"] });
@@ -16,13 +16,12 @@ let nav = 0;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function page(userId) {
-  const p = await b.newPage();
+  // Each screenshot user gets an isolated context (clean Firebase session).
+  const { context, page: p } = await freshContext(b);
+  p._ctx = context;
   await p.setViewport(VP);
-  await p.goto(`${BASE}/?s=${nav++}#schedule`, { waitUntil: "networkidle2" });
-  await p.waitForSelector(".appbar");
-  if (userId) {
-    await p.evaluate((k, id) => { const d = JSON.parse(localStorage.getItem(k)); d.currentUserId = id; localStorage.setItem(k, JSON.stringify(d)); }, KEY, userId);
-  }
+  await p.goto(`${BASE}/?s=${nav++}`, { waitUntil: "networkidle2" });
+  await signInAs(p, emailForUser(userId));
   return p;
 }
 async function nextWeekWithClasses(p) {
@@ -52,7 +51,7 @@ await p.evaluate(() => {
 await p.waitForSelector(".sheet"); await sleep(500);
 await p.screenshot({ path: join(OUT, "booking.png") });
 console.log("  ✓ booking.png");
-await p.close();
+await p._ctx.close();
 
 // 3. manager week grid
 p = await page("u-noa");
@@ -64,7 +63,7 @@ console.log("  ✓ manage.png");
 await p.click(".seg button:nth-child(3)"); await sleep(600);
 await p.screenshot({ path: join(OUT, "reports.png") });
 console.log("  ✓ reports.png");
-await p.close();
+await p._ctx.close();
 
 // 5. member profile (populated)
 p = await page("u-avi");
@@ -72,7 +71,7 @@ await p.goto(`${BASE}/?s=${nav++}#profile`, { waitUntil: "networkidle2" });
 await p.waitForSelector(".member-card"); await sleep(400);
 await p.screenshot({ path: join(OUT, "profile.png") });
 console.log("  ✓ profile.png");
-await p.close();
+await p._ctx.close();
 
 await b.close();
 console.log("Done → docs/media/");

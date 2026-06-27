@@ -4,6 +4,7 @@ import puppeteer from "puppeteer-core";
 import { mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { signInAs, emailForUser, freshContext } from "./_auth.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "screenshots");
@@ -11,7 +12,6 @@ mkdirSync(OUT, { recursive: true });
 
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
-const STORAGE_KEY = "omixfit:v1";
 
 let navSeq = 0; // cache-buster so every (re)load is a real full navigation
 const desktop = { width: 1280, height: 900, deviceScaleFactor: 2 };
@@ -23,35 +23,15 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox", "--force-color-profile=srgb"],
 });
 
-async function setUser(page, userId) {
-  await page.evaluate(
-    (key, id) => {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const d = JSON.parse(raw);
-        d.currentUserId = id;
-        localStorage.setItem(key, JSON.stringify(d));
-      }
-    },
-    STORAGE_KEY,
-    userId,
-  );
-}
-
 async function shot(name, { viewport, hash = "", userId, click, then, wait = 700, fullPage = false }) {
-  const page = await browser.newPage();
+  const { context, page } = await freshContext(browser);
   await page.setViewport(viewport);
   const url = (h) => `${BASE}/?r=${navSeq++}#${h}`;
-  // first load seeds + persists localStorage
+  // Sign in (or switch role) first, then navigate to the screenshotted route.
+  await page.goto(url(""), { waitUntil: "networkidle2" });
+  await signInAs(page, emailForUser(userId));
   await page.goto(url(hash), { waitUntil: "networkidle2" });
   await page.waitForSelector(".appbar", { timeout: 8000 });
-  if (userId) {
-    await setUser(page, userId);
-    // Full navigation (unique query) so the app re-inits as the new user with
-    // the correct hash — avoids the in-page redirect rewriting it.
-    await page.goto(url(hash), { waitUntil: "networkidle2" });
-    await page.waitForSelector(".appbar", { timeout: 8000 });
-  }
   await new Promise((r) => setTimeout(r, wait));
   // On the schedule, land on a day that has classes (today may be Shabbat).
   if (hash === "") {
@@ -74,7 +54,7 @@ async function shot(name, { viewport, hash = "", userId, click, then, wait = 700
   const file = join(OUT, name + ".png");
   await page.screenshot({ path: file, fullPage });
   console.log("  ✓ " + name);
-  await page.close();
+  await context.close();
 }
 
 console.log("Capturing screenshots…");

@@ -8,9 +8,11 @@ Omixfit — a Hebrew-first, **RTL** PWA for booking fitness classes, built from 
 product spec in [`docs/plan.md`](docs/plan.md). Two experiences in one app: a
 **trainee** side (browse the week, book/cancel, waitlist) and a **trainer/manager**
 side (publish schedule, rosters, reports, member management). Stack: Vite + React 18
-+ TypeScript with a **hand-crafted CSS design system** and **zero runtime UI
-dependencies** (only `react`/`react-dom` ship). There is no backend — state lives in
-`localStorage` behind a store API designed so a real backend can swap in later.
++ TypeScript with a **hand-crafted CSS design system** and minimal runtime
+dependencies (`react`/`react-dom` plus the **Firebase SDK** for auth). The only
+backend is **Firebase Authentication** (email + password); all *domain* state still
+lives in `localStorage` behind a store API designed so a real data backend can swap
+in later.
 
 ## Commands
 
@@ -52,9 +54,9 @@ read selectors and call exported mutations (`book`, `cancelBooking`, `joinWaitli
 - **Waitlist auto-promotion** (`fillFromWaitlist`) runs on cancellation and on
   capacity increase, FIFO by `createdAt`.
 - **Schema versioning gotcha:** `load()` only accepts persisted data when
-  `parsed.version === 5`, otherwise it reseeds. When you change the data shape, bump
-  the number in **both** `src/lib/store.ts` (the `=== 5` check) and `src/lib/seed.ts`
-  (`version: 5`), or returning users render against a stale schema.
+  `parsed.version === 6`, otherwise it reseeds. When you change the data shape, bump
+  the number in **both** `src/lib/store.ts` (the `=== 6` check) and `src/lib/seed.ts`
+  (`version: 6`), or returning users render against a stale schema.
 
 **Domain model — `src/lib/types.ts`** (plan.md §3). The critical distinction: a
 **ClassType** is a reusable template (no date); a **ClassSession** is one dated
@@ -70,13 +72,28 @@ copy is meant to be a config change, not a rewrite.
 `inset-inline-start`, `padding-block`, etc.) — never physical `left`/`right`. Week
 starts **Sunday** and dates format in Hebrew via `src/lib/date.ts`.
 
-**Auth is a demo stand-in.** There's no login backend: `currentUserId` (in the store)
-is **nullable** — `null` means logged out, and `App.tsx` renders `src/screens/Login.tsx`
-(a seeded-user picker) instead of the app shell when there's no current user. Real auth
-would be phone + SMS OTP (plan.md §4.1). Booking is gated on `user.membershipActive`.
-Because the app only renders the inner screens when logged in, components resolve the
-current user with `data.users.find(u => u.id === data.currentUserId)!` and pass `me.id`
-into store helpers — keep that pattern rather than threading the nullable id around.
+**Auth is Firebase email + password.** `src/lib/firebase.ts` is the *only* module
+that imports the firebase SDK; it's **code-split** (dynamic `import()` in `App.tsx`,
+`Login.tsx` on submit, `UserSwitcher.tsx` on sign-out) so the ~168 KB SDK stays off
+the critical render path. The SDK-free `src/lib/firebaseConfig.ts` holds the
+`VITE_FIREBASE_*` config + `firebaseConfigured` flag (see `.env.example`). The store
+stays firebase-free so the node smoke test keeps bundling. Rendering is **optimistic**:
+`App.tsx` renders straight from the persisted `currentUserId` (logged-out → `Login`),
+*then* `watchAuth` reconciles in the background — on a resolved identity it calls
+`signInWithIdentity(email, displayName)` (maps to an app `User` **by email**,
+case-insensitive, auto-creating an inactive `member` for unknown emails — a manager
+activates the membership later), or `logout()` if the session is gone. So first paint
+never waits on Firebase. `currentUserId` (in the store) is **nullable** and is a
+*cache* reconciled from Firebase, not the source of truth. Sign-out goes through
+`signOutUser()` (firebase), and the auth listener clears `currentUserId`. Booking is still gated on
+`user.membershipActive`. Components resolve the current user with
+`data.users.find(u => u.id === data.currentUserId)!` and pass `me.id` into store
+helpers — keep that pattern rather than threading the nullable id around. Seeded
+users carry demo emails (`<id-without-u->@omixfit.app`, e.g. `noa@omixfit.app` is the
+manager); sign up with one to log in as that role. **Setup:** enable the
+Email/Password provider in the Firebase console and copy `.env.example` →
+`.env.local`. The browser QA scripts (`a11y`/`e2e`/…) need a valid config and now log
+in through the email/password form, not a user picker.
 
 **Accessibility is a legal requirement** (IS 5568 / WCAG 2.1 AA) and the bar is **0
 serious/critical axe violations** across screens *and* modal states. Two things to

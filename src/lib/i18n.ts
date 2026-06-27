@@ -184,9 +184,25 @@ export const t = {
   // login / session
   loginTitle: "ברוכים הבאים לאומיקספיט",
   loginSubtitle: "התחבר/י כדי לראות את לוח השיעורים ולהזמין מקום.",
-  loginDemoNote: "הדגמה — בחר/י משתמש כדי להתחבר. בגרסה החיה: כניסה עם טלפון וקוד SMS.",
+  loginDemoNote: "משתמש חדש? צור/צרי חשבון — תיווצר חברות מתאמן/ת חדשה.",
   loggedOutToast: "התנתקת מהמערכת",
+  welcomeBack: (name: string) => `ברוך/ה שובך, ${name}`,
   version: "גרסה",
+
+  // email/password auth (Firebase)
+  emailLabel: "אימייל",
+  passwordLabel: "סיסמה",
+  nameLabel: "שם מלא",
+  emailPlaceholder: "name@example.com",
+  signInTab: "התחברות",
+  signUpTab: "הרשמה",
+  signInCta: "התחברות",
+  signUpCta: "יצירת חשבון",
+  authWorking: "רגע…",
+  noAccountPrompt: "אין לך חשבון?",
+  haveAccountPrompt: "כבר יש לך חשבון?",
+  authNotConfigured: "התחברות אינה זמינה — חסר Firebase config. ראה/י .env.example.",
+  account: "החשבון שלי",
 
   // generic
   close: "סגירה",

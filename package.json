@@ -24,6 +24,7 @@
     "test": "esbuild test/smoke.ts --bundle --platform=node --format=cjs --outfile=test/smoke.cjs --log-level=error && node test/runner.mjs"
   },
   "dependencies": {
+    "firebase": "^12.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

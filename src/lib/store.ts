@@ -27,7 +27,7 @@ function load(): AppData {
       const parsed = JSON.parse(raw) as AppData;
       // Bump CURRENT_VERSION (here + seed) whenever the data shape changes so
       // returning users re-seed instead of rendering against a stale schema.
-      if (parsed && parsed.version === 5) return parsed;
+      if (parsed && parsed.version === 6) return parsed;
     }
   } catch {
     /* ignore corrupt storage */
@@ -352,6 +352,57 @@ export function setCurrentUser(userId: string): void {
 /** Sign out — clears the session so the app shows the login screen. */
 export function logout(): void {
   set({ ...state, currentUserId: null });
+}
+
+// ---- Firebase Auth reconciliation -------------------------------------------
+// firebase.ts owns the SDK; the store only maps a resolved identity to an app
+// user so it stays importable from node (the booking-engine smoke test).
+
+const AVATAR_COLORS = [
+  "#D6FF3D", "#8E7BFF", "#FF8A3D", "#27E0B0", "#FF5A8A",
+  "#5AC8FF", "#FFD23D", "#B26BFF", "#3DE0FF", "#FF6B6B",
+];
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
+function hashCode(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Reconcile a signed-in Firebase identity to an app user and make it current,
+ * in a single commit. Matches by email (case-insensitive); an unknown identity
+ * auto-creates a `member` with an inactive membership (a manager activates it
+ * later). This is how real auth maps onto the local user records.
+ */
+export function signInWithIdentity(email: string, displayName: string | null): void {
+  const e = email.trim().toLowerCase();
+  const existing = state.users.find((u) => u.email?.toLowerCase() === e);
+  if (existing) {
+    if (state.currentUserId !== existing.id) set({ ...state, currentUserId: existing.id });
+    return;
+  }
+  const name = displayName?.trim() || email.split("@")[0] || email;
+  const user: User = {
+    id: nextId("u"),
+    name,
+    phone: "",
+    email: email.trim(),
+    role: "member",
+    membershipActive: false,
+    avatarColor: AVATAR_COLORS[hashCode(email) % AVATAR_COLORS.length],
+    initials: initialsOf(name),
+    prefs: { push: true, email: true, whatsapp: false, reminderHours: 2 },
+  };
+  set({ ...state, users: [...state.users, user], currentUserId: user.id });
 }
 
 // ---- manager mutations -------------------------------------------------------

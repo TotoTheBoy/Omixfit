@@ -2,6 +2,7 @@
 // then assert no surface develops horizontal overflow at mobile + desktop.
 // Long content is a classic source of overflow/truncation bugs.
 import puppeteer from "puppeteer-core";
+import { signInAs, emailForUser, freshContext } from "./_auth.mjs";
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
 const KEY = "omixfit:v1";
@@ -24,12 +25,11 @@ async function inject(page) {
 }
 
 async function check(label, w, { hash = "", userId, seg } = {}) {
-  const p = await b.newPage();
+  const { context, page: p } = await freshContext(b);
   await p.setViewport({ width: w, height: 800, deviceScaleFactor: 1 });
-  await p.goto(BASE + "/?x=" + Math.random() + "#" + hash, { waitUntil: "networkidle2" });
-  await p.waitForSelector(".appbar");
-  await inject(p);
-  if (userId) await p.evaluate((k, id) => { const d = JSON.parse(localStorage.getItem(k)); d.currentUserId = id; localStorage.setItem(k, JSON.stringify(d)); }, KEY, userId);
+  await p.goto(BASE + "/?x=" + Math.random(), { waitUntil: "networkidle2" });
+  await signInAs(p, emailForUser(userId));
+  await inject(p); // long-content overrides (auth keeps the signed-in user)
   await p.goto(BASE + "/?x=" + Math.random() + "#" + hash, { waitUntil: "networkidle2" });
   await p.waitForSelector(".appbar");
   await new Promise((r) => setTimeout(r, 400));
@@ -40,7 +40,7 @@ async function check(label, w, { hash = "", userId, seg } = {}) {
   if (seg) { await p.click(`.seg button:nth-child(${seg})`).catch(() => {}); await new Promise((r) => setTimeout(r, 400)); }
   const o = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   ok(`${label} @${w}: no horizontal overflow`, o <= 2, o > 2 ? `  (+${o}px)` : "");
-  await p.close();
+  await context.close();
 }
 
 console.log("Long-content stress (no-overflow guard)…");

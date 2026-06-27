@@ -2,10 +2,10 @@
 // the live app on each key screen. plan.md §5.5 (IS 5568 / WCAG 2.0 AA).
 import puppeteer from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
+import { signInAs, emailForUser, freshContext } from "./_auth.mjs";
 
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
-const STORAGE_KEY = "omixfit:v1";
 
 const browser = await puppeteer.launch({
   executablePath: CHROME,
@@ -15,26 +15,13 @@ const browser = await puppeteer.launch({
 
 let nav = 0;
 async function audit(label, { hash = "", userId, open, then } = {}) {
-  const page = await browser.newPage();
+  const { context, page } = await freshContext(browser);
   await page.setViewport({ width: 1280, height: 900 });
+  // Each audit is an isolated session, so signing in is always a clean login.
+  await page.goto(`${BASE}/?r=${nav++}`, { waitUntil: "networkidle2" });
+  await signInAs(page, emailForUser(userId));
   await page.goto(`${BASE}/?r=${nav++}#${hash}`, { waitUntil: "networkidle2" });
   await page.waitForSelector(".appbar");
-  if (userId) {
-    await page.evaluate(
-      (key, id) => {
-        const raw = localStorage.getItem(key);
-        if (raw) {
-          const d = JSON.parse(raw);
-          d.currentUserId = id;
-          localStorage.setItem(key, JSON.stringify(d));
-        }
-      },
-      STORAGE_KEY,
-      userId,
-    );
-    await page.goto(`${BASE}/?r=${nav++}#${hash}`, { waitUntil: "networkidle2" });
-    await page.waitForSelector(".appbar");
-  }
   await new Promise((r) => setTimeout(r, 500));
   // If we need a class card, select a day that actually has classes (today may
   // be Shabbat / an empty day) so the test is date-independent.
@@ -74,7 +61,7 @@ async function audit(label, { hash = "", userId, open, then } = {}) {
     console.log(`    ! [${v.impact}] ${v.id} — ${v.help} (${v.nodes.length} nodes)`);
     console.log(`      ${v.nodes[0]?.target?.join(" ")}`);
   }
-  await page.close();
+  await context.close();
   return serious.length;
 }
 

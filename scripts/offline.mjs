@@ -2,6 +2,7 @@
 // installs + caches the shell, then go offline and reload — the app must still
 // render from cache (booking still works thanks to localStorage state).
 import puppeteer from "puppeteer-core";
+import { signInAs, EMAIL } from "./_auth.mjs";
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
 
@@ -11,9 +12,10 @@ let pass = 0, fail = 0;
 const ok = (n, c) => { c ? pass++ : fail++; console.log(`  ${c ? "✓" : "✗"} ${n}`); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// 1. first load: register SW + warm the cache
+// 1. first load: sign in (online), register SW + warm the cache. Firebase Auth
+// persists the session, so the later offline reload restores it without network.
 await p.goto(BASE + "/", { waitUntil: "networkidle2" });
-await p.waitForSelector(".appbar");
+await signInAs(p, EMAIL.member);
 
 const swReady = await p.evaluate(async () => {
   if (!("serviceWorker" in navigator)) return false;

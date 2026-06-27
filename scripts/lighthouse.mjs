@@ -3,6 +3,7 @@
 // issues (manifest, tap targets, meta, console errors) surface.
 import { launch } from "puppeteer-core";
 import lighthouse from "lighthouse";
+import { signInAs, EMAIL } from "./_auth.mjs";
 
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PAGE_URL = "http://localhost:4173/";
@@ -12,6 +13,14 @@ const browser = await launch({
   headless: "new",
   args: ["--no-sandbox"],
 });
+
+// Warm a signed-in session first — Firebase Auth persists it in the browser
+// profile, so Lighthouse's fresh navigation audits the real app, not the login
+// screen.
+const warm = await browser.newPage();
+await warm.goto(PAGE_URL, { waitUntil: "networkidle2" });
+await signInAs(warm, EMAIL.member);
+await warm.close();
 
 const port = Number(new URL(browser.wsEndpoint()).port);
 

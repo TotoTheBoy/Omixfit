@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { t } from "./lib/i18n";
-import { useStore } from "./lib/store";
+import { logout, signInWithIdentity, useStore } from "./lib/store";
 import { Schedule } from "./screens/Schedule";
 import { MyBookings } from "./screens/MyBookings";
 import { Manage } from "./screens/Manage";
@@ -32,6 +32,27 @@ export default function App() {
   const isStaff = !!me && me.role !== "member";
   const [view, setView] = useState<View>(readHash);
   const [switcher, setSwitcher] = useState(false);
+
+  // Optimistic auth: render immediately from the persisted `currentUserId`
+  // (logged-out shows Login), and reconcile against Firebase in the background.
+  // The SDK is code-split and loaded here, off the critical render path, so
+  // first paint never waits on it. Firebase then confirms the session, signs in
+  // a freshly-resolved identity, or logs out if the session is gone.
+  useEffect(() => {
+    let unsub = () => {};
+    let cancelled = false;
+    import("./lib/firebase").then(({ watchAuth }) => {
+      if (cancelled) return;
+      unsub = watchAuth((identity) => {
+        if (identity) signInWithIdentity(identity.email, identity.displayName);
+        else logout();
+      });
+    });
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, []);
 
   useEffect(() => {
     const onHash = () => setView(readHash());

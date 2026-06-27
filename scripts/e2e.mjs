@@ -2,6 +2,7 @@
 // (book -> appears in My Bookings -> cancel), exercising store+UI+nav wiring
 // that the store-only smoke test can't reach.
 import puppeteer from "puppeteer-core";
+import { signInAs, EMAIL } from "./_auth.mjs";
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
 
@@ -15,7 +16,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // fresh member (dana), no seeded bookings
 await p.goto(BASE + "/#schedule", { waitUntil: "networkidle2" });
-await p.waitForSelector(".appbar");
+await signInAs(p, EMAIL.member);
 
 // jump to next week (all of today's classes are in the past) and find a
 // bookable class (one whose card action is the lime "book" button).

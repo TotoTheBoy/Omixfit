@@ -205,8 +205,10 @@ export function buildSeed(): AppData {
       maxActiveBookings: 6,
     },
     audit: buildAudit(),
-    currentUserId: "u-dana", // start as a member
-    version: 5,
+    // Logged out by default — Firebase Auth (App.tsx) sets the current user once
+    // a session resolves; until then the Login screen renders.
+    currentUserId: null,
+    version: 6,
   };
 }
 
@@ -224,6 +226,9 @@ function u(
     id,
     name,
     phone,
+    // Demo email derived from the id (e.g. u-noa → noa@omixfit.app). Sign up
+    // with this address in Firebase Auth to log in as that seeded user/role.
+    email: `${id.replace(/^u-/, "")}@omixfit.app`,
     role,
     membershipActive: true,
     membershipPlan: role === "member" ? "מנוי חופשי חודשי" : "צוות",

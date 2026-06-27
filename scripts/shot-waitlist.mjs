@@ -3,6 +3,7 @@
 import puppeteer from "puppeteer-core";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { signInAs, EMAIL } from "./_auth.mjs";
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "screenshots");
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -17,12 +18,11 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 2 });
 await page.goto(BASE + "/#schedule", { waitUntil: "networkidle2" });
-await page.waitForSelector(".appbar");
+await signInAs(page, EMAIL.member);
 
 // Fill every session 6–13 days out to capacity (other members), as member dana.
 await page.evaluate((key) => {
   const d = JSON.parse(localStorage.getItem(key));
-  d.currentUserId = "u-dana";
   const now = Date.now();
   for (const s of d.sessions) {
     const [y, mo, da] = s.date.split("-").map(Number);

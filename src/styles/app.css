@@ -1774,6 +1774,91 @@
   color: var(--text-2);
   line-height: 1.5;
 }
+.login-demo {
+  margin-block: 6px 0;
+}
+.login-error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: rgba(255, 90, 90, 0.12);
+  color: var(--danger, #c0392b);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ---- email/password auth -------------------------------------------------- */
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-block-end: 18px;
+  background: var(--surface-2);
+  border-radius: var(--r-lg);
+}
+.auth-tabs button {
+  flex: 1;
+  padding: 9px 0;
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-2);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.auth-tabs button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--sh-1);
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: start;
+}
+.auth-form .btn-block {
+  margin-block-start: 4px;
+}
+.link-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--ink-700);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ---- account sheet -------------------------------------------------------- */
+.account-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.account-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.account-meta strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.account-meta small {
+  color: var(--text-2);
+  font-size: 0.8rem;
+}
+.account-role {
+  align-self: flex-start;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.72rem;
+}
 
 /* ---- version tag ---------------------------------------------------------- */
 .version-tag {

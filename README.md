@@ -53,8 +53,29 @@ npm run e2e        # end-to-end UI test: book → My Bookings → cancel (7 chec
 > no bundled Chromium) against the preview server and writes `screenshots/*.png`
 > for every screen at desktop + mobile widths. Run `npm run preview` first.
 
-The app opens as **דנה פרץ (a member)**. Use the **user switcher** (top‑left)
-to log in as נועה (manager) or an instructor and see the management side.
+### Firebase Authentication (email + password)
+
+Login is real [Firebase Auth](https://firebase.google.com/docs/auth). To run it:
+
+1. In the [Firebase console](https://console.firebase.google.com/), enable
+   **Build → Authentication → Sign-in method → Email/Password**.
+2. Copy `.env.example` → `.env.local` and fill in your web app config
+   (*Project settings → General → Your apps → SDK setup & config*).
+
+The app shows a **sign-in / sign-up** screen. Signing up with an unknown email
+auto-creates a **member** (inactive membership — a manager activates it).
+Seeded staff carry demo emails (`<id>@omixfit.app`), so signing up as
+`noa@omixfit.app` logs you in as **נועה, the manager**, `yael@omixfit.app` as an
+instructor, etc. — that's how you reach the management side. Sign out from the
+account sheet (top app-bar avatar).
+
+**For the browser QA scripts** (`a11y`/`e2e`/`shots`/…): they sign in through
+Firebase, so the preview build must embed your config (`.env.local` set, then
+`npm run build`) and the demo accounts must exist in the project. Create
+`noa@`, `yael@`, `dana@`, `avi@omixfit.app` with the shared password
+`Omixfit-demo-1` (or set `OMIXFIT_TEST_PASSWORD`). For the **live deploy**, add
+the six `VITE_FIREBASE_*` values as repo **Actions secrets** and add your
+`<user>.github.io` domain under Firebase Auth → Settings → Authorized domains.
 
 ## What works today
 
@@ -180,6 +201,14 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
       per subset (Hebrew + Latin), bundled by Vite. Removes the render‑blocking
       third‑party request and the Google dependency, and makes the brand font
       render **offline**. **Performance 94 → 99** (A11y/BP/SEO still 100).
+
+- [x] **i20** — Real **Firebase Authentication** (email + password, plan.md §4.1):
+      replaced the demo user-picker login with sign-in/sign-up, mapped to app users
+      **by email** (auto-creating an inactive member for new emails). The firebase
+      SDK is **code-split** and rendering is **optimistic** (paints from persisted
+      state, reconciles auth in the background) so first paint never waits on it —
+      **Performance 98 · A11y 100 · BP 100 · SEO 100**. Auth verified end-to-end
+      against a live project; the browser QA scripts now sign in through Firebase.
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,

@@ -1,10 +1,12 @@
 import puppeteer from "puppeteer-core";
+import { signInAs, EMAIL } from "./_auth.mjs";
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
 const b = await puppeteer.launch({ executablePath: CHROME, headless: "new", args: ["--no-sandbox"] });
 const p = await b.newPage();
 await p.setViewport({ width: 1280, height: 900 });
 await p.goto(BASE + "/#schedule", { waitUntil: "networkidle2" });
+await signInAs(p, EMAIL.member);
 await p.waitForSelector(".daycol");
 // Select a day that has classes (today may be Shabbat / empty) — date-robust.
 await p.evaluate(() => {

@@ -1,16 +1,39 @@
+import { useState } from "react";
 import { t } from "../lib/i18n";
-import { setCurrentUser, useStore } from "../lib/store";
-import { Avatar, VersionTag } from "../components/common";
+import { firebaseConfigured } from "../lib/firebaseConfig";
+import { VersionTag } from "../components/common";
 import { Toaster, toast } from "../components/Toast";
-import { IcBolt, IcChevL } from "../components/icons";
+import { IcBolt } from "../components/icons";
 
-// Logged-out landing. Real auth (plan.md §4.1) is phone + SMS OTP; for the demo
-// we let the visitor pick a seeded user to sign in as. Rendered by <App /> when
-// there is no current user, so the rest of the app never sees a null session.
+type Mode = "signin" | "signup";
+
+// Logged-out landing. Real email + password auth via Firebase (plan.md §4.1).
+// On success the auth listener in <App /> resolves the session and swaps in the
+// app shell, so this screen never has to set the current user itself.
 export function Login() {
-  const users = useStore((s) => s.users);
-  const order = { manager: 0, admin: 1, instructor: 2, member: 3 } as const;
-  const sorted = [...users].sort((a, b) => order[a.role] - order[b.role]);
+  const [mode, setMode] = useState<Mode>("signin");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const isSignup = mode === "signup";
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy || !firebaseConfigured) return;
+    setBusy(true);
+    // Code-split: pull the firebase SDK in only when the user actually submits.
+    const { signIn, signUp, authErrorMessage } = await import("../lib/firebase");
+    try {
+      if (isSignup) await signUp(email, password, name);
+      else await signIn(email, password);
+      // Success → <App />'s auth listener takes it from here.
+    } catch (err) {
+      toast(authErrorMessage(err), "err");
+      setBusy(false);
+    }
+  }
 
   return (
     <div className="login-screen">
@@ -21,27 +44,97 @@ export function Login() {
         <h1>{t.loginTitle}</h1>
         <p className="login-sub">{t.loginSubtitle}</p>
 
-        <div className="login-users">
-          {sorted.map((u) => (
-            <button
-              key={u.id}
-              className="login-user"
-              onClick={() => {
-                setCurrentUser(u.id);
-                toast(`${t.loginAs} ${u.name}`, "ok");
-              }}
-            >
-              <Avatar user={u} size={40} />
-              <span className="lu-name">
-                {u.name}
-                <small>{t.roles[u.role]}</small>
-              </span>
-              <IcChevL width={18} height={18} style={{ opacity: 0.5 }} />
-            </button>
-          ))}
+        {!firebaseConfigured && (
+          <p className="login-error" role="alert">
+            {t.authNotConfigured}
+          </p>
+        )}
+
+        <div className="auth-tabs" role="tablist" aria-label={t.loginTitle}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!isSignup}
+            className={!isSignup ? "active" : ""}
+            onClick={() => setMode("signin")}
+          >
+            {t.signInTab}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={isSignup}
+            className={isSignup ? "active" : ""}
+            onClick={() => setMode("signup")}
+          >
+            {t.signUpTab}
+          </button>
         </div>
 
-        <p className="login-note">{t.loginDemoNote}</p>
+        <form className="auth-form" onSubmit={onSubmit}>
+          {isSignup && (
+            <div className="field">
+              <label htmlFor="auth-name">{t.nameLabel}</label>
+              <input
+                id="auth-name"
+                className="input"
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+          )}
+          <div className="field">
+            <label htmlFor="auth-email">{t.emailLabel}</label>
+            <input
+              id="auth-email"
+              className="input"
+              type="email"
+              inputMode="email"
+              dir="ltr"
+              autoComplete="email"
+              placeholder={t.emailPlaceholder}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="auth-password">{t.passwordLabel}</label>
+            <input
+              id="auth-password"
+              className="input"
+              type="password"
+              dir="ltr"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
+          <button
+            type="submit"
+            className="btn btn-lime btn-block btn-lg"
+            disabled={busy || !firebaseConfigured}
+          >
+            {busy ? t.authWorking : isSignup ? t.signUpCta : t.signInCta}
+          </button>
+        </form>
+
+        <p className="login-note">
+          {isSignup ? t.haveAccountPrompt : t.noAccountPrompt}{" "}
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => setMode(isSignup ? "signin" : "signup")}
+          >
+            {isSignup ? t.signInTab : t.signUpTab}
+          </button>
+        </p>
+        {!isSignup && <p className="login-note login-demo">{t.loginDemoNote}</p>}
         <VersionTag className="login-version" />
       </div>
       <Toaster />

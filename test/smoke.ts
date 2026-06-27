@@ -12,6 +12,7 @@ import {
   joinWaitlist,
   memberStats,
   newTypeId,
+  setCurrentUser,
   updateUser,
   upsertClassType,
   upsertSession,
@@ -138,6 +139,10 @@ ok(
 );
 
 // 6b. Audit log (plan.md §4.6)
+// Manager actions run while signed in — Firebase Auth sets the current user in
+// the app; the seed now starts logged out, so set a manager actor here.
+const manager = getState().users.find((u) => u.role === "manager")!;
+setCurrentUser(manager.id);
 const auditBefore = getState().audit.length;
 upsertClassType({
   id: newTypeId(),
