@@ -80,6 +80,15 @@ export async function signInAs(page, email, password = TEST_PASSWORD) {
     if ((await currentEmail(page)) === email) return;
     await signOut(page);
   }
+  // Logged-out shows the marketing landing first — click a CTA to reach the form.
+  if (await page.$(".landing")) {
+    await page.evaluate(() => {
+      const btn = [...document.querySelectorAll(".landing .btn")].find((b) =>
+        /כניסה|התחל/.test(b.textContent || ""),
+      );
+      btn?.click();
+    });
+  }
   await page.waitForSelector(".auth-form", { timeout: 15000 });
   // The sign-in tab is the first/default one.
   await page.evaluate(() => {

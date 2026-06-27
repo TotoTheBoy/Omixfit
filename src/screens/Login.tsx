@@ -3,14 +3,14 @@ import { t } from "../lib/i18n";
 import { firebaseConfigured } from "../lib/firebaseConfig";
 import { VersionTag } from "../components/common";
 import { Toaster, toast } from "../components/Toast";
-import { IcBolt } from "../components/icons";
+import { IcBolt, IcChevR } from "../components/icons";
 
 type Mode = "signin" | "signup";
 
-// Logged-out landing. Real email + password auth via Firebase (plan.md §4.1).
-// On success the auth listener in <App /> resolves the session and swaps in the
-// app shell, so this screen never has to set the current user itself.
-export function Login() {
+// Email/password sign-in (Firebase). Rendered by <App /> in the logged-out state
+// after the marketing landing page; `onBack` returns to it. On success the auth
+// listener in <App /> resolves the session and swaps in the app shell.
+export function Login({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -38,6 +38,12 @@ export function Login() {
   return (
     <div className="login-screen">
       <div className="login-card">
+        {onBack && (
+          <button className="login-back" onClick={onBack}>
+            <IcChevR width={16} height={16} />
+            {t.back}
+          </button>
+        )}
         <span className="login-logo">
           <IcBolt width={30} height={30} style={{ color: "var(--ink-900)" }} />
         </span>

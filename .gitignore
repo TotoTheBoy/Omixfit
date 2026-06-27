@@ -5,3 +5,4 @@ screenshots/
 *.local
 .DS_Store
 *.log
+.firebase/

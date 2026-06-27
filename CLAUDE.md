@@ -86,17 +86,20 @@ copy is meant to be a config change, not a rewrite.
 starts **Sunday** and dates format in Hebrew via `src/lib/date.ts`.
 
 **Auth is Firebase email + password.** `src/lib/firebase.ts` is the *only* module
-that imports the firebase SDK; it's **code-split** (dynamic `import()` in `App.tsx`,
-`Login.tsx` on submit, `UserSwitcher.tsx` on sign-out) so the ~168 KB SDK stays off
-the critical render path. The SDK-free `src/lib/firebaseConfig.ts` holds the
+that imports the firebase-auth SDK; it's **code-split** (dynamic `import()` in
+`App.tsx`, `Login.tsx` on submit, `UserSwitcher.tsx` on sign-out) so it stays off the
+critical render path. The SDK-free `src/lib/firebaseConfig.ts` holds the
 `VITE_FIREBASE_*` config + `firebaseConfigured` flag (see `.env.example`). The store
 stays firebase-free so the node smoke test keeps bundling. `App.tsx` subscribes to
 `watchAuth`; on a resolved identity it calls `onAuthIdentity(uid, email, displayName)`
 → `firestore.resolveAuthUser`, which maps the identity to a Firestore `User` **by
 email** (case-insensitive), auto-creating an inactive `member` for an unknown email
 (a manager activates the membership later) and starting the live listeners. While the
-session resolves / cloud data streams in, `App.tsx` shows a splash; signed out it
-renders `Login`. `currentUserId` (in the store) is **nullable** and is reconciled from
+session resolves / cloud data streams in, `App.tsx` shows a splash. **Logged out**,
+`App` holds an `authView: "landing" | "login"` toggle: it first renders
+`src/screens/Landing.tsx` (a marketing page for new visitors) whose CTAs (`onEnter`)
+open `src/screens/Login.tsx` (the email/password form; `onBack` returns to the
+landing). `currentUserId` (in the store) is **nullable** and is reconciled from
 Firebase, not the source of truth. Sign-out goes through `signOutUser()` (firebase),
 and the auth listener clears `currentUserId`. Booking is still gated on
 `user.membershipActive`. Components resolve the current user with
@@ -105,8 +108,8 @@ helpers — keep that pattern rather than threading the nullable id around. Seed
 users carry demo emails (`<id-without-u->@omixfit.app`, e.g. `noa@omixfit.app` is the
 manager); sign up with one to log in as that role. **Setup:** enable the
 Email/Password provider in the Firebase console and copy `.env.example` →
-`.env.local`. The browser QA scripts (`a11y`/`e2e`/…) need a valid config and now log
-in through the email/password form, not a user picker.
+`.env.local`. The browser QA scripts (`a11y`/`e2e`/…) need a valid config and log in
+through the email/password form.
 
 **Accessibility is a legal requirement** (IS 5568 / WCAG 2.1 AA) and the bar is **0
 serious/critical axe violations** across screens *and* modal states. Two things to

@@ -6,6 +6,7 @@ import { MyBookings } from "./screens/MyBookings";
 import { Manage } from "./screens/Manage";
 import { Profile } from "./screens/Profile";
 import { Login } from "./screens/Login";
+import { Landing } from "./screens/Landing";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { Toaster } from "./components/Toast";
 import { Celebration } from "./components/Celebration";
@@ -34,12 +35,14 @@ export default function App() {
   const [switcher, setSwitcher] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  // Logged-out flow: marketing landing first, then the email/password sign-in.
+  const [authView, setAuthView] = useState<"landing" | "login">("landing");
 
   // Firebase Auth (code-split, loaded off the critical path) decides the
   // session. On a resolved identity, onAuthIdentity maps it to a Firestore user
   // and starts the live data listeners; the mirror then hydrates and `me`
   // resolves. `authResolved`/`signedIn` drive a loading state so we don't flash
-  // the login screen while the session resolves or the cloud data streams in.
+  // the logged-out screens while the session resolves or the cloud data streams in.
   useEffect(() => {
     let unsub = () => {};
     let cancelled = false;
@@ -72,7 +75,7 @@ export default function App() {
   }, [me, isStaff, view]);
 
   // Resolving the session, or signed in but cloud data still streaming in →
-  // show a splash rather than flashing the login screen.
+  // show a splash rather than flashing the logged-out screens.
   if (!me) {
     if (!authResolved || signedIn) {
       return (
@@ -83,8 +86,12 @@ export default function App() {
         </div>
       );
     }
-    // Resolved and signed out → the login screen.
-    return <Login />;
+    // Resolved + signed out → marketing landing first, then the sign-in form.
+    return authView === "login" ? (
+      <Login onBack={() => setAuthView("landing")} />
+    ) : (
+      <Landing onEnter={() => setAuthView("login")} />
+    );
   }
 
   function go(v: View) {
