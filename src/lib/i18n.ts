@@ -6,7 +6,7 @@
 import type { ClassCategory } from "./types";
 
 export const t = {
-  appName: "אומיקספיט",
+  appName: "OMIX",
   tagline: "הסטודיו שלך, בכיס שלך",
 
   nav: {
@@ -301,6 +301,46 @@ export const t = {
       `שלום ${name},\n\nשמחים לעדכן שחשבונך ב${app} אושר! אפשר להתחבר ולהזמין את האימון הראשון.\n\nנתראה בסטודיו,\nצוות ${app}`,
     adminLocked: "חשבון מנהל/ת מערכת — לא ניתן לעריכה מתוך האפליקציה",
   },
+
+  // interval / circuit training timer (live)
+  timer: {
+    launch: "טיימר אימון",
+    title: "טיימר אינטרוולים",
+    stations: "תחנות",
+    work: "עבודה",
+    rest: "מנוחה",
+    workSec: "שניות עבודה",
+    restSec: "שניות מנוחה",
+    prepSec: "הכנה (שניות)",
+    rounds: "סבבים",
+    station: (n: number, total: number) => `תחנה ${n}/${total}`,
+    round: (n: number, total: number) => `סבב ${n}/${total}`,
+    getReady: "להתכונן…",
+    finished: "סיימת! כל הכבוד 💪",
+    start: "התחלה",
+    pause: "השהיה",
+    resume: "המשך",
+    reset: "איפוס",
+    sound: "קול",
+    soundOn: "קול מופעל",
+    soundOff: "קול מושתק",
+    fullscreen: "מסך מלא",
+    totalLabel: "סה״כ",
+    remaining: "נותרו",
+    elapsed: "עבר",
+    config: "הגדרות",
+    // spoken cues (Hebrew TTS)
+    sayReady: "להתכונן",
+    sayWork: "עבודה",
+    sayRest: "מנוחה",
+    sayHalfway: "חצי הדרך! מחזיקים חזק",
+    sayLast: "תחנה אחרונה!",
+    sayDone: "סיימתם! כל הכבוד",
+    sayGo: "קדימה",
+  },
+
+  // live Jerusalem clock
+  jerusalem: "ירושלים",
 
   // generic
   close: "סגירה",

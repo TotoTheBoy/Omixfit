@@ -9,6 +9,8 @@ import { Login } from "./screens/Login";
 import { Landing } from "./screens/Landing";
 import { Onboarding } from "./screens/Onboarding";
 import { UserSwitcher } from "./components/UserSwitcher";
+import { OmixLogo, JerusalemClock } from "./components/Brand";
+import { IntervalTimer } from "./components/IntervalTimer";
 import { Toaster } from "./components/Toast";
 import { Celebration } from "./components/Celebration";
 import { Avatar } from "./components/common";
@@ -34,6 +36,7 @@ export default function App() {
   const isStaff = !!me && me.role !== "member";
   const [view, setView] = useState<View>(readHash);
   const [switcher, setSwitcher] = useState(false);
+  const [timerOpen, setTimerOpen] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   // Logged-out flow: marketing landing first, then the email/password sign-in.
@@ -125,13 +128,10 @@ export default function App() {
       </a>
       <header className="appbar">
         <div className="brand">
-          <span className="logo">
-            <IcBolt width={22} height={22} style={{ color: "var(--ink-900)" }} />
-          </span>
-          <span>
-            {t.appName}
-          </span>
+          <OmixLogo size={26} />
         </div>
+
+        <JerusalemClock />
 
         <nav className="appbar-nav" aria-label="ניווט ראשי">
           {nav.map((n) => (
@@ -152,6 +152,17 @@ export default function App() {
         </nav>
 
         <div className="appbar-spacer" />
+
+        {isStaff && (
+          <button
+            className="timer-launch"
+            onClick={() => setTimerOpen(true)}
+            aria-label={t.timer.launch}
+          >
+            <span aria-hidden="true">⏱</span>
+            <span className="tl-label">{t.timer.launch}</span>
+          </button>
+        )}
 
         <button className="userswitch" onClick={() => setSwitcher(true)}>
           <span className="who">
@@ -188,6 +199,7 @@ export default function App() {
         ))}
       </nav>
 
+      {timerOpen && <IntervalTimer onClose={() => setTimerOpen(false)} />}
       {switcher && <UserSwitcher onClose={() => setSwitcher(false)} />}
       <Toaster />
       <Celebration />

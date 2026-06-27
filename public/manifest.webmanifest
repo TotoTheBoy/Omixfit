@@ -1,15 +1,15 @@
 {
-  "name": "אומיקספיט · לוח שיעורים",
-  "short_name": "אומיקספיט",
-  "description": "הסטודיו שלך בכיס — צפייה בלוח השיעורים והזמנת מקום בכמה הקשות.",
+  "name": "OMIX · לוח שיעורים ואימונים",
+  "short_name": "OMIX",
+  "description": "הסטודיו שלך בכיס — לוח שיעורים, הזמנת מקום, וטיימר אימונים חי.",
   "lang": "he",
   "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0e1217",
-  "theme_color": "#0e1217",
+  "background_color": "#191510",
+  "theme_color": "#191510",
   "categories": ["health", "fitness", "lifestyle"],
   "icons": [
     {

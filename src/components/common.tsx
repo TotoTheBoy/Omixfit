@@ -28,9 +28,12 @@ function readableInk(hex: string): string {
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   };
   const L = 0.2126 * ch(0) + 0.7152 * ch(2) + 0.0722 * ch(4);
+  // Use a fixed near-black for the dark ink (luminance ~0.006) so the contrast
+  // math matches the colour actually rendered — independent of the (warmer)
+  // --ink-900 chrome token.
   const cDark = (L + 0.05) / (0.006 + 0.05);
   const cWhite = 1.05 / (L + 0.05);
-  return cDark >= cWhite ? "var(--ink-900)" : "#ffffff";
+  return cDark >= cWhite ? "#0b0e13" : "#ffffff";
 }
 
 export function Avatar({ user, size = 34 }: { user: User; size?: number }) {

@@ -1,5 +1,6 @@
 import { t } from "../lib/i18n";
 import { VersionTag } from "../components/common";
+import { OmixLogo } from "../components/Brand";
 import { IcBolt, IcCalendar, IcCheck, IcGrid, IcUser } from "../components/icons";
 
 // Marketing landing page for new / unregistered visitors. Shown by <App /> in the
@@ -18,12 +19,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
     <div className="landing">
       <section className="landing-hero">
         <header className="landing-bar">
-          <span className="brand">
-            <span className="logo">
-              <IcBolt width={20} height={20} style={{ color: "var(--ink-900)" }} />
-            </span>
-            <span>{t.appName}</span>
-          </span>
+          <OmixLogo size={28} />
           <button className="btn btn-sm btn-ghost-ink" onClick={onEnter}>
             {L.signIn}
           </button>
