@@ -40,10 +40,13 @@ const hasBookBtn = await p.evaluate(() => {
   return false;
 });
 ok("booked from the detail footer", hasBookBtn);
-await sleep(500);
-
-// after booking, the footer becomes a cancel button and a toast appears
-ok("footer switches to cancel after booking", await p.$(".sheet-foot .btn-danger") !== null);
+// Booking is a Firestore transaction (a server round-trip), so the optimistic
+// 500ms of the localStorage era isn't enough — wait for the live update.
+const becameCancel = await p
+  .waitForSelector(".sheet-foot .btn-danger", { timeout: 8000 })
+  .then(() => true)
+  .catch(() => false);
+ok("footer switches to cancel after booking", becameCancel);
 const toastShown = await p.evaluate(() => !!document.querySelector(".toast.ok"));
 ok("a success toast is shown", toastShown);
 

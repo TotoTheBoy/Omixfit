@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Omixfit Firestore rules (Spark / free plan).
+//
+// Every read and write requires a signed-in user. Roles (manager/instructor vs
+// member) are enforced in the UI; they are NOT enforced here because un-forgeable
+// role checks need the role baked into the auth token (Firebase custom claims),
+// which requires a Cloud Function on the Blaze plan. When you move to Blaze,
+// replace the blanket write rule below with per-collection role checks, e.g.
+//   allow write: if request.auth.token.role in ['manager','instructor'];
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    match /{document=**} {
+      allow read, write: if signedIn();
+    }
+  }
+}

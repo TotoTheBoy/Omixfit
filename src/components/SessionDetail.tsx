@@ -49,8 +49,8 @@ export function SessionDetail({
     .sort((a, b) => a.createdAt - b.createdAt)
     .map((b) => ({ b, user: data.users.find((u) => u.id === b.userId)! }));
 
-  function doBook() {
-    const r = book(session.id, me.id);
+  async function doBook() {
+    const r = await book(session.id, me.id);
     if (r === "ok") {
       toast(t.bookedToast, "ok");
       celebrate();
@@ -60,16 +60,16 @@ export function SessionDetail({
     else if (r === "limit") toast(t.limitReached, "err");
     else if (r === "closed") toast(t.closedToast, "err");
   }
-  function doCancel() {
-    const { promotedUserId } = cancelBooking(session.id, me.id);
+  async function doCancel() {
+    const { promotedUserId } = await cancelBooking(session.id, me.id);
     toast(t.cancelledToast, "info");
     if (promotedUserId) {
       const promoted = data.users.find((u) => u.id === promotedUserId);
       toast(t.promotedOtherToast(promoted?.name ?? ""), "ok");
     }
   }
-  function doJoinWaitlist() {
-    const r = joinWaitlist(session.id, me.id);
+  async function doJoinWaitlist() {
+    const r = await joinWaitlist(session.id, me.id);
     if (r === "ok") toast(t.waitlistJoinedToast, "ok");
     else if (r === "membership") toast(t.membershipBlocked, "err");
     else if (r === "closed") toast(t.closedToast, "err");

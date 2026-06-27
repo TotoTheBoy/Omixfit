@@ -8,11 +8,12 @@ Omixfit — a Hebrew-first, **RTL** PWA for booking fitness classes, built from 
 product spec in [`docs/plan.md`](docs/plan.md). Two experiences in one app: a
 **trainee** side (browse the week, book/cancel, waitlist) and a **trainer/manager**
 side (publish schedule, rosters, reports, member management). Stack: Vite + React 18
-+ TypeScript with a **hand-crafted CSS design system** and minimal runtime
-dependencies (`react`/`react-dom` plus the **Firebase SDK** for auth). The only
-backend is **Firebase Authentication** (email + password); all *domain* state still
-lives in `localStorage` behind a store API designed so a real data backend can swap
-in later.
++ TypeScript with a **hand-crafted CSS design system**. The backend is **Firebase**:
+**Authentication** (email + password) for identity and **Cloud Firestore** for all
+domain data — bookings, schedule, classes, users, audit — streamed live so the app
+syncs in real time across devices. The Firebase SDK is the one heavy runtime dep
+(code-split, off the critical bundle). State no longer lives in `localStorage`
+(Firestore's persistent cache handles offline/cold loads).
 
 ## Commands
 
@@ -37,26 +38,38 @@ Typical verification loop: `npm run build` → `npm run preview &` → `npm run 
 
 `npm test` is a **single custom suite**, not a test framework — there is no per-test
 filtering. Add or change checks by editing `test/smoke.ts` (it asserts the
-booking-engine invariants directly against the store/seed). Keep it green; it's the
-fastest regression gate.
+booking-engine invariants against the **pure engine**, `src/lib/engine.ts`). Keep it
+green; it's the fastest regression gate.
 
 ## Architecture (the parts that span files)
 
-**Single external store — `src/lib/store.ts`.** All app state AND all mutations live
-here, exposed via a `useSyncExternalStore` hook (`useStore(selector)`) and persisted
-to `localStorage` under key `omixfit:v1`. Components never hold domain state; they
-read selectors and call exported mutations (`book`, `cancelBooking`, `joinWaitlist`,
-`upsertSession`, `updateUser`, `logout`, …).
+**Three-layer data flow: engine → store mirror → Firestore.**
 
-- **Capacity is enforced atomically inside the mutations** (plan.md §4.4): `book()`
-  re-counts confirmed bookings against the freshest state and rejects if full — never
-  a stale read-then-write. Preserve this when touching booking logic.
-- **Waitlist auto-promotion** (`fillFromWaitlist`) runs on cancellation and on
-  capacity increase, FIFO by `createdAt`.
-- **Schema versioning gotcha:** `load()` only accepts persisted data when
-  `parsed.version === 6`, otherwise it reseeds. When you change the data shape, bump
-  the number in **both** `src/lib/store.ts` (the `=== 6` check) and `src/lib/seed.ts`
-  (`version: 6`), or returning users render against a stale schema.
+- **`src/lib/engine.ts`** — the **pure** booking engine (no React, no Firebase):
+  predicates (`bookability`, `actionFor`, `confirmedCount`, …) and reference
+  transforms (`applyBook`/`applyCancel`/`applyJoinWaitlist`, `fillFromWaitlist`) over
+  an `AppData` snapshot. This is the canonical algorithm and what `test/smoke.ts`
+  asserts. Node-safe — imports only types + date.
+- **`src/lib/store.ts`** — an in-memory **mirror** + `useSyncExternalStore`
+  (`useStore(selector)`). It holds no firebase import: Firestore listeners call
+  `hydrate()` to stream data in, components read selectors synchronously, and the
+  exported mutations (`book`, `cancelBooking`, …) are thin **async** wrappers that
+  dynamic-import the backend (so it's code-split AND the node smoke test never pulls
+  firebase). Mutations are Promises now — `await` them where a return value is used.
+- **`src/lib/firestore.ts`** — the only module importing the firestore SDK
+  (code-split). Streams every collection via `onSnapshot` → `hydrate` (live
+  cross-device sync), seeds the DB once if empty, and runs the mutations.
+
+- **Atomic capacity is now a real Firestore transaction** (plan.md §4.4): `book()`
+  reads the session doc's denormalized `confirmed` counter inside `runTransaction`
+  and rejects if `>= capacity`, incrementing the counter in the same commit — safe
+  across clients (a query can't run inside a transaction, hence the counter). The
+  UI still counts the live `bookings` mirror for display.
+- **Waitlist auto-promotion** (`promoteWaitlist`) runs on cancellation and capacity
+  increase, FIFO by `createdAt`, each promotion re-checked in a transaction.
+- **Seeding:** `seedIfEmpty()` writes `buildSeed()` into Firestore on first run,
+  guarded by a `meta/seed` marker. `buildSeed()` (`src/lib/seed.ts`) is still the
+  source of demo data. There is no more `localStorage`/version gate.
 
 **Domain model — `src/lib/types.ts`** (plan.md §3). The critical distinction: a
 **ClassType** is a reusable template (no date); a **ClassSession** is one dated
@@ -77,15 +90,15 @@ that imports the firebase SDK; it's **code-split** (dynamic `import()` in `App.t
 `Login.tsx` on submit, `UserSwitcher.tsx` on sign-out) so the ~168 KB SDK stays off
 the critical render path. The SDK-free `src/lib/firebaseConfig.ts` holds the
 `VITE_FIREBASE_*` config + `firebaseConfigured` flag (see `.env.example`). The store
-stays firebase-free so the node smoke test keeps bundling. Rendering is **optimistic**:
-`App.tsx` renders straight from the persisted `currentUserId` (logged-out → `Login`),
-*then* `watchAuth` reconciles in the background — on a resolved identity it calls
-`signInWithIdentity(email, displayName)` (maps to an app `User` **by email**,
-case-insensitive, auto-creating an inactive `member` for unknown emails — a manager
-activates the membership later), or `logout()` if the session is gone. So first paint
-never waits on Firebase. `currentUserId` (in the store) is **nullable** and is a
-*cache* reconciled from Firebase, not the source of truth. Sign-out goes through
-`signOutUser()` (firebase), and the auth listener clears `currentUserId`. Booking is still gated on
+stays firebase-free so the node smoke test keeps bundling. `App.tsx` subscribes to
+`watchAuth`; on a resolved identity it calls `onAuthIdentity(uid, email, displayName)`
+→ `firestore.resolveAuthUser`, which maps the identity to a Firestore `User` **by
+email** (case-insensitive), auto-creating an inactive `member` for an unknown email
+(a manager activates the membership later) and starting the live listeners. While the
+session resolves / cloud data streams in, `App.tsx` shows a splash; signed out it
+renders `Login`. `currentUserId` (in the store) is **nullable** and is reconciled from
+Firebase, not the source of truth. Sign-out goes through `signOutUser()` (firebase),
+and the auth listener clears `currentUserId`. Booking is still gated on
 `user.membershipActive`. Components resolve the current user with
 `data.users.find(u => u.id === data.currentUserId)!` and pass `me.id` into store
 helpers — keep that pattern rather than threading the nullable id around. Seeded
@@ -121,11 +134,15 @@ registration), so the app works at both `/` and a subpath.
 
 ## Conventions
 
-- Commits land **directly on `master`**. Deploy is **Firebase Hosting**, run manually:
-  `npm run deploy` (`= npm run build && firebase deploy --only hosting`; config in
-  `firebase.json` / `.firebaserc`, project `omixfit-be3ff`). The build embeds the
-  Firebase web config from `.env.local` — no deploy secrets (the web config isn't
-  sensitive). There is **no** CI deploy workflow.
+- Commits land **directly on `master`**. Deploy is **Firebase Hosting + Firestore
+  rules**, run manually: `npm run deploy` (`= npm run build && firebase deploy --only
+  hosting,firestore:rules`; config in `firebase.json` / `.firebaserc`, project
+  `omixfit-be3ff`). The build embeds the Firebase web config from `.env.local` — no
+  deploy secrets (the web config isn't sensitive). There is **no** CI deploy workflow.
+- **Firestore security (`firestore.rules`)** is Spark-plan pragmatic: every read/write
+  requires sign-in, but roles are **not** enforced server-side (un-forgeable roles need
+  Blaze + custom claims). Roles are gated in the UI. Tighten the rules per-collection
+  when moving to Blaze.
 - `docs/plan.md` is the source of truth for product behavior; its open questions Q1–Q8
   are already decided and baked in (see the README's "Architecture" note). The README
   also keeps a per-iteration changelog.

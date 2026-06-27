@@ -46,8 +46,8 @@ export function TypeEditor({
     onClose();
   }
 
-  function remove() {
-    if (type && deleteClassType(type.id)) {
+  async function remove() {
+    if (type && (await deleteClassType(type.id))) {
       toast("סוג השיעור נמחק", "info");
       onClose();
     } else {

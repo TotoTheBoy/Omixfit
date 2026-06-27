@@ -1,67 +1,42 @@
 // ---------------------------------------------------------------------------
-// Tiny external store with localStorage persistence + a useSyncExternalStore
-// hook. Holds all app state and the booking mutations. Capacity enforcement is
-// done atomically here (plan.md §4.4): we re-count confirmed bookings inside
-// the mutation and reject if full — never a stale read-then-write.
+// In-memory mirror of the Firestore data + a useSyncExternalStore hook.
+//
+// Firestore is the source of truth; `firestore.ts` streams snapshots in via
+// onSnapshot and calls hydrate(). Components read synchronously through
+// useStore(selector) against this mirror (so reads stay sync and cheap), and
+// call the async mutations below — thin wrappers that delegate to the
+// code-split Firestore backend (dynamic import keeps it off the critical bundle
+// AND keeps this module free of the firebase SDK, so the node smoke test, which
+// imports the pure engine, never pulls firebase in).
 // ---------------------------------------------------------------------------
 
 import { useSyncExternalStore } from "react";
-import type {
-  AppData,
-  AuditAction,
-  AuditEntry,
-  Booking,
-  ClassSession,
-  ClassType,
-  User,
-} from "./types";
-import { buildSeed } from "./seed";
-import { fmtTime, fromKey } from "./date";
+import type { AppData, ClassSession, ClassType, User } from "./types";
+import * as engine from "./engine";
 
-const STORAGE_KEY = "omixfit:v1";
+const EMPTY: AppData = {
+  users: [],
+  classTypes: [],
+  sessions: [],
+  bookings: [],
+  locations: [],
+  facility: {
+    name: "אומיקספיט",
+    bookingWindowDays: 14,
+    bookingClosesBeforeMin: 30,
+    cancelCutoffHours: 3,
+    maxActiveBookings: 6,
+  },
+  audit: [],
+  currentUserId: null,
+  version: 6,
+};
 
-function load(): AppData {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as AppData;
-      // Bump CURRENT_VERSION (here + seed) whenever the data shape changes so
-      // returning users re-seed instead of rendering against a stale schema.
-      if (parsed && parsed.version === 6) return parsed;
-    }
-  } catch {
-    /* ignore corrupt storage */
-  }
-  // Persist the seed on first load so state is stable from the very first visit
-  // (and inspectable in localStorage immediately, not only after a mutation).
-  const seed = buildSeed();
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
-  } catch {
-    /* private mode — keep working in-memory */
-  }
-  return seed;
-}
-
-let state: AppData = load();
+let state: AppData = EMPTY;
 const listeners = new Set<() => void>();
 
-function persist() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    /* storage full / private mode — keep working in-memory */
-  }
-}
-
 function emit() {
-  persist();
   listeners.forEach((l) => l());
-}
-
-function set(next: AppData) {
-  state = next;
-  emit();
 }
 
 export function subscribe(l: () => void): () => void {
@@ -81,476 +56,81 @@ export function useStore<T>(selector: (s: AppData) => T): T {
   );
 }
 
-// ---- derived selectors -------------------------------------------------------
-
-export function confirmedCount(sessionId: string, s: AppData = state): number {
-  let n = 0;
-  for (const b of s.bookings) {
-    if (b.sessionId === sessionId && b.state === "confirmed") n++;
-  }
-  return n;
-}
-
-export function userBooking(
-  sessionId: string,
-  userId: string,
-  s: AppData = state,
-): Booking | undefined {
-  return s.bookings.find(
-    (b) =>
-      b.sessionId === sessionId &&
-      b.userId === userId &&
-      (b.state === "confirmed" || b.state === "waitlisted"),
-  );
-}
-
-export function waitlistCount(sessionId: string, s: AppData = state): number {
-  let n = 0;
-  for (const b of s.bookings)
-    if (b.sessionId === sessionId && b.state === "waitlisted") n++;
-  return n;
-}
-
-/** 1-based position of a user in a session's waitlist (FIFO), or 0. */
-export function waitlistPosition(
-  sessionId: string,
-  userId: string,
-  s: AppData = state,
-): number {
-  const wl = s.bookings
-    .filter((b) => b.sessionId === sessionId && b.state === "waitlisted")
-    .sort((a, b) => a.createdAt - b.createdAt);
-  const idx = wl.findIndex((b) => b.userId === userId);
-  return idx < 0 ? 0 : idx + 1;
-}
-
-export function classTypeOf(
-  session: ClassSession,
-  s: AppData = state,
-): ClassType {
-  return s.classTypes.find((c) => c.id === session.classTypeId)!;
-}
-
-export function sessionStartDate(session: ClassSession): Date {
-  const d = fromKey(session.date);
-  d.setMinutes(session.startMin);
-  return d;
-}
-
-export type BookOutcome =
-  | "ok"
-  | "full"
-  | "already"
-  | "closed"
-  | "membership"
-  | "limit"
-  | "cancelled";
-
-/** Can this user currently book this session, and why not. */
-export function bookability(
-  session: ClassSession,
-  userId: string,
-  s: AppData = state,
-): { canBook: boolean; reason: Exclude<BookOutcome, "ok" | "already"> | null; alreadyBooked: boolean } {
-  const user = s.users.find((u) => u.id === userId)!;
-  const already = !!userBooking(session.id, userId, s);
-  if (session.cancelled) return { canBook: false, reason: "cancelled", alreadyBooked: already };
-  if (already) return { canBook: false, reason: null, alreadyBooked: true };
-
-  const start = sessionStartDate(session).getTime();
-  const minsToStart = (start - Date.now()) / 60000;
-  if (minsToStart < s.facility.bookingClosesBeforeMin)
-    return { canBook: false, reason: "closed", alreadyBooked: false };
-
-  if (!user.membershipActive)
-    return { canBook: false, reason: "membership", alreadyBooked: false };
-
-  const active = s.bookings.filter(
-    (b) => b.userId === userId && b.state === "confirmed" &&
-      sessionStartDate(s.sessions.find((x) => x.id === b.sessionId)!).getTime() > Date.now(),
-  ).length;
-  if (active >= s.facility.maxActiveBookings)
-    return { canBook: false, reason: "limit", alreadyBooked: false };
-
-  if (confirmedCount(session.id, s) >= session.capacity)
-    return { canBook: false, reason: "full", alreadyBooked: false };
-
-  return { canBook: true, reason: null, alreadyBooked: false };
-}
-
-// What action a member can take on a session — drives the booking UI.
-export type ActionState =
-  | { kind: "book" }
-  | { kind: "booked" }
-  | { kind: "waitlist"; ahead: number }
-  | { kind: "waitlisted"; pos: number }
-  | { kind: "closed" }
-  | { kind: "cancelled" }
-  | { kind: "blocked"; reason: "membership" | "limit" };
-
-export function actionFor(
-  session: ClassSession,
-  userId: string,
-  s: AppData = state,
-): ActionState {
-  if (session.cancelled) return { kind: "cancelled" };
-  const mine = userBooking(session.id, userId, s);
-  if (mine?.state === "confirmed") return { kind: "booked" };
-  if (mine?.state === "waitlisted")
-    return { kind: "waitlisted", pos: waitlistPosition(session.id, userId, s) };
-
-  const minsToStart = (sessionStartDate(session).getTime() - Date.now()) / 60000;
-  if (minsToStart < s.facility.bookingClosesBeforeMin) return { kind: "closed" };
-
-  const user = s.users.find((u) => u.id === userId)!;
-  if (!user.membershipActive) return { kind: "blocked", reason: "membership" };
-
-  // Full → offer the waitlist (joining doesn't consume a confirmed slot).
-  if (confirmedCount(session.id, s) >= session.capacity)
-    return { kind: "waitlist", ahead: waitlistCount(session.id, s) };
-
-  const active = s.bookings.filter(
-    (b) =>
-      b.userId === userId &&
-      b.state === "confirmed" &&
-      sessionStartDate(s.sessions.find((x) => x.id === b.sessionId)!).getTime() > Date.now(),
-  ).length;
-  if (active >= s.facility.maxActiveBookings) return { kind: "blocked", reason: "limit" };
-
-  return { kind: "book" };
-}
-
-/** Promote earliest-waitlisted members into any open confirmed slots (Q4). */
-function fillFromWaitlist(
-  bookings: Booking[],
-  session: ClassSession,
-): { bookings: Booking[]; promoted: string[] } {
-  if (session.cancelled) return { bookings, promoted: [] };
-  const confirmed = bookings.filter(
-    (b) => b.sessionId === session.id && b.state === "confirmed",
-  ).length;
-  const slots = session.capacity - confirmed;
-  if (slots <= 0) return { bookings, promoted: [] };
-  const wl = bookings
-    .filter((b) => b.sessionId === session.id && b.state === "waitlisted")
-    .sort((a, b) => a.createdAt - b.createdAt)
-    .slice(0, slots);
-  if (!wl.length) return { bookings, promoted: [] };
-  const ids = new Set(wl.map((b) => b.id));
-  return {
-    bookings: bookings.map((b) => (ids.has(b.id) ? { ...b, state: "confirmed" as const } : b)),
-    promoted: wl.map((b) => b.userId),
-  };
-}
-
-// ---- mutations ---------------------------------------------------------------
-
-let idSeq = Date.now();
-function nextId(prefix: string): string {
-  return `${prefix}-${(idSeq++).toString(36)}`;
-}
-
-// ---- audit log (plan.md §4.6) ------------------------------------------------
-function auditEntry(action: AuditAction, summary: string): AuditEntry {
-  return {
-    id: nextId("a"),
-    ts: Date.now(),
-    // Manager mutations only run while signed in, so this is always a real id.
-    actorId: state.currentUserId ?? "",
-    action,
-    summary,
-  };
-}
-
-function sessionLabel(s: ClassSession): string {
-  const type = state.classTypes.find((c) => c.id === s.classTypeId);
-  return `${type?.name ?? "שיעור"} · ${s.date} ${fmtTime(s.startMin)}`;
-}
-
-/** Atomic-ish booking: re-validate against the freshest state, then commit. */
-export function book(sessionId: string, userId: string): BookOutcome {
-  const session = state.sessions.find((s) => s.id === sessionId);
-  if (!session) return "full";
-  const check = bookability(session, userId);
-  if (check.alreadyBooked) return "already";
-  if (!check.canBook) return (check.reason ?? "full") as BookOutcome;
-
-  const booking: Booking = {
-    id: nextId("b"),
-    sessionId,
-    userId,
-    state: "confirmed",
-    createdAt: Date.now(),
-  };
-  set({ ...state, bookings: [...state.bookings, booking] });
-  return "ok";
-}
-
-/** Cancel a booking; if a confirmed spot opened, auto-promote the waitlist. */
-export function cancelBooking(
-  sessionId: string,
-  userId: string,
-): { promotedUserId: string | null } {
-  let wasConfirmed = false;
-  let next = state.bookings.map((b) => {
-    if (
-      b.sessionId === sessionId &&
-      b.userId === userId &&
-      (b.state === "confirmed" || b.state === "waitlisted")
-    ) {
-      if (b.state === "confirmed") wasConfirmed = true;
-      return { ...b, state: "cancelled" as const };
-    }
-    return b;
-  });
-
-  let promotedUserId: string | null = null;
-  const session = state.sessions.find((s) => s.id === sessionId);
-  if (wasConfirmed && session) {
-    const r = fillFromWaitlist(next, session);
-    next = r.bookings;
-    promotedUserId = r.promoted[0] ?? null;
-  }
-  set({ ...state, bookings: next });
-  return { promotedUserId };
-}
-
-export type WaitlistOutcome =
-  | "ok"
-  | "already"
-  | "closed"
-  | "membership"
-  | "cancelled"
-  | "notfull";
-
-export function joinWaitlist(sessionId: string, userId: string): WaitlistOutcome {
-  const session = state.sessions.find((s) => s.id === sessionId);
-  if (!session) return "notfull";
-  if (session.cancelled) return "cancelled";
-  if (userBooking(sessionId, userId)) return "already";
-  const minsToStart = (sessionStartDate(session).getTime() - Date.now()) / 60000;
-  if (minsToStart < state.facility.bookingClosesBeforeMin) return "closed";
-  const user = state.users.find((u) => u.id === userId)!;
-  if (!user.membershipActive) return "membership";
-  if (confirmedCount(sessionId) < session.capacity) return "notfull";
-
-  const booking: Booking = {
-    id: nextId("b"),
-    sessionId,
-    userId,
-    state: "waitlisted",
-    createdAt: Date.now(),
-  };
-  set({ ...state, bookings: [...state.bookings, booking] });
-  return "ok";
+/** Merge a slice of freshly-streamed Firestore data into the mirror. */
+export function hydrate(partial: Partial<AppData>): void {
+  state = { ...state, ...partial };
+  emit();
 }
 
 export function setCurrentUser(userId: string): void {
-  set({ ...state, currentUserId: userId });
+  state = { ...state, currentUserId: userId };
+  emit();
 }
 
 /** Sign out — clears the session so the app shows the login screen. */
 export function logout(): void {
-  set({ ...state, currentUserId: null });
+  state = { ...state, currentUserId: null };
+  emit();
 }
 
-// ---- Firebase Auth reconciliation -------------------------------------------
-// firebase.ts owns the SDK; the store only maps a resolved identity to an app
-// user so it stays importable from node (the booking-engine smoke test).
-
-const AVATAR_COLORS = [
-  "#D6FF3D", "#8E7BFF", "#FF8A3D", "#27E0B0", "#FF5A8A",
-  "#5AC8FF", "#FFD23D", "#B26BFF", "#3DE0FF", "#FF6B6B",
-];
-
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
-}
-
-function hashCode(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-/**
- * Reconcile a signed-in Firebase identity to an app user and make it current,
- * in a single commit. Matches by email (case-insensitive); an unknown identity
- * auto-creates a `member` with an inactive membership (a manager activates it
- * later). This is how real auth maps onto the local user records.
- */
-export function signInWithIdentity(email: string, displayName: string | null): void {
-  const e = email.trim().toLowerCase();
-  const existing = state.users.find((u) => u.email?.toLowerCase() === e);
-  if (existing) {
-    if (state.currentUserId !== existing.id) set({ ...state, currentUserId: existing.id });
-    return;
-  }
-  const name = displayName?.trim() || email.split("@")[0] || email;
-  const user: User = {
-    id: nextId("u"),
-    name,
-    phone: "",
-    email: email.trim(),
-    role: "member",
-    membershipActive: false,
-    avatarColor: AVATAR_COLORS[hashCode(email) % AVATAR_COLORS.length],
-    initials: initialsOf(name),
-    prefs: { push: true, email: true, whatsapp: false, reminderHours: 2 },
-  };
-  set({ ...state, users: [...state.users, user], currentUserId: user.id });
-}
-
-// ---- manager mutations -------------------------------------------------------
-
-export function upsertSession(session: ClassSession): void {
-  const exists = state.sessions.some((s) => s.id === session.id);
-  const sessions = exists
-    ? state.sessions.map((s) => (s.id === session.id ? session : s))
-    : [...state.sessions, session];
-  // A capacity increase may open slots — promote from the waitlist (Q4).
-  const { bookings } = fillFromWaitlist(state.bookings, session);
-  const entry = auditEntry(
-    exists ? "session_updated" : "session_created",
-    sessionLabel(session),
-  );
-  set({ ...state, sessions, bookings, audit: [entry, ...state.audit] });
-}
-
-export function createSessions(
-  base: Omit<ClassSession, "id" | "date"> & { date: string },
-  recurrenceWeeks: number,
-): void {
-  const seriesId = recurrenceWeeks > 1 ? nextId("series") : undefined;
-  const newSessions: ClassSession[] = [];
-  for (let w = 0; w < Math.max(1, recurrenceWeeks); w++) {
-    const d = fromKey(base.date);
-    d.setDate(d.getDate() + w * 7);
-    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    newSessions.push({ ...base, id: nextId("s"), date, seriesId });
-  }
-  const first = newSessions[0];
-  const entry = auditEntry(
-    "session_created",
-    newSessions.length > 1
-      ? `${sessionLabel(first)} (+${newSessions.length - 1} בסדרה)`
-      : sessionLabel(first),
-  );
-  set({
-    ...state,
-    sessions: [...state.sessions, ...newSessions],
-    audit: [entry, ...state.audit],
-  });
-}
-
-export function cancelSession(sessionId: string): void {
-  const target = state.sessions.find((s) => s.id === sessionId);
-  const sessions = state.sessions.map((s) =>
-    s.id === sessionId ? { ...s, cancelled: true } : s,
-  );
-  const entry = auditEntry(
-    "session_cancelled",
-    target ? sessionLabel(target) : sessionId,
-  );
-  set({ ...state, sessions, audit: [entry, ...state.audit] });
-}
-
-export function deleteSession(sessionId: string): void {
-  const target = state.sessions.find((s) => s.id === sessionId);
-  const entry = auditEntry(
-    "session_deleted",
-    target ? sessionLabel(target) : sessionId,
-  );
-  set({
-    ...state,
-    sessions: state.sessions.filter((s) => s.id !== sessionId),
-    bookings: state.bookings.filter((b) => b.sessionId !== sessionId),
-    audit: [entry, ...state.audit],
-  });
-}
-
-export function setAttendance(
-  bookingId: string,
-  attended: boolean,
-): void {
-  const bookings = state.bookings.map((b) =>
-    b.id === bookingId
-      ? { ...b, state: attended ? ("attended" as const) : ("no_show" as const) }
-      : b,
-  );
-  set({ ...state, bookings });
-}
-
-export function updateUser(userId: string, patch: Partial<User>): void {
-  const before = state.users.find((u) => u.id === userId);
-  const users = state.users.map((u) => (u.id === userId ? { ...u, ...patch } : u));
-  // Only role / membership changes are audit-worthy (not self profile edits).
-  let entry: AuditEntry | null = null;
-  if (before && patch.role && patch.role !== before.role) {
-    entry = auditEntry("role_changed", `${before.name}: ${before.role} ← ${patch.role}`);
-  } else if (before && patch.membershipActive !== undefined && patch.membershipActive !== before.membershipActive) {
-    entry = auditEntry(
-      "membership_changed",
-      `${before.name}: מנוי ${patch.membershipActive ? "הופעל" : "הושהה"}`,
-    );
-  }
-  set({ ...state, users, audit: entry ? [entry, ...state.audit] : state.audit });
-}
-
-export function upsertClassType(ct: ClassType): void {
-  const exists = state.classTypes.some((c) => c.id === ct.id);
-  const classTypes = exists
-    ? state.classTypes.map((c) => (c.id === ct.id ? ct : c))
-    : [...state.classTypes, ct];
-  const entry = auditEntry(exists ? "type_updated" : "type_created", ct.name);
-  set({ ...state, classTypes, audit: [entry, ...state.audit] });
-}
-
-export function deleteClassType(typeId: string): boolean {
-  // Refuse if any session references it (keeps the schedule consistent).
-  if (state.sessions.some((s) => s.classTypeId === typeId)) return false;
-  const target = state.classTypes.find((c) => c.id === typeId);
-  const entry = auditEntry("type_deleted", target?.name ?? typeId);
-  set({
-    ...state,
-    classTypes: state.classTypes.filter((c) => c.id !== typeId),
-    audit: [entry, ...state.audit],
-  });
-  return true;
-}
+// ---- selectors (engine, bound to the live mirror) ---------------------------
+export const sessionStartDate = engine.sessionStartDate;
+export const confirmedCount = (sessionId: string, s: AppData = state) =>
+  engine.confirmedCount(sessionId, s);
+export const userBooking = (sessionId: string, userId: string, s: AppData = state) =>
+  engine.userBooking(sessionId, userId, s);
+export const waitlistCount = (sessionId: string, s: AppData = state) =>
+  engine.waitlistCount(sessionId, s);
+export const waitlistPosition = (sessionId: string, userId: string, s: AppData = state) =>
+  engine.waitlistPosition(sessionId, userId, s);
+export const classTypeOf = (session: ClassSession, s: AppData = state) =>
+  engine.classTypeOf(session, s);
+export const bookability = (session: ClassSession, userId: string, s: AppData = state) =>
+  engine.bookability(session, userId, s);
+export const actionFor = (session: ClassSession, userId: string, s: AppData = state) =>
+  engine.actionFor(session, userId, s);
+export const memberStats = (userId: string, s: AppData = state) =>
+  engine.memberStats(userId, s);
+export type { BookOutcome, ActionState, WaitlistOutcome } from "./engine";
 
 export function newTypeId(): string {
-  return nextId("ct");
+  return engine.genId("ct");
 }
 
-/** Personal stats for the profile screen. */
-export function memberStats(userId: string, s: AppData = state) {
-  const mine = s.bookings.filter((b) => b.userId === userId);
-  const attended = mine.filter((b) => b.state === "attended").length;
-  const upcoming = mine.filter(
-    (b) =>
-      b.state === "confirmed" &&
-      sessionStartDate(s.sessions.find((x) => x.id === b.sessionId)!).getTime() >
-        Date.now(),
-  ).length;
-  // favorite category by booking count
-  const tally = new Map<string, number>();
-  for (const b of mine) {
-    const sess = s.sessions.find((x) => x.id === b.sessionId);
-    if (!sess) continue;
-    const cat = s.classTypes.find((c) => c.id === sess.classTypeId)!.category;
-    tally.set(cat, (tally.get(cat) ?? 0) + 1);
-  }
-  let favorite: string | null = null;
-  let max = 0;
-  for (const [cat, n] of tally) if (n > max) ((max = n), (favorite = cat));
-  return { attended, upcoming, total: mine.length, favorite };
-}
+// ---- mutations (delegated to the code-split Firestore backend) ---------------
+const backend = () => import("./firestore");
 
-export function resetData(): void {
-  set(buildSeed());
-}
+export const book = (sessionId: string, userId: string) =>
+  backend().then((b) => b.book(sessionId, userId));
+export const cancelBooking = (sessionId: string, userId: string) =>
+  backend().then((b) => b.cancelBooking(sessionId, userId));
+export const joinWaitlist = (sessionId: string, userId: string) =>
+  backend().then((b) => b.joinWaitlist(sessionId, userId));
+export const upsertSession = (session: ClassSession) =>
+  backend().then((b) => b.upsertSession(session));
+export const createSessions = (
+  base: Omit<ClassSession, "id" | "date"> & { date: string },
+  recurrenceWeeks: number,
+) => backend().then((b) => b.createSessions(base, recurrenceWeeks));
+export const cancelSession = (sessionId: string) =>
+  backend().then((b) => b.cancelSession(sessionId));
+export const deleteSession = (sessionId: string) =>
+  backend().then((b) => b.deleteSession(sessionId));
+export const setAttendance = (bookingId: string, attended: boolean) =>
+  backend().then((b) => b.setAttendance(bookingId, attended));
+export const updateUser = (userId: string, patch: Partial<User>) =>
+  backend().then((b) => b.updateUser(userId, patch));
+export const upsertClassType = (ct: ClassType) =>
+  backend().then((b) => b.upsertClassType(ct));
+export const deleteClassType = (typeId: string) =>
+  backend().then((b) => b.deleteClassType(typeId));
+
+/** Start the Firestore listeners + one-time seed (called once from App). */
+export const initData = () => backend().then((b) => b.initFirestore());
+
+/** Reconcile a signed-in Firebase identity to a Firestore user, then set it. */
+export const onAuthIdentity = (
+  uid: string,
+  email: string,
+  displayName: string | null,
+) => backend().then((b) => b.resolveAuthUser(uid, email, displayName));

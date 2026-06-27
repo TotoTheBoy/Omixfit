@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { t } from "./lib/i18n";
-import { logout, signInWithIdentity, useStore } from "./lib/store";
+import { logout, onAuthIdentity, useStore } from "./lib/store";
 import { Schedule } from "./screens/Schedule";
 import { MyBookings } from "./screens/MyBookings";
 import { Manage } from "./screens/Manage";
@@ -32,19 +32,23 @@ export default function App() {
   const isStaff = !!me && me.role !== "member";
   const [view, setView] = useState<View>(readHash);
   const [switcher, setSwitcher] = useState(false);
+  const [authResolved, setAuthResolved] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
-  // Optimistic auth: render immediately from the persisted `currentUserId`
-  // (logged-out shows Login), and reconcile against Firebase in the background.
-  // The SDK is code-split and loaded here, off the critical render path, so
-  // first paint never waits on it. Firebase then confirms the session, signs in
-  // a freshly-resolved identity, or logs out if the session is gone.
+  // Firebase Auth (code-split, loaded off the critical path) decides the
+  // session. On a resolved identity, onAuthIdentity maps it to a Firestore user
+  // and starts the live data listeners; the mirror then hydrates and `me`
+  // resolves. `authResolved`/`signedIn` drive a loading state so we don't flash
+  // the login screen while the session resolves or the cloud data streams in.
   useEffect(() => {
     let unsub = () => {};
     let cancelled = false;
     import("./lib/firebase").then(({ watchAuth }) => {
       if (cancelled) return;
       unsub = watchAuth((identity) => {
-        if (identity) signInWithIdentity(identity.email, identity.displayName);
+        setAuthResolved(true);
+        setSignedIn(!!identity);
+        if (identity) onAuthIdentity(identity.uid, identity.email, identity.displayName);
         else logout();
       });
     });
@@ -67,8 +71,21 @@ export default function App() {
     if (view === "bookings" && isStaff) go("schedule");
   }, [me, isStaff, view]);
 
-  // Signed out → show the login screen (and nothing that assumes a user).
-  if (!me) return <Login />;
+  // Resolving the session, or signed in but cloud data still streaming in →
+  // show a splash rather than flashing the login screen.
+  if (!me) {
+    if (!authResolved || signedIn) {
+      return (
+        <div className="app-splash" role="status" aria-label="טוען">
+          <span className="app-splash-logo">
+            <IcBolt width={30} height={30} style={{ color: "var(--ink-900)" }} />
+          </span>
+        </div>
+      );
+    }
+    // Resolved and signed out → the login screen.
+    return <Login />;
+  }
 
   function go(v: View) {
     setView(v);

@@ -66,6 +66,13 @@ export interface ClassSession {
   cancelled?: boolean;
   /** Set when generated from a recurrence rule. */
   seriesId?: string;
+  /**
+   * Denormalized counters maintained transactionally by the Firestore backend
+   * for atomic capacity enforcement (a query can't run inside a transaction).
+   * The UI ignores these and counts the live `bookings` mirror instead.
+   */
+  confirmed?: number;
+  waitlist?: number;
 }
 
 export type BookingState =

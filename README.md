@@ -77,11 +77,14 @@ Firebase, so the preview build must embed your config (`.env.local` set, then
 `noa@`, `yael@`, `dana@`, `avi@omixfit.app` with the shared password
 `Omixfit-demo-1` (or set `OMIXFIT_TEST_PASSWORD`).
 
-> **What's in the cloud, and what isn't.** Only **auth** (the user accounts:
-> email + password) lives on Firebase's servers. All **domain data** — bookings,
-> the schedule, profiles, roles/membership — lives in the browser's
-> `localStorage`, so it does **not** sync across devices or browsers. Making that
-> data real and shared is a Firestore migration (not yet done).
+> **Where the data lives.** Both auth (accounts) **and** all domain data —
+> bookings, schedule, classes, profiles, roles/membership — live in **Firebase
+> (Auth + Cloud Firestore)**. Data streams in live, so changes sync across devices
+> in real time, and booking capacity is enforced with an atomic Firestore
+> transaction. Firestore's persistent cache keeps the app working offline. The DB
+> seeds itself on first run. Security rules require sign-in for all reads/writes;
+> roles are UI-gated (un-forgeable role security needs the Blaze plan + custom
+> claims — a documented future upgrade).
 
 ## What works today
 
@@ -215,6 +218,19 @@ booker names are **staff‑only** (privacy); booking is gated on `membershipActi
       state, reconciles auth in the background) so first paint never waits on it —
       **Performance 98 · A11y 100 · BP 100 · SEO 100**. Auth verified end-to-end
       against a live project; the browser QA scripts now sign in through Firebase.
+
+- [x] **i21** — **Cloud Firestore** backend: all domain data (bookings, schedule,
+      classes, users, audit) moved out of `localStorage` into Firestore, streamed
+      live via `onSnapshot` so the app **syncs across devices in real time**.
+      Capacity is now a genuine cross-client **atomic transaction** (denormalized
+      per-session counter), with FIFO waitlist promotion re-checked transactionally.
+      Pure booking engine extracted to `src/lib/engine.ts` (keeps `npm test` a fast
+      node gate); the DB self-seeds on first run; persistent cache keeps it working
+      offline. Verified against a live project (seed, sign-in, atomic booking,
+      real-time two-device sync, a11y 0 violations, offline). Rules require sign-in
+      (roles UI-gated; Blaze + custom claims is the upgrade for un-forgeable roles).
+      Lighthouse: **Perf 85 · A11y 100 · BP 100 · SEO 100** (the real-time SDK adds
+      first-paint weight — the cost of a live cloud backend).
 
 **MVP + v1 coverage of `docs/plan.md` is complete.** Deferred to a true v2 (per
 the §6 decisions): a payments/billing engine, no‑show penalty strikes,
