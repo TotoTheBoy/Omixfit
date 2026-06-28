@@ -2711,3 +2711,34 @@
 
 /* inline form field error (registration) */
 .field-err { display: block; color: var(--danger-ink, #b3261e); font-size: .78rem; margin-top: 4px; }
+
+/* ===== immersive "Spine of Movement" WebGL landing ======================= */
+.spine-lp { position: fixed; inset: 0; background: #f6efe0; }
+.spine-lp canvas { touch-action: pan-y; }
+.spine-bar {
+  position: fixed; top: 0; inset-inline: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px clamp(18px,5vw,48px); pointer-events: none;
+}
+.spine-bar > * { pointer-events: auto; }
+.spine-bar .omix-word { color: #241c12; }
+.spine-signin {
+  color: #241c12; font-weight: 700; font-size: .9rem; padding: 8px 18px;
+  border-radius: 999px; border: 1px solid rgba(36,28,18,.2);
+  background: rgba(255,255,255,.55); backdrop-filter: blur(6px);
+}
+.spine-signin:hover { background: rgba(255,255,255,.85); }
+.spine-html { width: 100%; }
+.spine-sec {
+  height: 100vh; display: flex; flex-direction: column; justify-content: center;
+  padding: 0 clamp(22px, 7vw, 110px); max-width: 620px; color: #241c12;
+}
+.spine-kicker { font-size: .8rem; font-weight: 800; letter-spacing: .14em; color: #a9842f; margin-bottom: 14px; }
+.spine-sec.hero h1 { font-size: clamp(3rem, 9vw, 6rem); font-weight: 900; line-height: .95; letter-spacing: -.02em; margin-bottom: 18px; }
+.spine-sec p { font-size: clamp(1rem, 2.2vw, 1.28rem); line-height: 1.55; color: #5a4f3f; max-width: 32ch; margin-bottom: 22px; }
+.spine-num { font-size: .85rem; font-weight: 800; color: #b89441; letter-spacing: .12em; margin-bottom: 10px; }
+.spine-sec h2 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 900; letter-spacing: -.02em; margin-bottom: 12px; }
+.spine-sec.final h2 { font-size: clamp(2.4rem,7vw,4rem); }
+.spine-sec .btn { align-self: flex-start; }
+.spine-scroll { margin-top: 26px; font-size: .8rem; color: #a9842f; font-weight: 700; letter-spacing: .1em; }
+@media (max-width: 640px) { .spine-sec { max-width: 100%; } }
