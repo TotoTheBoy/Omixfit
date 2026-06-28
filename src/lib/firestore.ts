@@ -55,6 +55,9 @@ const app = getApps().length ? getApps()[0]! : initializeApp(firebaseConfig);
 // loads, and the data is available across tabs.
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  // Optional model fields (units, online, note, seriesId, …) are often
+  // undefined; Firestore rejects undefined values unless we drop them.
+  ignoreUndefinedProperties: true,
 });
 
 const col = {
