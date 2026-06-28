@@ -47,6 +47,7 @@ import type {
   Location,
   Payment,
   Service,
+  Subscription,
   User,
 } from "./types";
 
@@ -112,6 +113,18 @@ function startListeners(): void {
   onSnapshot(doc(db, "meta", "facility"), (d) => {
     if (d.exists()) hydrate({ facility: d.data() as Facility });
   });
+  // Owner-only (the rules deny non-owners) — ignore the permission error for
+  // everyone else so it doesn't surface as a console error.
+  onSnapshot(
+    doc(db, "meta", "subscriptions"),
+    (d) => hydrate({ subscriptions: d.exists() ? ((d.data().items as Subscription[]) ?? []) : [] }),
+    () => {},
+  );
+}
+
+/** Owner-only business subscriptions tracker (a single admin doc). */
+export async function saveSubscriptions(items: Subscription[]): Promise<void> {
+  await setDoc(doc(db, "meta", "subscriptions"), { items });
 }
 
 /** Seed the database on first ever run (guarded by a marker doc). */

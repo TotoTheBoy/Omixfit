@@ -22,6 +22,7 @@ const EMPTY: AppData = {
   locations: [],
   services: [],
   payments: [],
+  subscriptions: [],
   facility: {
     name: "Omix",
     bookingWindowDays: 14,
@@ -138,6 +139,9 @@ export const recordPayment = (
 export const deletePayment = (id: string) =>
   backend().then((b) => b.deletePayment(id));
 export const newServiceId = () => engine.genId("svc");
+export const saveSubscriptions = (items: import("./types").Subscription[]) =>
+  backend().then((b) => b.saveSubscriptions(items));
+export const newSubId = () => engine.genId("sub");
 export const setApproval = (
   userId: string,
   status: import("./types").ApprovalStatus,

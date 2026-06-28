@@ -211,6 +211,7 @@ export function buildSeed(): AppData {
     bookings,
     services,
     payments: [],
+    subscriptions: [],
     locations: [{ id: LOCATION_ID, name: "Omix · הסניף הראשי" }],
     facility: {
       name: "Omix",

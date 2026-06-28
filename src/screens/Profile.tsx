@@ -4,6 +4,7 @@ import type { ClassCategory, NotifyPrefs } from "../lib/types";
 import { logout, memberStats, updateUser, useStore } from "../lib/store";
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
+import { Billing } from "../components/Billing";
 import { toast } from "../components/Toast";
 import { IcBolt, IcCheck, IcSpark, IcCalendar, IcBookmark } from "../components/icons";
 
@@ -18,6 +19,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
     reminderHours: 2,
   };
   const [editing, setEditing] = useState(false);
+  const [billingOpen, setBillingOpen] = useState(false);
 
   function setPref(patch: Partial<NotifyPrefs>) {
     updateUser(me.id, { prefs: { ...prefs, ...patch } });
@@ -158,9 +160,18 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         </button>
       </div>
 
+      {me.role === "admin" && (
+        <button className="billing-entry" onClick={() => setBillingOpen(true)}>
+          <span aria-hidden="true">🔒</span>
+          {t.billing.open}
+          <small>{t.billing.subtitle}</small>
+        </button>
+      )}
+
       <VersionTag className="profile-version" />
 
       {editing && <ProfileEditor onClose={() => setEditing(false)} />}
+      {billingOpen && <Billing onClose={() => setBillingOpen(false)} />}
     </div>
   );
 }

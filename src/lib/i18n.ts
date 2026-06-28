@@ -403,6 +403,37 @@ export const t = {
     red: "בסיכון - 35+ ימים או טרם הגיע/ה",
   } as Record<string, string>,
 
+  // admin-only business subscriptions / billing tracker
+  billing: {
+    open: "מנויים וחיובים",
+    title: "מנויים וחיובים",
+    subtitle: "כל המנויים והעלויות הקבועות של העסק, במקום אחד.",
+    activeCount: (n: number) => `${n} מנויים פעילים`,
+    monthlyEst: "עלות חודשית משוערת",
+    add: "מנוי חדש",
+    edit: "עריכת מנוי",
+    empty: "עדיין אין מנויים רשומים",
+    loadDefaults: "טען/י את המנויים שהוקמו",
+    name: "שם",
+    vendor: "ספק",
+    purpose: "למה זה משמש",
+    amount: "סכום",
+    currency: "מטבע",
+    cycle: "מחזור חיוב",
+    status: "סטטוס",
+    note: "הערה",
+    url: "קישור לניהול",
+    manage: "ניהול אצל הספק",
+    save: "שמירה",
+    remove: "מחיקה",
+    close: "סגירה",
+    free: "חינם",
+    cycles: { monthly: "חודשי", yearly: "שנתי", once: "חד פעמי", free: "חינם" } as Record<string, string>,
+    statuses: { active: "פעיל", trial: "ניסיון", cancelled: "בוטל" } as Record<string, string>,
+    perMonth: "/ חודש",
+    perYear: "/ שנה",
+  },
+
   // finance / revenue (admin)
   finance: {
     tab: "כספים",

@@ -173,6 +173,24 @@ export interface Payment {
   actorId: string;
 }
 
+// ---- business subscriptions / billing (admin-only tracker) -----------------
+
+export type BillingCycle = "monthly" | "yearly" | "once" | "free";
+
+/** A recurring business subscription/bill the owner wants to keep track of. */
+export interface Subscription {
+  id: string;
+  name: string; // "Google Workspace"
+  vendor: string; // "Google"
+  purpose: string; // what it's for
+  amount: number; // 0 for free
+  currency: string; // "EUR" | "ILS" | "USD"
+  cycle: BillingCycle;
+  status: "active" | "trial" | "cancelled";
+  note?: string;
+  url?: string; // manage/billing link
+}
+
 export type AuditAction =
   | "session_created"
   | "session_updated"
@@ -215,6 +233,7 @@ export interface AppData {
   locations: Location[];
   services: Service[];
   payments: Payment[];
+  subscriptions: Subscription[];
   facility: Facility;
   audit: AuditEntry[];
   /** null when logged out (the app shows the login screen). */

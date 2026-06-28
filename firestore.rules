@@ -58,9 +58,17 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Private owner-only billing tracker — only the verified business owners can
+    // read or write it (their financial data stays secret from everyone else),
+    // yet it still syncs live via Firestore. Must precede the general meta rule.
+    match /meta/subscriptions {
+      allow read, write: if isOwnerEmail();
+    }
+
     // Seed marker + facility settings — readable/writable, never deletable.
+    // (subscriptions is excluded above so the line below can't expose it.)
     match /meta/{doc} {
-      allow read, create, update: if signedIn();
+      allow read, create, update: if signedIn() && doc != "subscriptions";
       allow delete: if false;
     }
 
