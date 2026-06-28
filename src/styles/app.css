@@ -2708,3 +2708,6 @@
 .tag.sub-active { background: rgba(40,180,99,.16); color: #1f9e57; }
 .tag.sub-trial { background: rgba(232,146,12,.18); color: #b3760a; }
 .tag.sub-cancelled { background: var(--surface-2); color: var(--text-3); }
+
+/* inline form field error (registration) */
+.field-err { display: block; color: var(--danger-ink, #b3261e); font-size: .78rem; margin-top: 4px; }

@@ -13,6 +13,7 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -71,6 +72,8 @@ export async function signUp(
   if (display) try { sessionStorage.setItem("omix:signupName", display); } catch { /**/ }
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
   if (display) await updateProfile(cred.user, { displayName: display });
+  // Send a "confirm your email" link so the address is verified (free on Spark).
+  try { await sendEmailVerification(cred.user); } catch { /* non-fatal */ }
 }
 
 export async function signOutUser(): Promise<void> {

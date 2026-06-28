@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { t } from "../lib/i18n";
 import { updateUser } from "../lib/store";
+import { isValidILPhone, IL_CITIES } from "../lib/validate";
 import { VersionTag } from "../components/common";
 import { OmixMark } from "../components/Brand";
 import { Toaster, toast } from "../components/Toast";
@@ -74,6 +75,7 @@ function HealthDeclaration({ user }: { user: User }) {
   const [gender, setGender] = useState<Gender | "">("");
   const [age, setAge] = useState("");
   const [phone, setPhone] = useState(user.phone || "");
+  const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [ans, setAns] = useState<Partial<Record<QKey, boolean>>>({});
   const [notes, setNotes] = useState("");
@@ -87,8 +89,9 @@ function HealthDeclaration({ user }: { user: User }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
-    if (!name.trim() || !gender || !age || !phone.trim() || !address.trim())
+    if (!name.trim() || !gender || !age || !phone.trim() || !city || !address.trim())
       return toast(H.needDetails, "err");
+    if (!isValidILPhone(phone)) return toast(H.invalidPhone, "err");
     if (!allAnswered) return toast(H.qIntro, "err");
     if (!terms) return toast(H.needTerms, "err");
     if (!sign.trim()) return toast(H.needSign, "err");
@@ -110,7 +113,7 @@ function HealthDeclaration({ user }: { user: User }) {
         phone: phone.trim(),
         gender: gender as Gender,
         age: Number(age) || undefined,
-        address: address.trim(),
+        address: `${address.trim()}, ${city}`,
         healthForm: form,
       });
       toast(H.sentToast, "ok");
@@ -151,11 +154,26 @@ function HealthDeclaration({ user }: { user: User }) {
           </div>
           <div className="field">
             <label htmlFor="rg-phone">{H.phoneLabel}</label>
-            <input id="rg-phone" className="input" type="tel" dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+            <input id="rg-phone" className="input" type="tel" inputMode="tel" dir="ltr" maxLength={15}
+              placeholder="050-1234567" value={phone}
+              onChange={(e) => setPhone(e.target.value)} autoComplete="tel"
+              aria-invalid={phone.length > 0 && !isValidILPhone(phone)} />
+            {phone.length > 0 && !isValidILPhone(phone) && (
+              <small className="field-err">{H.invalidPhone}</small>
+            )}
           </div>
-          <div className="field">
-            <label htmlFor="rg-address">{H.addressLabel}</label>
-            <input id="rg-address" className="input" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="street-address" />
+          <div className="row gap-3 wrap">
+            <div className="field grow" style={{ minWidth: 140 }}>
+              <label htmlFor="rg-city">{H.cityLabel}</label>
+              <select id="rg-city" className="select" value={city} onChange={(e) => setCity(e.target.value)}>
+                <option value="">{H.selectCity}</option>
+                {IL_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="field grow" style={{ minWidth: 140 }}>
+              <label htmlFor="rg-address">{H.streetLabel}</label>
+              <input id="rg-address" className="input" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="street-address" placeholder="רחוב ומספר" />
+            </div>
           </div>
 
           <h2 className="onboard-h2">{H.sectionQ}</h2>
