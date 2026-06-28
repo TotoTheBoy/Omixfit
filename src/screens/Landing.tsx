@@ -6,7 +6,7 @@ import { OmixLogo, OmixMark } from "../components/Brand";
 // Contact targets. Email pending (business address being set up).
 const WHATSAPP = "https://wa.me/972507954902";
 const INSTAGRAM = "https://instagram.com/omer_lifshitz";
-const EMAIL = "mailto:office@omix.com";
+const EMAIL = "mailto:office@omixfit.com";
 
 // Reveal-on-scroll: fade sections up as they enter the viewport.
 function useReveal() {
