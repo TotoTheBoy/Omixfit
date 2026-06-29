@@ -3,12 +3,13 @@ import { t } from "../lib/i18n";
 import { VersionTag } from "../components/common";
 import { OmixLogo, OmixMark } from "../components/Brand";
 
-// Contact targets. Email pending (business address being set up).
+// Contact targets.
 const WHATSAPP = "https://wa.me/972507954902";
 const INSTAGRAM = "https://instagram.com/omer_lifshitz";
 const EMAIL = "mailto:office@omixfit.com";
 
-// Reveal-on-scroll: fade sections up as they enter the viewport.
+const CREDS = ["מאמנת כושר וריצה מוסמכת", "רצת מרתון פעילה", "תואר בטיפול בספורט"];
+
 function useReveal() {
   useEffect(() => {
     const els = Array.from(document.querySelectorAll(".reveal"));
@@ -21,64 +22,65 @@ function useReveal() {
           }
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0.14 },
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 }
 
-// Premium, motion-light marketing landing for new visitors (logged-out state).
-// Dark cinematic hero with a glowing Omix emblem; CTAs hand off to sign-in.
+// Luxury, content-rich marketing landing — ivory + gold, elegant editorial
+// layout, no WebGL. Reveals on scroll.
 export function Landing({ onEnter }: { onEnter: () => void }) {
   const L = t.landing;
+  const S = t.spine;
   useReveal();
 
   return (
-    <div className="lp">
-      {/* ---- hero ---- */}
-      <section className="lp-hero">
-        <span className="lp-aurora" aria-hidden="true" />
-        <header className="lp-bar">
-          <OmixLogo size={30} />
-          <button className="lp-link" onClick={onEnter}>{L.signIn}</button>
-        </header>
+    <div className="lux">
+      <header className="lux-bar">
+        <OmixLogo size={32} />
+        <button className="lux-link" onClick={onEnter}>{L.signIn}</button>
+      </header>
 
-        <div className="lp-hero-inner">
-          <div className="lp-emblem" aria-hidden="true">
-            <span className="lp-ring" />
-            <span className="lp-glow" />
-            <OmixMark size={86} />
-          </div>
-          <span className="lp-kicker reveal">{L.kicker}</span>
-          <h1 className="lp-title reveal">
-            <span>{L.title1}</span> <span>{L.title2}</span> <span>{L.title3}</span>
-          </h1>
-          <p className="lp-sub reveal">{L.subtitle}</p>
-          <div className="lp-cta reveal">
-            <button className="btn btn-lime btn-lg" onClick={onEnter}>{L.ctaEnter}</button>
-            <a className="btn btn-ghost-ink btn-lg" href="#lp-contact">{L.ctaContact}</a>
-          </div>
+      {/* ---- hero ---- */}
+      <section className="lux-hero">
+        <span className="lux-rule reveal" aria-hidden="true" />
+        <span className="lux-eyebrow reveal">{L.kicker}</span>
+        <h1 className="lux-title reveal">
+          {L.title1} {L.title2} <em>{L.title3}</em>
+        </h1>
+        <p className="lux-lead reveal">{L.subtitle}</p>
+        <div className="lux-cta reveal">
+          <button className="lux-btn gold" onClick={onEnter}>{L.ctaEnter}</button>
+          <a className="lux-btn ghost" href={WHATSAPP} target="_blank" rel="noreferrer">{L.ctaContact}</a>
         </div>
+        <ul className="lux-creds reveal">
+          {CREDS.map((c) => (
+            <li key={c}><span aria-hidden="true">✦</span> {c}</li>
+          ))}
+        </ul>
       </section>
 
-      {/* ---- about ---- */}
-      <section className="lp-section lp-about reveal">
-        <span className="lp-eyebrow">{L.aboutKicker}</span>
-        <h2 className="lp-h2">{L.aboutTitle}</h2>
-        <p className="lp-lead">{L.aboutBody}</p>
+      {/* ---- about (dark band) ---- */}
+      <section className="lux-about">
+        <div className="lux-about-inner reveal">
+          <span className="lux-eyebrow gold">{L.aboutKicker}</span>
+          <h2 className="lux-h2 light">{L.aboutTitle}</h2>
+          <p className="lux-about-body">{L.aboutBody}</p>
+        </div>
       </section>
 
       {/* ---- services ---- */}
-      <section className="lp-section">
-        <div className="lp-head reveal">
-          <span className="lp-eyebrow">{L.servicesKicker}</span>
-          <h2 className="lp-h2">{L.servicesTitle}</h2>
+      <section className="lux-sec">
+        <div className="lux-head reveal">
+          <span className="lux-eyebrow">{L.servicesKicker}</span>
+          <h2 className="lux-h2">{L.servicesTitle}</h2>
         </div>
-        <div className="lp-services">
+        <div className="lux-services">
           {L.services.map((s, i) => (
-            <article className="lp-svc reveal" key={s.t} style={{ transitionDelay: `${i * 70}ms` }}>
-              <span className="lp-svc-num">{`0${i + 1}`}</span>
+            <article className="lux-svc reveal" key={s.t} style={{ transitionDelay: `${i * 50}ms` }}>
+              <span className="lux-svc-num">{String(i + 1).padStart(2, "0")}</span>
               <h3>{s.t}</h3>
               <p>{s.d}</p>
             </article>
@@ -86,15 +88,16 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
-      {/* ---- why ---- */}
-      <section className="lp-section">
-        <div className="lp-head reveal">
-          <span className="lp-eyebrow">{L.whyKicker}</span>
-          <h2 className="lp-h2">{L.whyTitle}</h2>
+      {/* ---- why (alt band) ---- */}
+      <section className="lux-sec alt">
+        <div className="lux-head reveal">
+          <span className="lux-eyebrow">{L.whyKicker}</span>
+          <h2 className="lux-h2">{L.whyTitle}</h2>
         </div>
-        <div className="lp-why">
+        <div className="lux-why">
           {L.why.map((w, i) => (
-            <div className="lp-why-item reveal" key={w.t} style={{ transitionDelay: `${i * 70}ms` }}>
+            <div className="lux-why-item reveal" key={w.t} style={{ transitionDelay: `${i * 60}ms` }}>
+              <span className="lux-why-mark">{`0${i + 1}`}</span>
               <h3>{w.t}</h3>
               <p>{w.d}</p>
             </div>
@@ -102,28 +105,41 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
-      {/* ---- final + contact ---- */}
-      <section className="lp-final" id="lp-contact">
-        <span className="lp-aurora soft" aria-hidden="true" />
-        <div className="lp-final-inner reveal">
-          <OmixMark size={52} />
-          <h2 className="lp-final-title">{L.finalTitle}</h2>
-          <p className="lp-sub">{L.finalSub}</p>
-          <div className="lp-cta">
-            <button className="btn btn-lime btn-lg" onClick={onEnter}>{L.ctaEnter}</button>
-          </div>
-          <div className="lp-contact">
-            <span className="lp-contact-h">{L.contactTitle}</span>
-            <div className="lp-contact-links">
-              <a className="lp-contact-link" href={WHATSAPP} target="_blank" rel="noreferrer">{L.whatsapp}</a>
-              <a className="lp-contact-link" href={INSTAGRAM} target="_blank" rel="noreferrer">{L.instagram}</a>
-              {EMAIL && <a className="lp-contact-link" href={EMAIL}>{L.email}</a>}
+      {/* ---- packages ---- */}
+      <section className="lux-sec">
+        <div className="lux-head reveal">
+          <span className="lux-eyebrow">{S.packagesTitle}</span>
+          <h2 className="lux-h2">{S.packagesTitle}</h2>
+          <p className="lux-sub">{S.packagesSub}</p>
+        </div>
+        <div className="lux-packages">
+          {S.packages.map((p, i) => (
+            <div className={`lux-pack reveal ${i === 1 ? "feat" : ""}`} key={p.n} style={{ transitionDelay: `${i * 50}ms` }}>
+              {i === 1 && <span className="lux-pack-tag">הכי פופולרי</span>}
+              <span className="lux-pack-num">{p.n}</span>
+              <span className="lux-pack-unit">{S.sessionsWord}</span>
+              <span className="lux-pack-d">{p.d}</span>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---- final + contact (dark band) ---- */}
+      <section className="lux-final">
+        <div className="lux-final-inner reveal">
+          <OmixMark size={46} />
+          <h2>{L.finalTitle}</h2>
+          <p>{L.finalSub}</p>
+          <button className="lux-btn gold lg" onClick={onEnter}>{L.ctaEnter}</button>
+          <div className="lux-contact">
+            <a href={WHATSAPP} target="_blank" rel="noreferrer">{L.whatsapp}</a>
+            <a href={INSTAGRAM} target="_blank" rel="noreferrer">{L.instagram}</a>
+            <a href={EMAIL}>{L.email}</a>
           </div>
         </div>
       </section>
 
-      <footer className="lp-foot">
+      <footer className="lux-foot">
         <OmixLogo size={22} />
         <VersionTag />
       </footer>

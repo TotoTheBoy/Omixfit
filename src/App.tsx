@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { t } from "./lib/i18n";
 import { logout, onAuthIdentity, useStore } from "./lib/store";
 import { Schedule } from "./screens/Schedule";
@@ -7,17 +7,6 @@ import { Manage } from "./screens/Manage";
 import { Profile } from "./screens/Profile";
 import { Login } from "./screens/Login";
 import { Landing } from "./screens/Landing";
-import { SpineBoundary } from "./components/SpineBoundary";
-const SpineLanding = lazy(() => import("./screens/SpineLanding"));
-
-function webglOK(): boolean {
-  try {
-    const c = document.createElement("canvas");
-    return !!(window.WebGLRenderingContext && (c.getContext("webgl") || c.getContext("experimental-webgl")));
-  } catch {
-    return false;
-  }
-}
 import { Onboarding } from "./screens/Onboarding";
 import { Members } from "./components/Members";
 import { Finance } from "./components/Finance";
@@ -64,12 +53,6 @@ export default function App() {
   const [view, setView] = useState<View>(readHash);
   const [switcher, setSwitcher] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
-  // Use the immersive WebGL landing unless the device prefers reduced motion or
-  // lacks WebGL → the static landing.
-  const prefersSpine = useMemo(
-    () => !window.matchMedia("(prefers-reduced-motion: reduce)").matches && webglOK(),
-    [],
-  );
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   // Logged-out flow: marketing landing first, then the email/password sign-in.
@@ -123,17 +106,10 @@ export default function App() {
       );
     }
     // Resolved + signed out → marketing landing first, then the sign-in form.
-    if (authView === "login") return <Login onBack={() => setAuthView("landing")} />;
-    const goLogin = () => setAuthView("login");
-    const staticLanding = <Landing onEnter={goLogin} />;
-    return prefersSpine ? (
-      <SpineBoundary fallback={staticLanding}>
-        <Suspense fallback={staticLanding}>
-          <SpineLanding onEnter={goLogin} />
-        </Suspense>
-      </SpineBoundary>
+    return authView === "login" ? (
+      <Login onBack={() => setAuthView("landing")} />
     ) : (
-      staticLanding
+      <Landing onEnter={() => setAuthView("login")} />
     );
   }
 
