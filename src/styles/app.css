@@ -267,7 +267,7 @@
   color: var(--text-3);
 }
 .daycol.is-today .dnum {
-  color: var(--lime-600);
+  color: var(--lime-ink);
 }
 .daycol.is-today::before {
   content: "";
@@ -545,7 +545,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--lime-600);
+  color: var(--lime-ink);
   font-weight: 700;
   font-size: 0.82rem;
 }
@@ -1088,7 +1088,7 @@
 }
 .mgr-add:hover {
   border-color: var(--lime-600);
-  color: var(--lime-600);
+  color: var(--lime-ink);
   background: var(--surface);
 }
 
@@ -2024,7 +2024,7 @@
   height: 44px;
   border-radius: 13px;
   margin-bottom: 12px;
-  color: var(--lime-600);
+  color: var(--lime-ink);
   background: hsl(72 90% 95%);
 }
 .landing-feature h3 {

@@ -1,8 +1,21 @@
 // Automated accessibility audit (WCAG 2.0/2.1 A + AA) via axe-core, run against
 // the live app on each key screen. plan.md §5.5 (IS 5568 / WCAG 2.0 AA).
+import { createRequire } from "module";
+import { readFileSync } from "fs";
 import puppeteer from "puppeteer-core";
 import { AxePuppeteer } from "@axe-core/puppeteer";
 import { signInAs, emailForUser, freshContext } from "./_auth.mjs";
+
+// Resolve and read axe-core's source ourselves, then hand it to AxePuppeteer.
+// @axe-core/puppeteer auto-resolves axe-core via createRequire(pathToFileURL(...)),
+// which leaves "%20" in the require base path when the project lives under a
+// directory with a space (e.g. "Omix App") and fails to find the module. Passing
+// the source explicitly skips that broken resolution. createRequire here decodes
+// the path correctly, so this works regardless of spaces in the path.
+const AXE_SOURCE = readFileSync(
+  createRequire(import.meta.url).resolve("axe-core"),
+  "utf8",
+);
 
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const BASE = "http://localhost:4173";
@@ -45,7 +58,7 @@ async function audit(label, { hash = "", userId, open, then } = {}) {
     await new Promise((r) => setTimeout(r, 400));
   }
 
-  const results = await new AxePuppeteer(page)
+  const results = await new AxePuppeteer(page, AXE_SOURCE)
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
 

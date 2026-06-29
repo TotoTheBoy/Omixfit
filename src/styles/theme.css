@@ -8,6 +8,10 @@
   /* brand */
   --lime: #d6ff3d;
   --lime-600: #b6e617;
+  /* dark lime for TEXT on light surfaces — bright limes fail WCAG AA on white
+     (--lime-600 is only 1.5:1); this is 5.6:1. Matches the --ok/--warn/--danger
+     "-ink" text-variant pattern below. Use --lime-600 only for fills/borders. */
+  --lime-ink: #527200;
   --lime-glow: rgba(214, 255, 61, 0.45);
   --violet: #7c5cff;
   --coral: #ff5a5f;
