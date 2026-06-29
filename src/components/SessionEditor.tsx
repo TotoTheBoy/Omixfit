@@ -38,6 +38,7 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
     session?.instructorId ?? instructors[0].id,
   );
   const [room, setRoom] = useState(session?.room ?? "סטודיו A");
+  const [online, setOnline] = useState(session?.online ?? false);
   const [weeks, setWeeks] = useState(1);
 
   function onTypeChange(id: string) {
@@ -66,6 +67,7 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
         capacity,
         instructorId,
         room,
+        online: online || undefined,
       });
       toast("השיעור עודכן", "ok");
     } else {
@@ -78,6 +80,7 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
           capacity,
           instructorId,
           room,
+          online: online || undefined,
           locationId: data.locations[0].id,
         },
         weeks,
@@ -184,6 +187,11 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
         <label htmlFor="se-room">{t.roomLabel}</label>
         <input id="se-room" aria-label={t.roomLabel} className="input" value={room} onChange={(e) => setRoom(e.target.value)} />
       </div>
+
+      <label className="pref-row" style={{ borderTop: "1px solid var(--line)" }}>
+        <span className="pr-main"><b>{t.onlineSession}</b><small>{t.onlineSessionHint}</small></span>
+        <input type="checkbox" className="switch-cb" checked={online} onChange={(e) => setOnline(e.target.checked)} aria-label={t.onlineSession} />
+      </label>
 
       {!editing && (
         <div className="field">

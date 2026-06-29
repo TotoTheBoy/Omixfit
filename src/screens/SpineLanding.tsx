@@ -30,6 +30,19 @@ const MOODS: [string, string][] = [
   ["#caa34b", "#7d6a2f"], // final
 ];
 
+// per-section spine morph: [fiber spread, pulse speed]
+const MORPH: [number, number][] = [
+  [1.0, 1.0],   // hero
+  [1.7, 1.9],   // running  — stretch & energy
+  [0.65, 0.85], // 1:1      — tight, precise
+  [1.45, 1.5],  // group    — synced energy
+  [0.8, 0.6],   // rehab    — gentle realign
+  [1.15, 0.55], // prenatal — soft cradle
+  [1.55, 1.35], // online   — dispersed
+  [1.0, 1.1],   // packages
+  [1.25, 1.5],  // final    — bloom
+];
+
 function spineCurve() {
   const pts: THREE.Vector3[] = [];
   for (let i = 0; i <= 14; i++) {
@@ -43,13 +56,17 @@ function spineCurve() {
 const VERT_SHADER = /* glsl */ `
   uniform float uTime;
   uniform float uFlex;
+  uniform float uSpread;
+  uniform float uSpeed;
   varying vec2 vUv;
   varying float vPulse;
   void main() {
     vUv = uv;
     vec3 p = position;
-    float pulse = sin(uv.x * 26.0 - uTime * 2.2) * 0.5 + 0.5;
-    p += normal * pulse * (0.015 + uFlex * 0.06);
+    float pulse = sin(uv.x * 26.0 - uTime * 2.2 * uSpeed) * 0.5 + 0.5;
+    // uSpread morphs the fibers per section: tightening (rehab/1:1) or
+    // flexing & expanding outward (running/group/online).
+    p += normal * pulse * (0.015 + uFlex * 0.06) * uSpread;
     vPulse = pulse;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
@@ -101,6 +118,8 @@ function MuscleFibers({ matRef }: { matRef: React.MutableRefObject<THREE.ShaderM
         uniforms={{
           uTime: { value: 0 },
           uFlex: { value: 0 },
+          uSpread: { value: 1 },
+          uSpeed: { value: 1 },
           uColorA: { value: new THREE.Color(MOODS[0][0]) },
           uColorB: { value: new THREE.Color(MOODS[0][1]) },
         }}
@@ -207,6 +226,9 @@ function Scene({ onActive }: { onActive: (i: number) => void }) {
       cA.set(m[0]); cB.set(m[1]);
       (u.uColorA.value as THREE.Color).lerp(cA, Math.min(1, dt * 3));
       (u.uColorB.value as THREE.Color).lerp(cB, Math.min(1, dt * 3));
+      const mo = MORPH[sec];
+      u.uSpread.value += (mo[0] - u.uSpread.value) * Math.min(1, dt * 2.5);
+      u.uSpeed.value += (mo[1] - u.uSpeed.value) * Math.min(1, dt * 2.5);
     }
   });
   return (

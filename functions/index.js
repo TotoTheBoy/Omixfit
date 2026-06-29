@@ -63,14 +63,16 @@ async function calendar() {
   return google.calendar({ version: "v3", auth: o });
 }
 
-function buildEvent(s, title) {
+function buildEvent(s, title, id) {
   const [y, m, d] = s.date.split("-").map(Number);
   const start = new Date(y, m - 1, d, 0, 0, 0);
   start.setMinutes(s.startMin || 0);
   const end = new Date(start.getTime() + (s.durationMin || 60) * 60000);
+  const video = s.online ? `https://meet.jit.si/omix-${id}` : "";
   return {
-    summary: title || "אימון",
-    location: s.room || "",
+    summary: (s.online ? "🎥 " : "") + (title || "אימון"),
+    location: s.online ? video : s.room || "",
+    description: s.online ? `שיעור אונליין - הצטרפות לווידאו:\n${video}` : "",
     start: { dateTime: start.toISOString(), timeZone: "Asia/Jerusalem" },
     end: { dateTime: end.toISOString(), timeZone: "Asia/Jerusalem" },
   };
@@ -101,7 +103,7 @@ exports.syncCalendar = fnV1.https.onCall(async (data, context) => {
         const t = await db.doc("classTypes/" + s.classTypeId).get();
         titles[s.classTypeId] = t.exists ? t.data().name : "אימון";
       }
-      const ev = buildEvent(s, titles[s.classTypeId]);
+      const ev = buildEvent(s, titles[s.classTypeId], doc.id);
       if (s.gcalEventId) {
         await cal.events.update({ calendarId: CAL_ID, eventId: s.gcalEventId, requestBody: ev });
       } else {

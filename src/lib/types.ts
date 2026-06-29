@@ -99,6 +99,8 @@ export interface ClassSession {
   locationId: string;
   room: string;
   cancelled?: boolean;
+  /** Online session → a free Jitsi video room (meet.jit.si/omix-<id>). */
+  online?: boolean;
   /** Set when generated from a recurrence rule. */
   seriesId?: string;
   /**

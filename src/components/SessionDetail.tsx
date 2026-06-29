@@ -172,6 +172,13 @@ export function SessionDetail({
 
       <p className="muted" style={{ margin: 0, lineHeight: 1.5 }}>{type.description}</p>
 
+      {session.online && !session.cancelled && (
+        <a className="btn btn-ink grow" href={`https://meet.jit.si/omix-${session.id}`}
+          target="_blank" rel="noreferrer" style={{ marginTop: 2 }}>
+          🎥 {t.joinVideo}
+        </a>
+      )}
+
       {!session.cancelled && <CapacityBar booked={booked} capacity={session.capacity} />}
 
       {reasonNote && (
