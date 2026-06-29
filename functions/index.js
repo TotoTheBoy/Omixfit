@@ -117,3 +117,68 @@ exports.syncCalendar = fnV1.https.onCall(async (data, context) => {
   }
   return { connected: true, synced };
 });
+
+// ---------------------------------------------------------------------------
+// Email reminders — an external hourly cron pings this; it emails the booked
+// clients of any session starting within the next 24h (once each, via Gmail SMTP
+// from office@omixfit.com). Protected by a secret key.
+// ---------------------------------------------------------------------------
+const nodemailer = require("nodemailer");
+
+exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
+  if (req.query.key !== process.env.REMINDER_KEY) return res.status(403).send("forbidden");
+  const now = Date.now();
+  const horizon = now + 24 * 3600 * 1000;
+  const transport = nodemailer.createTransport({
+    host: "smtp.gmail.com", port: 465, secure: true,
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+  });
+  if (req.query.verify) {
+    try { await transport.verify(); return res.json({ smtp: "ok" }); }
+    catch (e) { return res.status(500).json({ smtp: "fail", err: String(e).slice(0, 140) }); }
+  }
+  const sessions = await db.collection("sessions").get();
+  const titles = {};
+  let sent = 0;
+  for (const sd of sessions.docs) {
+    const s = sd.data();
+    if (s.cancelled || !s.date) continue;
+    const [y, m, d] = s.date.split("-").map(Number);
+    const start = new Date(y, m - 1, d, 0, 0, 0);
+    start.setMinutes(s.startMin || 0);
+    const st = start.getTime();
+    if (st < now || st > horizon) continue; // only the next 24h
+    if (!titles[s.classTypeId]) {
+      const t = await db.doc("classTypes/" + s.classTypeId).get();
+      titles[s.classTypeId] = t.exists ? t.data().name : "אימון";
+    }
+    const time = `${String(Math.floor((s.startMin || 0) / 60)).padStart(2, "0")}:${String((s.startMin || 0) % 60).padStart(2, "0")}`;
+    const bk = await db.collection("bookings")
+      .where("sessionId", "==", sd.id).where("state", "==", "confirmed").get();
+    for (const bd of bk.docs) {
+      const b = bd.data();
+      if (b.reminded) continue;
+      const u = await db.doc("users/" + b.userId).get();
+      const email = u.exists && u.data().email;
+      if (email) {
+        const name = (u.data().name || "").split(" ")[0];
+        const video = s.online ? `<p>🎥 שיעור אונליין: <a href="https://meet.jit.si/omix-${sd.id}">להצטרפות לווידאו</a></p>` : "";
+        await transport.sendMail({
+          from: `Omix · עומר <${process.env.GMAIL_USER}>`,
+          to: email,
+          subject: `תזכורת: ${titles[s.classTypeId]} ב-${time}`,
+          html: `<div dir="rtl" style="font-family:Arial,sans-serif;color:#241c12;background:#f6efe0;padding:24px;border-radius:14px;max-width:480px">
+            <h2 style="color:#a9842f">תזכורת לאימון 💪</h2>
+            <p>היי ${name},</p>
+            <p>מזכירים שיש לך <b>${titles[s.classTypeId]}</b><br>בתאריך <b>${s.date}</b> בשעה <b>${time}</b>.</p>
+            ${video}
+            <p>נתראה!<br><b>עומר · Omix</b></p>
+          </div>`,
+        }).catch((e) => logger.error("mail", e));
+        sent++;
+      }
+      await bd.ref.update({ reminded: true }).catch(() => {});
+    }
+  }
+  res.json({ sent });
+});
