@@ -177,7 +177,7 @@ const AVATAR_COLORS = [
 
 // The business owners - these (and only these) verified emails become admins on
 // sign-in. Kept in sync with firestore.rules `isOwnerEmail()`.
-const OWNER_EMAILS = ["guy.lifshitz98@gmail.com", "omerido20@gmail.com"];
+const OWNER_EMAILS = ["office@omixfit.com", "omer@omixfit.com"];
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/);
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
