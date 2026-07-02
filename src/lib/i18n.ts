@@ -390,6 +390,38 @@ export const t = {
     ],
   },
 
+  // Monthly 1-on-1 coaching tier — owner dashboard
+  coaching: {
+    tab: "ליווי",
+    title: "ליווי אישי",
+    subtitle: "המתאמנים במסלול הליווי החודשי - תזכורות שיחה, קשר ותשלום.",
+    empty: "אין מתאמנים בליווי אישי",
+    emptyHint: "אפשר לצרף מתאמן/ת לליווי מתוך כרטיס הלקוח.",
+    whatsapp: "וואטסאפ",
+    goals: "מטרות",
+    goalsPlaceholder: "מטרות שנקבעו בפגישת ההיכרות...",
+    enroll: "ליווי אישי חודשי",
+    enrollHint: "מתאמן/ת במסלול הליווי - יופיע/תופיע בלוח הליווי.",
+    enrolled: "נוסף/ה לליווי אישי",
+    unenrolled: "הוסר/ה מהליווי",
+    needFirstMeeting: "פגישת היכרות",
+    okFirstMeeting: "היכרות בוצעה",
+    doFirstMeeting: "בוצעה",
+    markedMeeting: "פגישת ההיכרות סומנה",
+    needCall: "שיחה שבועית",
+    okCall: "שיחה עדכנית",
+    logCall: "סמן שיחה",
+    loggedCall: "השיחה נרשמה",
+    needContact: "אין קשר יומי",
+    okContact: "בקשר",
+    logContact: "סמן קשר",
+    loggedContact: "הקשר נרשם",
+    needPayment: "תשלום החודש",
+    okPayment: "שולם החודש",
+    markPaid: "סמן ששולם",
+    markedPaid: "התשלום סומן",
+  },
+
   // staff: registration approvals
   approvals: {
     title: "אישור נרשמים חדשים",

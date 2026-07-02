@@ -169,12 +169,14 @@ Built ✅ · Planned ⏳
 
 - ✅ Payments modal (Bit/PayBox), calendar sync (studio + per-customer),
   email verification gate, transactional emails, omerido20 full admin.
-- ⏳ **Simplify the approval/review screen** (§5.1) — in progress.
-- ⏳ **"New client" flag** + extra-attention treatment (§4).
-- ⏳ **Trial → 7-day-pass auto-disconnect** rule (§4).
-- ⏳ **Login tracking** for existing clients (§4).
-- ⏳ **Health/injury flags + treatment templates + per-client exercise
-  adaptations** (§5.4).
+- ✅ **Simplified approval/review screen** (§5.1) — name/phone/email/where-from,
+  one medical flag, notes, verification status, approve/decline.
+- ✅ **"New client" flag** (`approvedAt`, <21d tag + detail highlight) (§4).
+- ✅ **Trial → 7-day-pass auto-disconnect** (`sweepTrials` off the hourly ping;
+  "mark pass" clears it; legacy members never swept) (§4).
+- ✅ **Login tracking** (`lastLoginAt`, shown on the member card) (§4).
+- ✅ **Injury notes + adaptation templates** (per-client `trainerNotes`,
+  quick-insert templates, list flag) (§5.4).
 - ⏳ **Retreat / special-event signup** (separate, public, one-time price) (§5.2).
 - ⏳ **Coaching-subscription admin dashboard** with reminders (§5.3).
 - ⏳ **"Just sign up" low-friction landing lead capture** (§4).

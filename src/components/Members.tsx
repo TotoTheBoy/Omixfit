@@ -390,6 +390,40 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
               </button>
             </div>
           )}
+
+          {/* enrol into the monthly 1-on-1 coaching tier (surfaces in the
+              Coaching dashboard) */}
+          {u.role === "member" && (
+            <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+              <div className="pref-row" style={{ borderTop: "none", borderBottom: "none", padding: 0 }}>
+                <div className="pr-main">
+                  <b>🎯 {t.coaching.enroll}</b>
+                  <small>{t.coaching.enrollHint}</small>
+                </div>
+                <button
+                  className={`switch ${u.coaching?.active ? "on" : ""}`}
+                  role="switch"
+                  aria-checked={!!u.coaching?.active}
+                  aria-label={t.coaching.enroll}
+                  onClick={() => {
+                    const active = !u.coaching?.active;
+                    updateUser(u.id, { coaching: { ...(u.coaching ?? {}), active, startedAt: u.coaching?.startedAt ?? Date.now() } });
+                    toast(active ? t.coaching.enrolled : t.coaching.unenrolled, "info");
+                  }}
+                />
+              </div>
+              {u.coaching?.active && (
+                <textarea
+                  className="input"
+                  rows={2}
+                  style={{ marginTop: 8 }}
+                  defaultValue={u.coaching?.goals ?? ""}
+                  placeholder={t.coaching.goalsPlaceholder}
+                  onBlur={(e) => updateUser(u.id, { coaching: { ...(u.coaching ?? { active: true }), goals: e.target.value.trim() } })}
+                />
+              )}
+            </div>
+          )}
         </>
       )}
 

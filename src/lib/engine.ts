@@ -28,6 +28,19 @@ export function trialDaysLeft(
   return TRIAL_DAYS - Math.floor((nowMs - u.approvedAt) / DAY_MS);
 }
 
+/** What Omer is overdue on for a coaching client: weekly call (>7d), a daily
+ *  WhatsApp touch (>2d), first meeting not done, and this month's payment. */
+export function coachingFlags(u: Pick<User, "coaching">, nowMs = Date.now()) {
+  const c = u.coaching;
+  const month = new Date(nowMs).toISOString().slice(0, 7);
+  return {
+    needsFirstMeeting: !c?.firstMeetingDone,
+    needsCall: !c?.lastCallAt || nowMs - c.lastCallAt > 7 * DAY_MS,
+    needsContact: !c?.lastContactAt || nowMs - c.lastContactAt > 2 * DAY_MS,
+    needsPayment: c?.lastPaidMonth !== month,
+  };
+}
+
 export function sessionStartDate(session: ClassSession): Date {
   const d = fromKey(session.date);
   d.setMinutes(session.startMin);

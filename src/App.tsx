@@ -10,6 +10,7 @@ import { Landing } from "./screens/Landing";
 import { Onboarding, VerifyEmail } from "./screens/Onboarding";
 import { Members } from "./components/Members";
 import { Finance } from "./components/Finance";
+import { Coaching } from "./components/Coaching";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { OmixLogo, OmixMark, IsraelClock } from "./components/Brand";
 import { IntervalTimer } from "./components/IntervalTimer";
@@ -34,8 +35,8 @@ const IcCoins = (p: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type View = "schedule" | "bookings" | "manage" | "clients" | "finance" | "profile";
-const VIEWS = ["bookings", "manage", "clients", "finance", "profile"];
+type View = "schedule" | "bookings" | "manage" | "clients" | "finance" | "coaching" | "profile";
+const VIEWS = ["bookings", "manage", "clients", "finance", "coaching", "profile"];
 
 function readHash(): View {
   const h = location.hash.replace("#", "");
@@ -93,7 +94,7 @@ export default function App() {
   useEffect(() => {
     if (!me) return;
     if ((view === "manage" || view === "clients") && !isStaff) go("schedule");
-    if (view === "finance" && !canFinance) go("schedule");
+    if ((view === "finance" || view === "coaching") && !canFinance) go("schedule");
     if (view === "bookings" && isStaff) go("schedule");
   }, [me, isStaff, canFinance, view]);
 
@@ -141,7 +142,10 @@ export default function App() {
         { id: "manage", label: t.nav.manage, icon: <IcGrid /> },
         { id: "clients", label: t.nav.members, icon: <IcUsers />, badge: pendingCount },
         ...(canFinance
-          ? [{ id: "finance" as View, label: t.finance.tab, icon: <IcCoins /> }]
+          ? [
+              { id: "finance" as View, label: t.finance.tab, icon: <IcCoins /> },
+              { id: "coaching" as View, label: t.coaching.tab, icon: <span aria-hidden="true">🎯</span> },
+            ]
           : []),
         { id: "profile", label: t.nav.profile, icon: <IcUser /> },
       ]
@@ -225,6 +229,7 @@ export default function App() {
             <Finance />
           </div>
         )}
+        {view === "coaching" && canFinance && <Coaching />}
         {view === "profile" && <Profile onSwitchUser={() => setSwitcher(true)} />}
       </main>
 

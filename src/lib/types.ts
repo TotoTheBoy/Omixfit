@@ -35,6 +35,20 @@ export interface HealthForm {
 
 export type Gender = "female" | "male" | "other";
 
+/** Monthly 1-on-1 coaching subscription (managed over WhatsApp; the app just
+ *  nudges Omer to keep up the weekly call / daily contact / monthly charge). */
+export interface Coaching {
+  active: boolean;
+  startedAt?: number;
+  /** Goals set at the first (online/physical) meeting. */
+  goals?: string;
+  firstMeetingDone?: boolean;
+  lastCallAt?: number; // last weekly 1-hour call (ms)
+  lastContactAt?: number; // last WhatsApp touchpoint (ms)
+  lastPaidMonth?: string; // "YYYY-MM" of the last collected payment
+  monthlyFee?: number; // ₪ (for the "collect payment" reminder)
+}
+
 export interface User {
   id: string;
   name: string;
@@ -70,6 +84,9 @@ export interface User {
   /** Omer's clinical notes (sports-therapist): injuries, pain, and the exercise
    *  ADAPTATIONS she prepares for this client. Staff-only; shown during class. */
   trainerNotes?: string;
+  /** Monthly 1-on-1 coaching subscription state (the premium tier Omer runs over
+   *  WhatsApp). Present once the client is enrolled. */
+  coaching?: Coaching;
   /** Membership tier label + validity (manager-managed in v1). */
   membershipPlan?: string;
   membershipValidUntil?: string; // YYYY-MM-DD
