@@ -7,7 +7,7 @@ import { Manage } from "./screens/Manage";
 import { Profile } from "./screens/Profile";
 import { Login } from "./screens/Login";
 import { Landing } from "./screens/Landing";
-import { Onboarding } from "./screens/Onboarding";
+import { Onboarding, VerifyEmail } from "./screens/Onboarding";
 import { Members } from "./components/Members";
 import { Finance } from "./components/Finance";
 import { UserSwitcher } from "./components/UserSwitcher";
@@ -55,6 +55,7 @@ export default function App() {
   const [timerOpen, setTimerOpen] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   // Logged-out flow: marketing landing first, then the email/password sign-in.
   const [authView, setAuthView] = useState<"landing" | "login">("landing");
 
@@ -71,6 +72,7 @@ export default function App() {
       unsub = watchAuth((identity) => {
         setAuthResolved(true);
         setSignedIn(!!identity);
+        setEmailVerified(!!identity?.emailVerified);
         if (identity) onAuthIdentity(identity.uid, identity.email, identity.displayName);
         else logout();
       });
@@ -111,6 +113,14 @@ export default function App() {
     ) : (
       <Landing onEnter={() => setAuthView("login")} />
     );
+  }
+
+  // A fresh member (pending approval) must first prove they own the email address
+  // (a made-up address never receives the link, so it can't reach the app). Only
+  // the "pending" flow is gated — seeded/legacy members (no approvalStatus) and
+  // approved members / staff are grandfathered so we never lock anyone out.
+  if (me.role === "member" && me.approvalStatus === "pending" && !emailVerified) {
+    return <VerifyEmail email={me.email ?? ""} onVerified={() => setEmailVerified(true)} />;
   }
 
   // Only members go through approval (health form → "awaiting approval"). Staff

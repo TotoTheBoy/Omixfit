@@ -69,6 +69,49 @@ function Rejected() {
   );
 }
 
+// Shown to a fresh, not-yet-approved member until they click the verification
+// link Firebase e-mailed them — so a made-up address can't reach the app.
+export function VerifyEmail({ email, onVerified }: { email: string; onVerified: () => void }) {
+  const [busy, setBusy] = useState(false);
+  async function check() {
+    setBusy(true);
+    try {
+      const { refreshEmailVerified } = await import("../lib/firebase");
+      if (await refreshEmailVerified()) {
+        toast(t.verify.done, "ok");
+        onVerified();
+      } else {
+        toast(t.verify.notYet, "info");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function resend() {
+    try {
+      const { resendVerification } = await import("../lib/firebase");
+      await resendVerification();
+      toast(t.verify.resent, "ok");
+    } catch {
+      toast(t.verify.resendErr, "err");
+    }
+  }
+  return (
+    <Shell>
+      <span className="onboard-badge">{t.verify.badge}</span>
+      <h1>{t.verify.title}</h1>
+      <p className="login-sub">{t.verify.body(email)}</p>
+      <p className="login-note">{t.verify.hint}</p>
+      <button className="btn btn-lime" style={{ marginTop: 16, width: "100%" }} onClick={check} disabled={busy}>
+        {busy ? t.verify.checking : t.verify.cta}
+      </button>
+      <button className="link-btn" style={{ marginTop: 10 }} onClick={resend}>
+        {t.verify.resend}
+      </button>
+    </Shell>
+  );
+}
+
 function HealthDeclaration({ user }: { user: User }) {
   const H = t.health;
   const [name, setName] = useState(user.name);

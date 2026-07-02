@@ -25,6 +25,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const [bit, setBit] = useState(fac.bitLink ?? "");
   const [paybox, setPaybox] = useState(fac.payboxLink ?? "");
   const isAdmin = me.role === "admin";
+  const [payOpen, setPayOpen] = useState(false);
 
   function savePay() {
     savePaymentLinks({ bitLink: bit.trim(), payboxLink: paybox.trim() });
@@ -95,16 +96,34 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         </div>
       </div>
 
-      {/* client self-pay (Bit / PayBox) */}
+      {/* client purchase — opens a modal to choose Bit / PayBox */}
       {(fac.bitLink || fac.payboxLink) && (
         <div className="pay-card">
-          <span className="pay-h">{t.pay.title}</span>
-          <div className="pay-actions">
-            {fac.bitLink && <a className="btn btn-lime grow" href={fac.bitLink} target="_blank" rel="noreferrer">{t.pay.bit}</a>}
-            {fac.payboxLink && <a className="btn btn-ink grow" href={fac.payboxLink} target="_blank" rel="noreferrer">{t.pay.paybox}</a>}
-          </div>
-          <small className="pay-hint">{t.pay.hint}</small>
+          <span className="pay-h">{t.pay.buyTitle}</span>
+          <small className="pay-hint">{t.pay.buyHint}</small>
+          <button className="btn btn-lime" style={{ marginTop: 10 }} onClick={() => setPayOpen(true)}>
+            {t.pay.buy}
+          </button>
         </div>
+      )}
+
+      {payOpen && (
+        <Sheet title={t.pay.buyTitle} onClose={() => setPayOpen(false)}>
+          <p className="muted" style={{ margin: "0 0 14px" }}>{t.pay.choose}</p>
+          <div className="pay-actions">
+            {fac.bitLink && (
+              <a className="btn btn-lime grow" href={fac.bitLink} target="_blank" rel="noreferrer" onClick={() => setPayOpen(false)}>
+                {t.pay.bit}
+              </a>
+            )}
+            {fac.payboxLink && (
+              <a className="btn btn-ink grow" href={fac.payboxLink} target="_blank" rel="noreferrer" onClick={() => setPayOpen(false)}>
+                {t.pay.paybox}
+              </a>
+            )}
+          </div>
+          <small className="pay-hint" style={{ display: "block", marginTop: 14 }}>{t.pay.hint}</small>
+        </Sheet>
       )}
 
       {/* stats */}

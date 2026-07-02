@@ -38,10 +38,29 @@ export interface AuthIdentity {
   uid: string;
   email: string;
   displayName: string | null;
+  emailVerified: boolean;
 }
 
 function toIdentity(u: FbUser): AuthIdentity {
-  return { uid: u.uid, email: u.email ?? "", displayName: u.displayName };
+  return {
+    uid: u.uid,
+    email: u.email ?? "",
+    displayName: u.displayName,
+    emailVerified: u.emailVerified,
+  };
+}
+
+/** Re-fetch the current user from Firebase and report whether the email is now
+ *  verified (call after the user clicks the link in their inbox). */
+export async function refreshEmailVerified(): Promise<boolean> {
+  if (!auth?.currentUser) return false;
+  await auth.currentUser.reload();
+  return auth.currentUser.emailVerified;
+}
+
+/** Re-send the "confirm your email" link to the signed-in user. */
+export async function resendVerification(): Promise<void> {
+  if (auth?.currentUser) await sendEmailVerification(auth.currentUser);
 }
 
 /** Subscribe to sign-in/out. Fires once with the current state on attach. */

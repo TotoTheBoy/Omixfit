@@ -22,7 +22,7 @@ service cloud.firestore {
     function isOwnerEmail() {
       return signedIn()
         && request.auth.token.email != null
-        && request.auth.token.email.lower() in ['office@omixfit.com', 'omer@omixfit.com'];
+        && request.auth.token.email.lower() in ['office@omixfit.com', 'omer@omixfit.com', 'omerido20@gmail.com'];
     }
     // A client may never create or set the admin role…
     function notSettingAdmin() {
