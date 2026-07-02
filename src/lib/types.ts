@@ -264,6 +264,34 @@ export interface Facility {
   payboxLink?: string;
 }
 
+/** A one-off special event / retreat / workshop (docs/business.md §5.2). Sold at
+ *  a one-time price and open to the PUBLIC (non-members sign up too). */
+export interface SpecialEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string; // YYYY-MM-DD
+  time?: string; // free-text, e.g. "10:00"
+  location?: string;
+  includes?: string; // "יוגה, נשימה, אמבט קרח, ארוחה..."
+  price: number; // one-time ₪
+  capacity: number;
+  imageUrl?: string;
+  published: boolean;
+  createdAt: number;
+}
+
+/** A public registration for a SpecialEvent (no app account required). */
+export interface EventSignup {
+  id: string;
+  eventId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  paid?: boolean; // Omer marks once the one-time payment lands
+  createdAt: number;
+}
+
 export interface AppData {
   users: User[];
   classTypes: ClassType[];
@@ -273,6 +301,7 @@ export interface AppData {
   services: Service[];
   payments: Payment[];
   subscriptions: Subscription[];
+  events: SpecialEvent[];
   facility: Facility;
   audit: AuditEntry[];
   /** null when logged out (the app shows the login screen). */

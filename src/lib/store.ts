@@ -23,6 +23,7 @@ const EMPTY: AppData = {
   services: [],
   payments: [],
   subscriptions: [],
+  events: [],
   facility: {
     name: "Omix",
     bookingWindowDays: 14,
@@ -141,6 +142,22 @@ export const deletePayment = (id: string) =>
 export const newServiceId = () => engine.genId("svc");
 export const saveSubscriptions = (items: import("./types").Subscription[]) =>
   backend().then((b) => b.saveSubscriptions(items));
+
+// special events / retreats
+export const upsertEvent = (ev: import("./types").SpecialEvent) =>
+  backend().then((b) => b.upsertEvent(ev));
+export const deleteEvent = (id: string) => backend().then((b) => b.deleteEvent(id));
+export const newEventId = () => engine.genId("ev");
+export const fetchEventSignups = (eventId: string) =>
+  backend().then((b) => b.fetchEventSignups(eventId));
+export const markEventSignupPaid = (id: string, paid: boolean) =>
+  backend().then((b) => b.markEventSignupPaid(id, paid));
+// public (no login) — imported directly by the public page, but re-exported here:
+export const fetchPublishedEvents = () => backend().then((b) => b.fetchPublishedEvents());
+export const submitEventSignup = (
+  eventId: string,
+  who: { name: string; phone: string; email?: string },
+) => backend().then((b) => b.submitEventSignup(eventId, who));
 export const syncCalendar = (mode?: "personal") =>
   backend().then((b) => b.syncCalendar(mode));
 export const calConnectUrl = () => backend().then((b) => b.calConnectUrl());

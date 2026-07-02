@@ -48,6 +48,8 @@ import type {
   Location,
   Payment,
   Service,
+  SpecialEvent,
+  EventSignup,
   Subscription,
   User,
 } from "./types";
@@ -70,6 +72,8 @@ const col = {
   locations: collection(db, "locations"),
   services: collection(db, "services"),
   payments: collection(db, "payments"),
+  events: collection(db, "events"),
+  eventSignups: collection(db, "eventSignups"),
   audit: collection(db, "audit"),
 };
 
@@ -100,6 +104,9 @@ function startListeners(): void {
   );
   onSnapshot(col.services, (s) =>
     hydrate({ services: s.docs.map((d) => d.data() as Service) }),
+  );
+  onSnapshot(col.events, (s) =>
+    hydrate({ events: s.docs.map((d) => d.data() as SpecialEvent) }),
   );
   onSnapshot(col.payments, (s) =>
     hydrate({ payments: s.docs.map((d) => d.data() as Payment) }),
@@ -625,4 +632,57 @@ export async function recordPayment(
 
 export async function deletePayment(id: string): Promise<void> {
   await deleteDoc(doc(db, "payments", id));
+}
+
+// ---- special events / retreats (docs/business.md §5.2) ----------------------
+export async function upsertEvent(ev: SpecialEvent): Promise<void> {
+  await setDoc(doc(db, "events", ev.id), ev);
+  await audit("session_created", `אירוע: ${ev.title}`);
+}
+export async function deleteEvent(id: string): Promise<void> {
+  await deleteDoc(doc(db, "events", id));
+}
+export function newEventId(): string {
+  return engine.genId("ev");
+}
+
+/** PUBLIC (no login): fetch the events open for registration. */
+export async function fetchPublishedEvents(): Promise<SpecialEvent[]> {
+  await initFirestore();
+  const snap = await getDocs(col.events);
+  return snap.docs
+    .map((d) => d.data() as SpecialEvent)
+    .filter((e) => e.published)
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** PUBLIC (no login): register for an event. Rules allow the create. */
+export async function submitEventSignup(
+  eventId: string,
+  who: { name: string; phone: string; email?: string },
+): Promise<void> {
+  await initFirestore();
+  const ref = doc(col.eventSignups);
+  const signup: EventSignup = {
+    id: ref.id,
+    eventId,
+    name: who.name.trim(),
+    phone: who.phone.trim(),
+    email: who.email?.trim() || undefined,
+    createdAt: Date.now(),
+  };
+  // Firestore rejects `undefined`; drop an absent email.
+  if (!signup.email) delete (signup as Partial<EventSignup>).email;
+  await setDoc(ref, signup);
+}
+
+/** Staff: the registrations for one event. */
+export async function fetchEventSignups(eventId: string): Promise<EventSignup[]> {
+  const snap = await getDocs(query(col.eventSignups, where("eventId", "==", eventId)));
+  return snap.docs
+    .map((d) => d.data() as EventSignup)
+    .sort((a, b) => a.createdAt - b.createdAt);
+}
+export async function markEventSignupPaid(id: string, paid: boolean): Promise<void> {
+  await updateDoc(doc(db, "eventSignups", id), { paid });
 }

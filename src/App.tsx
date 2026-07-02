@@ -11,6 +11,7 @@ import { Onboarding, VerifyEmail } from "./screens/Onboarding";
 import { Members } from "./components/Members";
 import { Finance } from "./components/Finance";
 import { Coaching } from "./components/Coaching";
+import { PublicEvents } from "./screens/PublicEvents";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { OmixLogo, OmixMark, IsraelClock } from "./components/Brand";
 import { IntervalTimer } from "./components/IntervalTimer";
@@ -52,6 +53,7 @@ export default function App() {
     ? data.users.filter((u) => u.approvalStatus === "pending").length
     : 0;
   const [view, setView] = useState<View>(readHash);
+  const [publicRoute, setPublicRoute] = useState(() => location.hash.replace(/^#\/?/, "").split("/")[0]);
   const [switcher, setSwitcher] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
@@ -85,7 +87,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const onHash = () => setView(readHash());
+    const onHash = () => {
+      setView(readHash());
+      setPublicRoute(location.hash.replace(/^#\/?/, "").split("/")[0]);
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
@@ -97,6 +102,10 @@ export default function App() {
     if ((view === "finance" || view === "coaching") && !canFinance) go("schedule");
     if (view === "bookings" && isStaff) go("schedule");
   }, [me, isStaff, canFinance, view]);
+
+  // Public retreat/event signup page — no login required, so it renders before
+  // the auth gate.
+  if (publicRoute === "events") return <PublicEvents />;
 
   // Resolving the session, or signed in but cloud data still streaming in →
   // show a splash rather than flashing the logged-out screens.

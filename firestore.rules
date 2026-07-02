@@ -52,6 +52,22 @@ service cloud.firestore {
     match /services/{id}   { allow read, write: if signedIn(); }
     match /payments/{id}   { allow read, write: if signedIn(); }
 
+    // Special events / retreats — events are PUBLIC (marketing + signup page);
+    // only staff write them.
+    match /events/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    // Event registrations — PUBLIC create (non-members sign up), staff read/manage.
+    // Basic shape validation keeps drive-by writes sane.
+    match /eventSignups/{id} {
+      allow read, update, delete: if signedIn();
+      allow create: if request.resource.data.keys().hasAll(['eventId', 'name', 'phone', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 80
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 30
+        && request.resource.data.eventId is string;
+    }
+
     // Audit log — append-only: created + read, never changed or removed.
     match /audit/{id} {
       allow read, create: if signedIn();

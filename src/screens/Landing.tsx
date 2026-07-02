@@ -144,6 +144,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
       <footer className="lux-foot">
         <OmixLogo size={22} />
         <div className="lux-foot-links">
+          <a className="lux-foot-link" href="#events">{t.events.tab}</a>
           <button className="lux-foot-link" onClick={() => setLegal(true)}>{t.legal.open}</button>
           <VersionTag />
         </div>
