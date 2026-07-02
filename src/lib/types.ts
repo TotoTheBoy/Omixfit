@@ -64,6 +64,9 @@ export interface User {
   /** Optional fun avatar persona (an emoji) shown instead of the initials. */
   avatarSkin?: string;
   prefs?: NotifyPrefs;
+  /** True once the member connected their own Google Calendar (set by the OAuth
+   *  callback function); gates the "sync my classes" UI. */
+  calConnected?: boolean;
 }
 
 export type ClassCategory =

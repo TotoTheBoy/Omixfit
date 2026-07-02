@@ -71,6 +71,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Per-member personal-calendar OAuth refresh tokens — same lockdown: only
+    // the Cloud Functions may read/write. Clients never see a refresh token.
+    match /calTokens/{uid} {
+      allow read, write: if false;
+    }
+
     // Seed marker + facility settings — readable/writable, never deletable.
     // (subscriptions + calendar are excluded above so the line below can't expose them.)
     match /meta/{doc} {

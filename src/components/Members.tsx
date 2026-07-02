@@ -163,12 +163,8 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   async function decide(status: "approved" | "rejected") {
     await setApproval(u.id, status);
     if (status === "approved") {
+      // setApproval now sends the "you're approved" e-mail automatically (server-side).
       toast(t.approvals.approvedToast(u.name), "ok");
-      if (u.email) {
-        const subject = encodeURIComponent(t.approvals.emailSubject(t.appName));
-        const body = encodeURIComponent(t.approvals.emailBody(u.name, t.appName));
-        window.open(`mailto:${u.email}?subject=${subject}&body=${body}`);
-      }
     } else {
       toast(t.approvals.rejectedToast(u.name), "info");
     }

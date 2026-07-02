@@ -287,6 +287,16 @@ export async function setApproval(
     status === "approved" ? "member_approved" : "member_rejected",
     before?.name ?? userId,
   );
+  if (status === "approved") {
+    // Best-effort: e-mail the member their "you're approved, log in" link. The
+    // approval itself is already persisted, so a mail hiccup must not fail it.
+    try {
+      const call = httpsCallable(getFunctions(app, "us-central1"), "notifyApproval");
+      await call({ uid: userId });
+    } catch {
+      /* mail is best-effort */
+    }
+  }
 }
 
 // ---- audit ------------------------------------------------------------------
@@ -307,6 +317,23 @@ async function audit(action: AuditAction, summary: string): Promise<void> {
 }
 
 // ---- booking mutations (atomic capacity via the session counter) ------------
+// Fire-and-forget transactional e-mails. Best-effort: a mail hiccup must never
+// affect the booking/cancel result, so these swallow all errors.
+function fireMemberMail(kind: "booking" | "promotion", uid: string, sessionId: string): void {
+  try {
+    void httpsCallable(getFunctions(app, "us-central1"), "memberMail")({ kind, uid, sessionId }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+function fireSessionCancelled(sessionId: string): void {
+  try {
+    void httpsCallable(getFunctions(app, "us-central1"), "notifySessionCancelled")({ sessionId }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function book(
   sessionId: string,
   userId: string,
@@ -321,7 +348,7 @@ export async function book(
 
   const sessionRef = doc(db, "sessions", sessionId);
   try {
-    return await runTransaction(db, async (tx): Promise<engine.BookOutcome> => {
+    const outcome = await runTransaction(db, async (tx): Promise<engine.BookOutcome> => {
       const sd = await tx.get(sessionRef);
       if (!sd.exists()) return "full";
       const data = sd.data() as ClassSession;
@@ -339,6 +366,8 @@ export async function book(
       tx.update(sessionRef, { confirmed: increment(1) });
       return "ok";
     });
+    if (outcome === "ok") fireMemberMail("booking", userId, sessionId);
+    return outcome;
   } catch {
     return "full";
   }
@@ -424,7 +453,10 @@ async function promoteWaitlist(sessionId: string): Promise<string | null> {
       return b.userId;
     });
     if (result === "full") break;
-    if (result !== "skip" && !first) first = result;
+    if (result !== "skip") {
+      if (!first) first = result;
+      fireMemberMail("promotion", result, sessionId); // "a spot opened" e-mail
+    }
   }
   return first;
 }
@@ -475,6 +507,7 @@ export async function cancelSession(sessionId: string): Promise<void> {
   const target = getState().sessions.find((s) => s.id === sessionId);
   await updateDoc(doc(db, "sessions", sessionId), { cancelled: true });
   await audit("session_cancelled", target ? sessionLabel(target) : sessionId);
+  fireSessionCancelled(sessionId); // e-mail everyone who was booked
   bumpCalendar();
 }
 
@@ -491,10 +524,19 @@ export async function deleteSession(sessionId: string): Promise<void> {
 
 // ---- Google Calendar sync (calls the Cloud Function) ------------------------
 /** Mirror upcoming sessions into the connected Google Calendar. */
-export async function syncCalendar(): Promise<{ connected: boolean; synced: number }> {
+export async function syncCalendar(
+  mode?: "personal",
+): Promise<{ connected: boolean; synced: number }> {
   const call = httpsCallable(getFunctions(app, "us-central1"), "syncCalendar");
-  const res = await call();
+  const res = await call(mode ? { mode } : undefined);
   return res.data as { connected: boolean; synced: number };
+}
+
+/** Returns a Google consent URL for the CURRENT user's own calendar. */
+export async function calConnectUrl(): Promise<string> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "calConnectUrl");
+  const res = await call();
+  return (res.data as { url: string }).url;
 }
 /** Fire-and-forget re-sync after a schedule change (no-op until connected). */
 function bumpCalendar() {

@@ -108,6 +108,10 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
       <button className="link-btn" style={{ marginTop: 10 }} onClick={resend}>
         {t.verify.resend}
       </button>
+      <p className="login-note" style={{ marginTop: 14 }}>
+        {t.support.prompt}{" "}
+        <a href={`mailto:${t.support.email}`}>{t.support.email}</a>
+      </p>
     </Shell>
   );
 }

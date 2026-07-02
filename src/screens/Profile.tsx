@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, NotifyPrefs } from "../lib/types";
-import { logout, memberStats, updateUser, useStore, syncCalendar, savePaymentLinks, CALENDAR_CONNECT_URL } from "../lib/store";
+import { logout, memberStats, updateUser, useStore, syncCalendar, calConnectUrl, savePaymentLinks, CALENDAR_CONNECT_URL } from "../lib/store";
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
 import { Billing } from "../components/Billing";
@@ -42,6 +42,27 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       toast(t.calendar.notConnected, "err");
     } finally {
       setCalBusy(false);
+    }
+  }
+
+  const [calMineBusy, setCalMineBusy] = useState(false);
+  async function connectMyCal() {
+    try {
+      window.open(await calConnectUrl(), "_blank", "noreferrer");
+    } catch {
+      toast(t.calendarMine.notConnected, "err");
+    }
+  }
+  async function syncMyCal() {
+    setCalMineBusy(true);
+    try {
+      const r = await syncCalendar("personal");
+      if (r.connected) toast(t.calendarMine.synced(r.synced), "ok");
+      else toast(t.calendarMine.notConnected, "info");
+    } catch {
+      toast(t.calendarMine.notConnected, "err");
+    } finally {
+      setCalMineBusy(false);
     }
   }
 
@@ -214,6 +235,26 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         </button>
       </div>
 
+      {/* every member can sync THEIR OWN booked classes to their own calendar */}
+      <div className="cal-card">
+        <div className="cal-head">
+          <span aria-hidden="true">🗓️</span>
+          <div>
+            <b>{t.calendarMine.title}</b>
+            <small>{t.calendarMine.subtitle}</small>
+          </div>
+        </div>
+        <div className="cal-actions">
+          <button className="btn btn-lime" onClick={connectMyCal}>
+            {me.calConnected ? t.calendarMine.reconnect : t.calendarMine.connect}
+          </button>
+          <button className="btn btn-ghost" onClick={syncMyCal} disabled={calMineBusy}>
+            {calMineBusy ? t.calendarMine.syncing : t.calendarMine.sync}
+          </button>
+        </div>
+        <small className="cal-hint">{t.calendarMine.hint}</small>
+      </div>
+
       {me.role === "admin" && (
         <div className="cal-card">
           <div className="cal-head">
@@ -263,6 +304,11 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           <small>{t.billing.subtitle}</small>
         </button>
       )}
+
+      <p className="muted" style={{ textAlign: "center", fontSize: ".82rem", margin: "18px 0 0" }}>
+        {t.support.prompt}{" "}
+        <a href={`mailto:${t.support.email}`}>{t.support.email}</a>
+      </p>
 
       <VersionTag className="profile-version" />
 

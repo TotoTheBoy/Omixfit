@@ -365,6 +365,12 @@ export const t = {
     resendErr: "שליחת המייל נכשלה - נסו שוב עוד רגע",
   },
 
+  support: {
+    email: "help@omixfit.com",
+    prompt: "צריכים עזרה?",
+    contact: "כתבו לנו ל-help@omixfit.com",
+  },
+
   // staff: registration approvals
   approvals: {
     title: "אישור נרשמים חדשים",
@@ -506,6 +512,19 @@ export const t = {
     synced: (n: number) => `סונכרנו ${n} שיעורים ליומן ✅`,
     notConnected: "היומן עדיין לא מחובר. לחצי על 'חיבור יומן Google' והתחברי עם החשבון של עומר.",
     connectHint: "מתחברים פעם אחת עם החשבון של עומר; מאז כל שיעור מסתנכרן אוטומטית.",
+  },
+
+  // per-member personal calendar sync (only the classes THEY booked)
+  calendarMine: {
+    title: "היומן שלי",
+    subtitle: "סנכרון האימונים שלך ליומן Google הפרטי שלך.",
+    connect: "חיבור היומן שלי",
+    reconnect: "חיבור מחדש",
+    sync: "סנכרון האימונים שלי",
+    syncing: "מסנכרן…",
+    synced: (n: number) => `סונכרנו ${n} אימונים ליומן שלך ✅`,
+    notConnected: "היומן שלך עדיין לא מחובר. לחצי על 'חיבור היומן שלי'.",
+    hint: "רק השיעורים שנרשמת אליהם יתווספו ליומן הפרטי שלך.",
   },
 
   // admin-only business subscriptions / billing tracker
