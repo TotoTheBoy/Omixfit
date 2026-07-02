@@ -300,8 +300,35 @@ exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
       await bd.ref.update({ reminded: true }).catch(() => {});
     }
   }
-  res.json({ sent });
+  const trialsDisconnected = await sweepTrials().catch((e) => { logger.error("sweepTrials", e); return 0; });
+  res.json({ sent, trialsDisconnected });
 });
+
+// Trial → pass rule: a member approved > 7 days ago who never bought a pass is
+// disconnected (back to pending, membership off) and e-mailed to buy a pass.
+// Runs off the same hourly reminder ping — no extra cron needed.
+const TRIAL_MS = 7 * 24 * 3600 * 1000;
+async function sweepTrials() {
+  const cutoff = Date.now() - TRIAL_MS;
+  const snap = await db.collection("users").where("approvalStatus", "==", "approved").get();
+  let disconnected = 0;
+  for (const ud of snap.docs) {
+    const u = ud.data();
+    if (u.role !== "member" || u.hasPass) continue;
+    if (!u.approvedAt || u.approvedAt > cutoff) continue; // still inside the trial
+    await ud.ref.update({ approvalStatus: "pending", membershipActive: false, trialExpired: true });
+    disconnected++;
+    if (u.email) {
+      await sendMail(u.email, "תקופת הניסיון הסתיימה - Omix",
+        `<h2 style="color:#a9842f">להמשך אימונים צריך כרטיסייה</h2>
+         <p>היי ${(u.name || "").split(" ")[0]},</p>
+         <p>תקופת הניסיון בת 7 הימים הסתיימה. כדי להמשיך להתאמן עם עומר יש לרכוש כרטיסייה, ואז החשבון ייפתח מחדש.</p>
+         ${ctaButton("רכישת כרטיסייה")}
+         <p><b>עומר · Omix</b></p>`).catch((e) => logger.error("trial mail", e));
+    }
+  }
+  return disconnected;
+}
 
 // ---------------------------------------------------------------------------
 // Transactional member e-mails, all via sendMail() (from office@, reply-to help@).

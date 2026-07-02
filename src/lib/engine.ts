@@ -9,6 +9,25 @@
 import type { AppData, Booking, ClassSession, ClassType, User } from "./types";
 import { fromKey } from "./date";
 
+const DAY_MS = 86_400_000;
+export const NEW_CLIENT_DAYS = 21;
+export const TRIAL_DAYS = 7; // buy a pass within this window or get disconnected
+
+/** A freshly-approved client (needs extra attention) — within NEW_CLIENT_DAYS. */
+export function isNewClient(u: Pick<User, "approvedAt">, nowMs = Date.now()): boolean {
+  return !!u.approvedAt && nowMs - u.approvedAt < NEW_CLIENT_DAYS * DAY_MS;
+}
+
+/** Days left in the trial for a not-yet-passholder (<=0 means it lapsed).
+ *  null = not on a trial clock (no approval date, or already bought a pass). */
+export function trialDaysLeft(
+  u: Pick<User, "approvedAt" | "hasPass">,
+  nowMs = Date.now(),
+): number | null {
+  if (!u.approvedAt || u.hasPass) return null;
+  return TRIAL_DAYS - Math.floor((nowMs - u.approvedAt) / DAY_MS);
+}
+
 export function sessionStartDate(session: ClassSession): Date {
   const d = fromKey(session.date);
   d.setMinutes(session.startMin);

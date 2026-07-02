@@ -59,6 +59,14 @@ export interface User {
   healthForm?: HealthForm;
   /** Q3: booking is gated on this even before a payment engine exists. */
   membershipActive: boolean;
+  /** When staff approved this member (ms). Drives the "new client" flag and the
+   *  7-day trial → buy-a-pass window. */
+  approvedAt?: number;
+  /** Last time this account signed in (ms) — rollout / re-engagement visibility. */
+  lastLoginAt?: number;
+  /** Set true once Omer records that the member bought a pass (punch-card); the
+   *  trial auto-disconnect leaves passholders alone. */
+  hasPass?: boolean;
   /** Membership tier label + validity (manager-managed in v1). */
   membershipPlan?: string;
   membershipValidUntil?: string; // YYYY-MM-DD

@@ -1660,6 +1660,8 @@
 .tag.role-manager { background: #e7fbf3; color: #0a7d56; }
 .tag.role-admin { background: #fff0e6; color: #b3540a; }
 .tag.inactive { background: #fff0f1; color: var(--danger-ink, #c0392b); }
+.tag.tag-new { background: #e7efff; color: #1550a8; }
+.tag.tag-trial { background: #fff6e0; color: #8a5a00; }
 
 /* ---- celebration ---------------------------------------------------------- */
 .confetti {

@@ -9,7 +9,7 @@ import {
   updateUser,
   useStore,
 } from "../lib/store";
-import { clientActivityLight } from "../lib/engine";
+import { clientActivityLight, isNewClient, trialDaysLeft } from "../lib/engine";
 import { fmtDayHeading, fmtTime } from "../lib/date";
 import { Avatar } from "./common";
 import { Sheet } from "./Sheet";
@@ -122,6 +122,7 @@ export function Members() {
                   <span className="mr-name">
                     {u.name}
                     <span className={`tag role-${u.role}`}>{t.roles[u.role]}</span>
+                    {isNewClient(u) && <span className="tag tag-new">{t.approvals.newClient}</span>}
                     {!u.membershipActive && <span className="tag inactive">{t.inactive}</span>}
                   </span>
                   <span className="mr-sub" dir="ltr">{u.phone}</span>
@@ -271,7 +272,30 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
             <b><i className={`light light-${clientActivityLight(u.id, data)}`} /> {t.lights[clientActivityLight(u.id, data)]}</b>
           </li>
         )}
+        {u.role === "member" && (
+          <li>
+            <span>{t.approvals.hasPassLabel}</span>
+            <b>
+              {u.hasPass
+                ? t.approvals.hasPassYes
+                : (() => {
+                    const d = trialDaysLeft(u);
+                    return d === null ? "-" : d > 0 ? t.approvals.trialLeft(d) : t.approvals.trialOver;
+                  })()}
+            </b>
+          </li>
+        )}
+        <li>
+          <span>{t.approvals.lastLoginLabel}</span>
+          <b>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("he-IL") : t.approvals.neverLoggedIn}</b>
+        </li>
       </ul>
+
+      {isNewClient(u) && (
+        <div style={{ padding: "8px 14px", borderRadius: 12, margin: "0 0 4px", fontWeight: 700, background: "#e7efff", color: "#1550a8" }}>
+          ⭐ {t.approvals.newClient}
+        </div>
+      )}
 
       {isAdmin ? (
         <p className="admin-locked" role="note">🔒 {t.approvals.adminLocked}</p>
@@ -313,6 +337,21 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
               }}
             />
           </div>
+
+          {/* trial → pass: Omer records a punch-card purchase (stops the 7-day
+              auto-disconnect and clears the trial clock) */}
+          {u.role === "member" && !u.hasPass && (
+            <button
+              className="btn btn-lime"
+              style={{ marginTop: 10 }}
+              onClick={() => {
+                updateUser(u.id, { hasPass: true });
+                toast(t.approvals.passMarkedToast(u.name), "ok");
+              }}
+            >
+              {t.approvals.markPass}
+            </button>
+          )}
         </>
       )}
 

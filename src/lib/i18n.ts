@@ -395,6 +395,16 @@ export const t = {
     medicalYes: "דיווח/ה על בעיה רפואית - לשים לב",
     medicalNo: "אין בעיה רפואית מדווחת",
     noHealthForm: "טרם מילא/ה הצהרת בריאות",
+    // lifecycle: new client / trial / login tracking
+    newClient: "לקוח/ה חדש/ה",
+    trialLeft: (n: number) => `ניסיון - נשארו ${n} ימים לרכישת כרטיסייה`,
+    trialOver: "תקופת הניסיון הסתיימה - ללא כרטיסייה",
+    hasPassLabel: "כרטיסייה",
+    hasPassYes: "פעילה ✓",
+    markPass: "סימון רכישת כרטיסייה",
+    passMarkedToast: (name: string) => `${name} סומן/ה כבעל/ת כרטיסייה`,
+    lastLoginLabel: "כניסה אחרונה",
+    neverLoggedIn: "טרם התחבר/ה למערכת",
     // approval email (opens in the admin's mail app, pre-filled)
     emailSubject: (app: string) => `החשבון שלך ב${app} אושר ✅`,
     emailBody: (name: string, app: string) =>

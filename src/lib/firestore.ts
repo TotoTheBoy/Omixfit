@@ -234,6 +234,7 @@ export async function resolveAuthUser(
       patch.membershipActive = true;
     }
     if (existing.emailVerified !== emailVerified) patch.emailVerified = emailVerified;
+    patch.lastLoginAt = Date.now();
     // Heal a name that's still just the email prefix (e.g. owners who skipped
     // onboarding) when we now have a real name.
     if (existing.name === prefix && chosenName !== prefix) {
@@ -258,6 +259,7 @@ export async function resolveAuthUser(
     approvalStatus: owner ? "approved" : "pending",
     membershipActive: owner,
     emailVerified,
+    lastLoginAt: Date.now(),
     avatarColor: AVATAR_COLORS[hashCode(email) % AVATAR_COLORS.length],
     initials: initialsOf(name),
     prefs: { push: true, email: true, whatsapp: false, reminderHours: 2 },
@@ -284,7 +286,10 @@ export async function setApproval(
   const before = getState().users.find((u) => u.id === userId);
   if (before?.role === "admin") return; // admin is off-limits to the app
   const patch: Partial<User> = { approvalStatus: status };
-  if (status === "approved") patch.membershipActive = true; // approval activates membership
+  if (status === "approved") {
+    patch.membershipActive = true; // approval activates membership (trial)
+    patch.approvedAt = Date.now(); // starts the "new client" + 7-day trial window
+  }
   await updateDoc(doc(db, "users", userId), patch as Record<string, unknown>);
   await audit(
     status === "approved" ? "member_approved" : "member_rejected",
