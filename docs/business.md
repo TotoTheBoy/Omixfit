@@ -182,4 +182,8 @@ Built ✅ · Planned ⏳
 - ✅ **Retreat / special-event signup** — public /#events page (no login,
   non-members welcome) + Manage → "אירועים" admin (create/publish/price/capacity,
   registrations, mark paid, copy link) (§5.2).
-- ⏳ **"Just sign up" low-friction landing lead capture** (§4) — last item.
+- ✅ **"Just sign up" landing lead capture** — "השארת פרטים" CTA → no-account
+  lead; Omer sees leads in the clients view (§4).
+
+**Backlog complete** — every item gathered so far is shipped & live. New ideas
+go under this list as they come up.
