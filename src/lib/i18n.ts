@@ -120,6 +120,13 @@ export const t = {
     active: "מנוי פעיל",
     none: "אין מנוי פעיל",
   },
+  packages: {
+    title: "כרטיסיות ומנויים",
+    hint: "בחרו חבילה שמתאימה לכם - התשלום מאובטח דרך Bit או PayBox.",
+    popular: "הכי משתלם",
+    perSession: (n: number) => `${n} ₪ לאימון`,
+    buy: "לרכישה",
+  },
   notifications: "התראות ותזכורות",
   notifyChannels: "ערוצי קבלת עדכונים",
   notifyPush: "התראות בנייד (Push)",

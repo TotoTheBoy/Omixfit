@@ -1206,6 +1206,16 @@
   position: relative;
   z-index: 1;
 }
+.mc-avatar-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  line-height: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.mc-avatar-btn:hover { transform: scale(1.05); }
 .member-card .mc-name {
   font-size: 1.45rem;
   font-weight: 900;
@@ -2957,3 +2967,56 @@
 .legal-item h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; color: #7a5c17; }
 .legal-item p { color: var(--text-2); }
 .legal-disclaimer { margin-top: 24px; padding: 14px 16px; background: rgba(184,144,47,.12); border: 1px solid rgba(184,144,47,.3); border-radius: 12px; font-size: .85rem; color: var(--text-2); }
+
+/* ---- pricing packages (refactor spec §7) --------------------------------- */
+.packages { margin-bottom: 22px; }
+.pkg-track-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.pkg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.pkg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  text-align: start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 16px 14px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.pkg-card:hover { border-color: var(--champagne); transform: translateY(-2px); }
+.pkg-card.featured { border-color: var(--champagne); }
+.pkg-badge {
+  position: absolute;
+  top: -9px;
+  inset-inline-start: 12px;
+  background: var(--charcoal);
+  color: var(--on-ink);
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  letter-spacing: 0.02em;
+}
+.pkg-title { font-weight: 700; font-size: 0.9rem; color: var(--text-2); }
+.pkg-total { font-size: 1.5rem; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
+.pkg-per { font-size: 0.78rem; color: var(--gold-600); font-weight: 700; min-height: 1em; }
+.pkg-buy {
+  margin-top: 10px;
+  align-self: stretch;
+  text-align: center;
+  background: var(--charcoal);
+  color: var(--on-ink);
+  border-radius: var(--r-pill);
+  padding: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}

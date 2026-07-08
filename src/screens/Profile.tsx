@@ -5,6 +5,7 @@ import { logout, memberStats, updateUser, useStore, syncCalendar, calConnectUrl,
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
 import { Billing } from "../components/Billing";
+import { Packages } from "../components/Packages";
 import { toast } from "../components/Toast";
 import { IcBolt, IcCheck, IcSpark, IcCalendar, IcBookmark } from "../components/icons";
 
@@ -32,6 +33,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const [paybox, setPaybox] = useState(fac.payboxLink ?? "");
   const isAdmin = me.role === "admin";
   const [payOpen, setPayOpen] = useState(false);
+  const [skinOpen, setSkinOpen] = useState(false);
 
   function savePay() {
     savePaymentLinks({ bitLink: bit.trim(), payboxLink: paybox.trim() });
@@ -109,7 +111,9 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           </span>
         </div>
         <div className="mc-id">
-          <Avatar user={me} size={52} tone="#c5a059" />
+          <button className="mc-avatar-btn" onClick={() => setSkinOpen(true)} aria-label={t.avatarSkin.title}>
+            <Avatar user={me} size={52} tone="#c5a059" />
+          </button>
           <div className="mc-id-text">
             <div className="mc-name">{me.name}</div>
             {me.membershipPlan && <div className="mc-plan">{me.membershipPlan}</div>}
@@ -126,16 +130,8 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         </div>
       </div>
 
-      {/* client purchase — opens a modal to choose Bit / PayBox */}
-      {(fac.bitLink || fac.payboxLink) && (
-        <div className="pay-card">
-          <span className="pay-h">{t.pay.buyTitle}</span>
-          <small className="pay-hint">{t.pay.buyHint}</small>
-          <button className="btn btn-lime" style={{ marginTop: 10 }} onClick={() => setPayOpen(true)}>
-            {t.pay.buy}
-          </button>
-        </div>
-      )}
+      {/* pricing tiers → Bit/PayBox checkout modal */}
+      {me.role === "member" && <Packages onBuy={() => setPayOpen(true)} />}
 
       {payOpen && (
         <Sheet title={t.pay.buyTitle} onClose={() => setPayOpen(false)}>
@@ -167,26 +163,6 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           k={t.favoriteCat}
           v={fav ? `${CATEGORY_META[fav].emoji} ${CATEGORY_META[fav].label}` : "-"}
         />
-      </div>
-
-      {/* avatar persona */}
-      <h2 className="h2" style={{ marginBottom: 4 }}>{t.avatarSkin.title}</h2>
-      <p className="muted" style={{ fontSize: ".82rem", margin: "0 0 10px" }}>{t.avatarSkin.hint}</p>
-      <div className="skin-grid" style={{ marginBottom: 22 }}>
-        <button className={`skin ${!me.avatarSkin ? "on" : ""}`} onClick={() => pickSkin("")}>
-          <span className="skin-emoji skin-initials">{me.initials}</span>
-          <small>{t.avatarSkin.none}</small>
-        </button>
-        {t.avatarSkins.map((s) => (
-          <button
-            key={s.emoji}
-            className={`skin ${me.avatarSkin === s.emoji ? "on" : ""}`}
-            onClick={() => pickSkin(s.emoji)}
-          >
-            <span className="skin-emoji">{s.emoji}</span>
-            <small>{s.label}</small>
-          </button>
-        ))}
       </div>
 
       {/* notification channels */}
@@ -314,6 +290,27 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
 
       <VersionTag className="profile-version" />
 
+      {skinOpen && (
+        <Sheet title={t.avatarSkin.title} onClose={() => setSkinOpen(false)}>
+          <p className="muted" style={{ margin: "0 0 12px" }}>{t.avatarSkin.hint}</p>
+          <div className="skin-grid">
+            <button className={`skin ${!me.avatarSkin ? "on" : ""}`} onClick={() => pickSkin("")}>
+              <span className="skin-emoji skin-initials">{me.initials}</span>
+              <small>{t.avatarSkin.none}</small>
+            </button>
+            {t.avatarSkins.map((s) => (
+              <button
+                key={s.emoji}
+                className={`skin ${me.avatarSkin === s.emoji ? "on" : ""}`}
+                onClick={() => pickSkin(s.emoji)}
+              >
+                <span className="skin-emoji">{s.emoji}</span>
+                <small>{s.label}</small>
+              </button>
+            ))}
+          </div>
+        </Sheet>
+      )}
       {editing && <ProfileEditor onClose={() => setEditing(false)} />}
       {billingOpen && <Billing onClose={() => setBillingOpen(false)} />}
     </div>
