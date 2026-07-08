@@ -52,6 +52,9 @@ export interface Coaching {
 export interface User {
   id: string;
   name: string;
+  /** Split name (collected at registration); `name` stays the combined display. */
+  firstName?: string;
+  lastName?: string;
   phone: string;
   /** Firebase Auth identity. Sign-in matches a user by email (case-insensitive). */
   email?: string;

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { t } from "../lib/i18n";
 import { updateUser } from "../lib/store";
-import { isValidILPhone, IL_CITIES } from "../lib/validate";
+import { isValidILPhone } from "../lib/validate";
+import { CityPicker, isValidCity } from "../components/CityPicker";
 import { VersionTag } from "../components/common";
 import { OmixMark } from "../components/Brand";
 import { Toaster, toast } from "../components/Toast";
@@ -118,7 +119,9 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
 
 function HealthDeclaration({ user }: { user: User }) {
   const H = t.health;
-  const [name, setName] = useState(user.name);
+  const [firstName, setFirstName] = useState(user.firstName ?? "");
+  const [lastName, setLastName] = useState(user.lastName ?? "");
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
   const [gender, setGender] = useState<Gender | "">("");
   const [age, setAge] = useState("");
   const [phone, setPhone] = useState(user.phone || "");
@@ -127,7 +130,7 @@ function HealthDeclaration({ user }: { user: User }) {
   const [ans, setAns] = useState<Partial<Record<QKey, boolean>>>({});
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(false);
-  const [sign, setSign] = useState(user.name);
+  const [signed, setSigned] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const flagged = QS.some((q) => ans[q] === true);
@@ -136,27 +139,30 @@ function HealthDeclaration({ user }: { user: User }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
-    if (!name.trim() || !gender || !age || !phone.trim() || !city || !address.trim())
+    if (!firstName.trim() || !lastName.trim() || !gender || !age || !phone.trim() || !city || !address.trim())
       return toast(H.needDetails, "err");
     if (!isValidILPhone(phone)) return toast(H.invalidPhone, "err");
+    if (!isValidCity(city)) return toast(H.invalidCity, "err");
     if (!allAnswered) return toast(H.qIntro, "err");
     if (!terms) return toast(H.needTerms, "err");
-    if (!sign.trim()) return toast(H.needSign, "err");
+    if (!signed) return toast(H.needSign, "err");
     setBusy(true);
     const form: HF = {
       q1: !!ans.q1, q2: !!ans.q2, q3: !!ans.q3, q4: !!ans.q4,
       q5: !!ans.q5, q6: !!ans.q6, q7: !!ans.q7,
       notes: notes.trim(),
       termsAccepted: true,
-      signedName: sign.trim(),
+      signedName: fullName,
       submittedAt: Date.now(),
     };
     try {
       // Save the full registration in one write; healthForm present →
       // <App /> re-renders this to <Pending /> (awaiting approval).
       await updateUser(user.id, {
-        name: name.trim(),
-        initials: initialsOf(name),
+        name: fullName,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        initials: initialsOf(fullName),
         phone: phone.trim(),
         gender: gender as Gender,
         age: Number(age) || undefined,
@@ -180,9 +186,15 @@ function HealthDeclaration({ user }: { user: User }) {
 
         <form onSubmit={submit}>
           <h2 className="onboard-h2">{H.sectionDetails}</h2>
-          <div className="field">
-            <label htmlFor="rg-name">{H.fullNameLabel}</label>
-            <input id="rg-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+          <div className="row gap-3 wrap">
+            <div className="field grow" style={{ minWidth: 130 }}>
+              <label htmlFor="rg-first">{H.firstNameLabel}</label>
+              <input id="rg-first" className="input" value={firstName} onChange={(e) => { setFirstName(e.target.value); setSigned(false); }} autoComplete="given-name" required />
+            </div>
+            <div className="field grow" style={{ minWidth: 130 }}>
+              <label htmlFor="rg-last">{H.lastNameLabel}</label>
+              <input id="rg-last" className="input" value={lastName} onChange={(e) => { setLastName(e.target.value); setSigned(false); }} autoComplete="family-name" required />
+            </div>
           </div>
           <div className="row gap-3 wrap">
             <div className="field grow" style={{ minWidth: 130 }}>
@@ -212,10 +224,7 @@ function HealthDeclaration({ user }: { user: User }) {
           <div className="row gap-3 wrap">
             <div className="field grow" style={{ minWidth: 140 }}>
               <label htmlFor="rg-city">{H.cityLabel}</label>
-              <select id="rg-city" className="select" value={city} onChange={(e) => setCity(e.target.value)}>
-                <option value="">{H.selectCity}</option>
-                {IL_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <CityPicker id="rg-city" value={city} onChange={setCity} />
             </div>
             <div className="field grow" style={{ minWidth: 140 }}>
               <label htmlFor="rg-address">{H.streetLabel}</label>
@@ -279,16 +288,21 @@ function HealthDeclaration({ user }: { user: User }) {
           </label>
 
           <div className="field">
-            <label htmlFor="hf-sign">{H.signLabel}</label>
-            <input
-              id="hf-sign"
-              className="input"
-              type="text"
-              placeholder={H.signPlaceholder}
-              value={sign}
-              onChange={(e) => setSign(e.target.value)}
-              required
-            />
+            <label>{H.signLabel}</label>
+            {fullName ? (
+              <div className={`signature-panel ${signed ? "signed" : ""}`}>
+                <span className="signature-name">{fullName}</span>
+                {signed ? (
+                  <span className="signature-done">✓ {H.signConfirmed}</span>
+                ) : (
+                  <button type="button" className="btn btn-ink btn-sm" onClick={() => setSigned(true)}>
+                    {H.signConfirm}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="muted" style={{ fontSize: ".85rem" }}>{H.signNeedName}</p>
+            )}
           </div>
 
           <button type="submit" className="btn btn-lime btn-block btn-lg" disabled={busy}>

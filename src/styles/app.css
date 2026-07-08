@@ -3157,3 +3157,41 @@
 /* the dark stat tile → true matte charcoal + gold value */
 .stat.dark { background: var(--charcoal); border-color: var(--charcoal); }
 .stat.dark .v { color: var(--champagne); }
+
+/* ---- city combobox (refactor spec §11) ----------------------------------- */
+.city-combo { position: relative; }
+.city-list {
+  position: absolute;
+  z-index: 30;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-2);
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+.city-opt {
+  display: block; width: 100%; text-align: start;
+  border: none; background: none; padding: 8px 10px;
+  border-radius: var(--r-sm); font: inherit; color: var(--text); cursor: pointer;
+}
+.city-opt:hover { background: var(--surface-2); }
+
+/* ---- digital signature (refactor spec §13) ------------------------------- */
+.signature-panel {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border: 1px dashed var(--line-strong); border-radius: var(--r-md);
+  padding: 12px 16px; background: var(--surface-2);
+}
+.signature-panel.signed { border-style: solid; border-color: var(--sage); }
+.signature-name {
+  font-family: "Segoe Script", "Brush Script MT", "Snell Roundhand", cursive;
+  font-size: 1.7rem; font-style: italic; color: var(--charcoal);
+  border-bottom: 1px solid var(--champagne); padding-bottom: 2px; line-height: 1.15;
+}
+.signature-done { color: var(--olive-600); font-weight: 800; font-size: 0.9rem; }
