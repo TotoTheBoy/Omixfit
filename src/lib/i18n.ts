@@ -124,6 +124,8 @@ export const t = {
   loyalty: {
     streak: (n: number) => `רצף שבועי: ${n}`,
     toNext: (n: number, tier: string) => `עוד ${n} אימונים למעמד ${tier}`,
+    tierSet: (tier: string) => `המעמד עודכן ל-${tier}`,
+    tierAdminHint: "לחצי כדי לשנות מעמד (מנהל/ת)",
   },
   packages: {
     title: "כרטיסיות ומנויים",

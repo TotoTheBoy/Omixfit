@@ -3128,3 +3128,32 @@
   border-radius: var(--r-md);
   padding: 12px 14px;
 }
+
+/* admin-only clickable loyalty tier badge */
+.mc-tier-btn {
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  background: rgba(197, 160, 89, 0.12);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.15s;
+}
+.mc-tier-btn:hover { background: rgba(197, 160, 89, 0.24); }
+
+/* SVG avatar motifs (bio-mechanical set) */
+.avatar-svg { display: inline-grid; place-items: center; }
+.avatar-svg svg { display: block; width: 100%; height: 100%; }
+.skin-svg { display: inline-grid; place-items: center; width: 30px; height: 30px; }
+.skin-svg svg { width: 100%; height: 100%; }
+
+/* bolder palette accents on the profile stat tiles (batch-2: more colour) */
+.profile-grid .stat { border-top: 3px solid var(--line); }
+.profile-grid .stat:nth-child(1) { border-top-color: var(--sage); }
+.profile-grid .stat:nth-child(2) { border-top-color: var(--champagne); }
+.profile-grid .stat:nth-child(3) { border-top-color: var(--champagne); }
+.profile-grid .stat:nth-child(4) { border-top-color: var(--sage); }
+.profile-grid .stat .v { font-weight: 900; }
+/* the dark stat tile → true matte charcoal + gold value */
+.stat.dark { background: var(--charcoal); border-color: var(--charcoal); }
+.stat.dark .v { color: var(--champagne); }

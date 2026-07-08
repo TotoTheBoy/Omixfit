@@ -1,5 +1,6 @@
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, User } from "../lib/types";
+import { AvatarSkin } from "./avatars";
 import { fmtWeekRange, HEB_MONTHS } from "../lib/date";
 import { buildTimeLabel, VERSION_LABEL } from "../lib/version";
 import { IcChevL, IcChevR } from "./icons";
@@ -47,6 +48,7 @@ export function Avatar({
   tone?: string;
 }) {
   const skin = user.avatarSkin;
+  const isSvg = !!skin && skin.startsWith("svg:");
   const bg = tone ?? user.avatarColor;
   return (
     <span
@@ -60,7 +62,13 @@ export function Avatar({
       }}
       title={user.name}
     >
-      {skin || user.initials}
+      {isSvg ? (
+        <span className="avatar-svg" style={{ width: size * 0.66, height: size * 0.66 }}>
+          <AvatarSkin skin={skin!} />
+        </span>
+      ) : (
+        skin || user.initials
+      )}
     </span>
   );
 }

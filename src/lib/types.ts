@@ -95,8 +95,11 @@ export interface User {
   membershipValidUntil?: string; // YYYY-MM-DD
   avatarColor: string; // derived chip color
   initials: string;
-  /** Optional fun avatar persona (an emoji) shown instead of the initials. */
+  /** Optional fun avatar persona (an emoji or `svg:<id>`) shown instead of initials. */
   avatarSkin?: string;
+  /** Admin-only loyalty tier override — staff aren't gated by attended count and
+   *  set their own OMIX tier by tapping the card badge. */
+  loyaltyOverride?: "pace" | "endurance" | "elite" | "marathoner";
   prefs?: NotifyPrefs;
   /** True once the member connected their own Google Calendar (set by the OAuth
    *  callback function); gates the "sync my classes" UI. */

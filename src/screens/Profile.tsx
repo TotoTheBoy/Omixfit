@@ -2,13 +2,14 @@ import { useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, NotifyPrefs } from "../lib/types";
 import { logout, memberStats, updateUser, useStore, syncCalendar, calConnectUrl, savePaymentLinks, CALENDAR_CONNECT_URL } from "../lib/store";
-import { loyaltyFor, weeklyStreak } from "../lib/engine";
+import { loyaltyFor, weeklyStreak, LOYALTY_TIERS } from "../lib/engine";
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
 import { Billing } from "../components/Billing";
 import { Packages } from "../components/Packages";
 import { PayOptions } from "../components/PayOptions";
 import { PWAInstallAction } from "../components/PWAInstallAction";
+import { AVATAR_LIST, AvatarSkin } from "../components/avatars";
 import { toast } from "../components/Toast";
 import { IcBolt, IcCheck, IcSpark, IcCalendar, IcBookmark } from "../components/icons";
 
@@ -88,6 +89,18 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const fav = stats.favorite as ClassCategory | null;
   const loyalty = loyaltyFor(stats.attended);
   const streak = weeklyStreak(me.id, data);
+  // Staff aren't gated by attendance — they default to the top tier and can set
+  // their own by tapping the badge (admin-only).
+  const overrideId = me.loyaltyOverride ?? (isAdmin ? "marathoner" : null);
+  const currentTier = overrideId
+    ? LOYALTY_TIERS.find((x) => x.id === overrideId) ?? loyalty.current
+    : loyalty.current;
+  function cycleTier() {
+    const ids = LOYALTY_TIERS.map((x) => x.id);
+    const next = ids[(ids.indexOf(currentTier.id) + 1) % ids.length];
+    updateUser(me.id, { loyaltyOverride: next });
+    toast(t.loyalty.tierSet(LOYALTY_TIERS.find((x) => x.id === next)!.name), "ok");
+  }
 
   return (
     <div className="page">
@@ -102,7 +115,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       </div>
 
       {/* membership card */}
-      <div className={`member-card tier-${loyalty.current.id}`}>
+      <div className={`member-card tier-${currentTier.id}`}>
         <div className="mc-top">
           <span className="mc-brand">
             <span className="logo">
@@ -110,7 +123,13 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
             </span>
             {t.appName}
           </span>
-          <span className="mc-tier">{loyalty.current.name}</span>
+          {isAdmin ? (
+            <button className="mc-tier mc-tier-btn" onClick={cycleTier} title={t.loyalty.tierAdminHint}>
+              {currentTier.name} ⇅
+            </button>
+          ) : (
+            <span className="mc-tier">{currentTier.name}</span>
+          )}
         </div>
         <div className="mc-id">
           <button className="mc-avatar-btn" onClick={() => setSkinOpen(true)} aria-label={t.avatarSkin.title}>
@@ -141,7 +160,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
               <small>{t.loyalty.streak(streak)}</small>
             </div>
           )}
-          {loyalty.next && (
+          {!isAdmin && !me.loyaltyOverride && loyalty.next && (
             <div className="mc-progress-wrap">
               <div className="mc-progress"><span style={{ width: `${loyalty.progress * 100}%` }} /></div>
               <small className="mc-progress-label">{t.loyalty.toNext(loyalty.toNext, loyalty.next.name)}</small>
@@ -309,6 +328,16 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
               <span className="skin-emoji skin-initials">{me.initials}</span>
               <small>{t.avatarSkin.none}</small>
             </button>
+            {AVATAR_LIST.map((a) => (
+              <button
+                key={a.id}
+                className={`skin ${me.avatarSkin === `svg:${a.id}` ? "on" : ""}`}
+                onClick={() => pickSkin(`svg:${a.id}`)}
+              >
+                <span className="skin-emoji skin-svg"><AvatarSkin skin={`svg:${a.id}`} /></span>
+                <small>{a.label}</small>
+              </button>
+            ))}
             {t.avatarSkins.map((s) => (
               <button
                 key={s.emoji}
