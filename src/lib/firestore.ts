@@ -253,8 +253,11 @@ export async function resolveAuthUser(
       patch.name = chosenName;
       patch.initials = initialsOf(chosenName);
     }
+    // Fire-and-forget: profile touch-ups (lastLoginAt, verification, healed name)
+    // must NOT block the session from resolving — matters most offline, where an
+    // awaited write would stall the app shell.
     if (Object.keys(patch).length) {
-      await updateDoc(doc(db, "users", existing.id), patch).catch(() => {});
+      void updateDoc(doc(db, "users", existing.id), patch).catch(() => {});
     }
     return setCurrentUser(existing.id);
   }
