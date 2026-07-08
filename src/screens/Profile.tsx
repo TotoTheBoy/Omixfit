@@ -7,6 +7,8 @@ import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
 import { Billing } from "../components/Billing";
 import { Packages } from "../components/Packages";
+import { PayOptions } from "../components/PayOptions";
+import { PWAInstallAction } from "../components/PWAInstallAction";
 import { toast } from "../components/Toast";
 import { IcBolt, IcCheck, IcSpark, IcCalendar, IcBookmark } from "../components/icons";
 
@@ -154,19 +156,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       {payOpen && (
         <Sheet title={t.pay.buyTitle} onClose={() => setPayOpen(false)}>
           <p className="muted" style={{ margin: "0 0 14px" }}>{t.pay.choose}</p>
-          <div className="pay-actions">
-            {fac.bitLink && (
-              <a className="btn btn-lime grow" href={fac.bitLink} target="_blank" rel="noreferrer" onClick={() => setPayOpen(false)}>
-                {t.pay.bit}
-              </a>
-            )}
-            {fac.payboxLink && (
-              <a className="btn btn-ink grow" href={fac.payboxLink} target="_blank" rel="noreferrer" onClick={() => setPayOpen(false)}>
-                {t.pay.paybox}
-              </a>
-            )}
-          </div>
-          <small className="pay-hint" style={{ display: "block", marginTop: 14 }}>{t.pay.hint}</small>
+          <PayOptions onDone={() => setPayOpen(false)} />
         </Sheet>
       )}
 
@@ -179,7 +169,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         <Stat
           icon={<IcSpark width={15} height={15} />}
           k={t.favoriteCat}
-          v={fav ? `${CATEGORY_META[fav].emoji} ${CATEGORY_META[fav].label}` : "-"}
+          v={fav ? `${CATEGORY_META[fav].emoji} ${CATEGORY_META[fav].label}` : t.notYet}
         />
       </div>
 
@@ -218,6 +208,9 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           </div>
         </div>
       </div>
+
+      {/* proactive PWA install (Android prompt / iOS guide) */}
+      <PWAInstallAction />
 
       {/* every member can sync THEIR OWN booked classes to their own calendar */}
       <div className="cal-card">

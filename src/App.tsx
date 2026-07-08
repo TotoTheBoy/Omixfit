@@ -256,7 +256,7 @@ export default function App() {
               {n.icon}
               {n.badge ? <span className="nav-badge">{n.badge}</span> : null}
             </span>
-            {n.label}
+            <span className="tab-label">{n.label}</span>
           </a>
         ))}
       </nav>

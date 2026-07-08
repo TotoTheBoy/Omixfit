@@ -105,3 +105,18 @@ Domain numbers above.
 - [x] 5 membership card · [x] 6 schedule · [x] 7 packages · [x] 8 loyalty
 - [ ] 9 lead pipeline · [ ] 10 email templates · [ ] 11 city directory
 - [ ] 12 name split · [ ] 13 signature
+
+---
+
+## Batch 2 (2026-07) — dock, data purge, colour reset, checkout, PWA
+- **D1 Data purge:** no static/mock defaults in trainee stats; new users = strict 0;
+  favorite hidden or "טרם נקבע".
+- **D2 Floating 6-tab dock:** detached charcoal (#1A1A1A) island, radius 20px, 6 equal
+  columns (schedule/manage/clients/finance/coaching/profile), NO centre button;
+  active = sage/champagne pill + soft glow halo.
+- **D3 Schedule colour reset (REVERSES §6):** vivid per-category colour blocks/headers
+  on class cards; heavy title + time typography.
+- **D4 Bit/PayBox checkout:** inline-SVG Bit + PayBox rows in the pay modal, routing to
+  Omer's links (fixes the empty modal).
+- **D5 PWA install:** usePWAInstall hook (capture beforeinstallprompt) + PWAInstallAction
+  button in profile settings; Android → prompt(); iOS → guided bottom-sheet.

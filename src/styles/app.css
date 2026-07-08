@@ -364,8 +364,14 @@
   box-shadow: var(--sh-3);
   border-color: var(--line-strong);
 }
+/* vivid per-category top band (refactor batch-2 D3 — bold colour blocking) */
 .class-card .cat-rail {
-  display: none; /* editorial: no thick colored accent rail (refactor spec §6) */
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 7px;
+  background: hsl(var(--cat-hue) 78% 47%);
+  z-index: 2;
 }
 /* Stretched cover button - fills the card, opens detail. Sits beneath the
    inner content so the real Book button (z-index) stays clickable. */
@@ -467,15 +473,22 @@
   margin-top: 2px;
 }
 .cc-emoji {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: hsl(var(--cat-hue) 80% 92%);
+  margin-inline-end: 8px;
 }
 .cc-main {
   flex: 1;
   min-width: 0;
 }
 .cc-title {
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: 1.12rem;
+  font-weight: 900;
   letter-spacing: -0.01em;
   margin: 0 0 4px;
   display: flex;
@@ -688,49 +701,57 @@
 }
 
 /* ---- bottom tab bar (mobile) ---------------------------------------------- */
+/* Floating "island" dock (refactor batch-2 D2) */
 .tabbar {
   position: fixed;
   inset-inline: 0;
-  bottom: 0;
+  margin-inline: auto;
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
   z-index: 45;
-  height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: saturate(1.4) blur(14px);
-  border-top: 1px solid var(--line);
+  width: min(580px, calc(100% - 20px));
+  padding: 8px;
+  background: #1a1a1a;
+  border: 1px solid #2e2e2e;
+  border-radius: 22px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34);
   display: flex;
-  justify-content: space-around;
+  gap: 4px;
   align-items: stretch;
 }
 .tabbar a {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: var(--text-3);
+  color: #b3aa93;
   text-decoration: none;
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 600;
   position: relative;
-  transition: color 0.15s;
+  padding: 9px 2px;
+  border-radius: 15px;
+  transition: color 0.15s, background 0.15s, box-shadow 0.2s;
 }
 .tabbar a svg {
-  width: 23px;
-  height: 23px;
+  width: 22px;
+  height: 22px;
+}
+.tabbar a .tab-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .tabbar a.active {
-  color: var(--ink-900);
+  color: #fff;
+  background: var(--sage);
+  box-shadow: 0 6px 18px rgba(59, 68, 54, 0.6);
 }
-.tabbar a.active::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 30px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--lime-600);
+.tabbar a.active .tab-ico {
+  filter: drop-shadow(0 0 9px rgba(197, 160, 89, 0.55));
 }
 @media (min-width: 860px) {
   .tabbar {
@@ -3062,4 +3083,48 @@
   margin-top: 6px;
   font-size: 0.76rem;
   color: #b8ae97;
+}
+
+/* ---- checkout rows: Bit / PayBox (refactor batch-2 D4) -------------------- */
+.pay-options { display: flex; flex-direction: column; gap: 10px; }
+.pay-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.pay-row:hover { transform: translateY(-1px); box-shadow: var(--sh-1); }
+.pay-row.pay-bit:hover { border-color: #00b3b8; }
+.pay-row.pay-paybox:hover { border-color: #6b2ff0; }
+.pay-row .pay-row-name { flex: 1; }
+.pay-row .pay-row-arrow { color: var(--text-3); font-size: 1.1rem; }
+.pay-row .pay-row-soon { color: var(--text-3); font-size: 0.8rem; font-weight: 600; }
+.pay-row.disabled { opacity: 0.6; cursor: default; }
+.pay-row.disabled:hover { transform: none; box-shadow: none; }
+
+/* ---- PWA install action (refactor batch-2 D5) ---------------------------- */
+.pwa-install-section { margin: 16px 0; }
+.pwa-install-btn { width: 100%; }
+.pwa-ios-steps {
+  margin: 0;
+  padding-inline-start: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.pwa-ios-steps li {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
 }
