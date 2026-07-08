@@ -297,6 +297,7 @@ export interface Lead {
   name: string;
   phone: string;
   email?: string;
+  city?: string;
   note?: string;
   handled?: boolean; // Omer ticks it once she's followed up
   createdAt: number;

@@ -161,7 +161,7 @@ export const submitEventSignup = (
 ) => backend().then((b) => b.submitEventSignup(eventId, who));
 
 // landing leads ("just sign up")
-export const submitLead = (who: { name: string; phone: string; email?: string; note?: string }) =>
+export const submitLead = (who: { name: string; phone: string; email?: string; city?: string; note?: string }) =>
   backend().then((b) => b.submitLead(who));
 export const setLeadHandled = (id: string, handled: boolean) =>
   backend().then((b) => b.setLeadHandled(id, handled));

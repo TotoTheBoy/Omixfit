@@ -464,6 +464,7 @@ export const t = {
     // public page
     publicTitle: "אירועים מיוחדים",
     publicSubtitle: "ריטריטים, סדנאות וימי ריפוי - פתוח לכולם, גם ללא מנוי.",
+    seeAll: "לכל האירועים",
     loading: "טוען אירועים…",
     noneOpen: "אין כרגע אירועים פתוחים להרשמה. עקבו אחרינו לעדכונים!",
     backToApp: "→ חזרה ל-Omix",

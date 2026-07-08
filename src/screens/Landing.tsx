@@ -129,6 +129,16 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
+      {/* ---- events ---- */}
+      <section className="lux-sec alt">
+        <div className="lux-head reveal">
+          <span className="lux-eyebrow">{t.events.tab}</span>
+          <h2 className="lux-h2">{t.events.publicTitle}</h2>
+          <p className="lux-sub">{t.events.publicSubtitle}</p>
+          <a className="lux-btn gold" href="#events" style={{ marginTop: 18 }}>{t.events.seeAll}</a>
+        </div>
+      </section>
+
       {/* ---- final + contact (dark band) ---- */}
       <section className="lux-final">
         <div className="lux-final-inner reveal">

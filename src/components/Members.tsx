@@ -103,6 +103,7 @@ export function Members() {
                     {l.handled && <span className="tag role-manager">{t.lead.handled}</span>}
                   </span>
                   <span className="mr-sub" dir="ltr">{l.phone}{l.email ? ` · ${l.email}` : ""}</span>
+                  {l.city && <span className="mr-sub">{l.city}</span>}
                   {l.note && <span className="mr-sub">{l.note}</span>}
                 </span>
                 <span className="row gap-2">

@@ -704,7 +704,7 @@ export async function markEventSignupPaid(id: string, paid: boolean): Promise<vo
 // ---- landing leads ("just sign up", docs/business.md §4) ---------------------
 /** PUBLIC (no login): a prospect leaves their details from the landing page. */
 export async function submitLead(who: {
-  name: string; phone: string; email?: string; note?: string;
+  name: string; phone: string; email?: string; city?: string; note?: string;
 }): Promise<void> {
   await initFirestore();
   const ref = doc(col.leads);
@@ -713,10 +713,12 @@ export async function submitLead(who: {
     name: who.name.trim(),
     phone: who.phone.trim(),
     email: who.email?.trim() || undefined,
+    city: who.city?.trim() || undefined,
     note: who.note?.trim() || undefined,
     createdAt: Date.now(),
   };
   if (!lead.email) delete (lead as Partial<Lead>).email;
+  if (!lead.city) delete (lead as Partial<Lead>).city;
   if (!lead.note) delete (lead as Partial<Lead>).note;
   await setDoc(ref, lead);
 }
