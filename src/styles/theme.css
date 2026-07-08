@@ -8,14 +8,22 @@
   /* brand - OMIX: gold + olive green on warm cream (from the studio logo).
      The legacy `--lime*` token names now hold the gold accent so the whole
      token-driven UI recolors at once (kept the names to avoid churn). */
-  --gold: #c89b3c;
+  /* Premium editorial palette (docs/refactor-spec.md): champagne gold highlight,
+     deep muted sage accent, matte charcoal, warm cream. Legacy `--lime*`/`--gold`
+     names now carry champagne so the whole token-driven UI recolours at once. */
+  --champagne: #c5a059;
+  --charcoal: #1a1a1a;
+  --sage: #3b4436;
+  --sage-2: #4a5343;
+  --gold: #c5a059;
   --gold-600: #8a6a1f;
-  --olive: #6e8b4e;
-  --olive-600: #52702f;
-  --lime: #c89b3c;
+  --olive: #4a5343;
+  --olive-600: #3b4436;
+  --lime: #c5a059;
   --lime-600: #a47e22;
-  --lime-glow: rgba(200, 155, 60, 0.42);
-  --violet: #7c5cff;
+  --lime-glow: rgba(197, 160, 89, 0.4);
+  /* focus ring — deep sage (was neon violet); high-contrast + on-brand. */
+  --violet: #3b4436;
   --coral: #ff5a5f;
   --amber: #ffb43d;
   --teal: #27e0b0;
@@ -28,12 +36,12 @@
   --ink-600: #342c20;
   --ink-500: #4a3f2e;
 
-  /* surfaces - warm cream */
-  --bg: #f6f1e6;
-  --surface: #fffefb;
-  --surface-2: #faf5ea;
-  --line: #ece4d2;
-  --line-strong: #ddd2ba;
+  /* surfaces - warm cream / luxurious beige (editorial) */
+  --bg: #f5f2eb;
+  --surface: #fdfbf7;
+  --surface-2: #f5f2eb;
+  --line: #e8e2d4;
+  --line-strong: #d8cfbc;
 
   /* text - warm, kept dark to hold WCAG AA on the cream surfaces */
   --text: #1c1711;

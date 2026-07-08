@@ -13,7 +13,7 @@ import { Finance } from "./components/Finance";
 import { Coaching } from "./components/Coaching";
 import { PublicEvents } from "./screens/PublicEvents";
 import { UserSwitcher } from "./components/UserSwitcher";
-import { OmixLogo, OmixMark, IsraelClock } from "./components/Brand";
+import { OmixLogo, OmixMark } from "./components/Brand";
 import { IntervalTimer } from "./components/IntervalTimer";
 import { Toaster } from "./components/Toast";
 import { Celebration } from "./components/Celebration";
@@ -195,8 +195,6 @@ export default function App() {
 
         <div className="appbar-spacer" />
 
-        <IsraelClock />
-
         {isStaff && (
           <button
             className="timer-launch"
@@ -213,7 +211,7 @@ export default function App() {
             <span>{me.name}</span>
             <small>{t.roles[me.role]}</small>
           </span>
-          <Avatar user={me} size={32} />
+          <Avatar user={me} size={32} tone="#3b4436" />
           <IcChevR width={16} height={16} style={{ opacity: 0.6 }} />
         </button>
       </header>

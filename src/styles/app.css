@@ -65,11 +65,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 15px;
+  padding: 9px 16px;
   border-radius: var(--r-pill);
   color: var(--text-2);
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
@@ -78,8 +79,8 @@
   background: var(--surface-2);
 }
 .appbar-nav a.active {
-  color: var(--ink-900);
-  background: var(--lime);
+  color: var(--on-ink);
+  background: var(--charcoal);
 }
 .appbar-spacer {
   flex: 1;
@@ -908,9 +909,10 @@
   transition: all 0.15s;
 }
 .seg button.on {
-  background: var(--surface);
-  color: var(--text);
+  background: var(--charcoal);
+  color: var(--on-ink);
   box-shadow: var(--sh-1);
+  letter-spacing: 0.01em;
 }
 
 /* ---- toast ---------------------------------------------------------------- */
@@ -1833,6 +1835,28 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: underline;
+}
+.link-btn.danger {
+  color: var(--danger-ink, #c0392b);
+}
+
+/* low-emphasis account actions at the very bottom of the profile */
+.profile-foot-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+  color: var(--text-3);
+  font-size: 0.9rem;
+}
+.profile-foot-actions .link-btn {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-2);
+}
+.profile-foot-actions .link-btn:hover {
   text-decoration: underline;
 }
 

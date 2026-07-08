@@ -180,15 +180,11 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         ))}
       </div>
 
-      {/* notifications */}
+      {/* notification channels */}
       <div className="card" style={{ padding: "6px 18px 14px" }}>
-        <h2 className="h2" style={{ margin: "14px 0 4px" }}>{t.notifications}</h2>
-        <p className="muted" style={{ fontSize: ".82rem", margin: "0 0 6px" }}>
-          וואטסאפ הוא הערוץ המוביל בישראל - מומלץ להשאיר פעיל.
-        </p>
+        <h2 className="h2" style={{ margin: "14px 0 8px" }}>{t.notifyChannels}</h2>
         <PrefRow
           label={t.notifyPush}
-          hint="עובד באפליקציה המותקנת למסך הבית (iOS 16.4+)"
           on={prefs.push}
           onToggle={() => setPref({ push: !prefs.push })}
         />
@@ -218,21 +214,6 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="row gap-3 wrap" style={{ marginTop: 20 }}>
-        <button className="btn btn-ghost grow" onClick={onSwitchUser}>
-          {t.switchUser}
-        </button>
-        <button
-          className="btn btn-danger grow"
-          onClick={() => {
-            logout();
-            toast(t.loggedOutToast, "info");
-          }}
-        >
-          {t.signOut}
-        </button>
       </div>
 
       {/* every member can sync THEIR OWN booked classes to their own calendar */}
@@ -305,7 +286,19 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         </button>
       )}
 
-      <p className="muted" style={{ textAlign: "center", fontSize: ".82rem", margin: "18px 0 0" }}>
+      {/* low-emphasis account actions, anchored at the very bottom */}
+      <div className="profile-foot-actions">
+        <button className="link-btn" onClick={onSwitchUser}>{t.switchUser}</button>
+        <span aria-hidden="true">·</span>
+        <button
+          className="link-btn danger"
+          onClick={() => { logout(); toast(t.loggedOutToast, "info"); }}
+        >
+          {t.signOut}
+        </button>
+      </div>
+
+      <p className="muted" style={{ textAlign: "center", fontSize: ".82rem", margin: "14px 0 0" }}>
         {t.support.prompt}{" "}
         <a href={`mailto:${t.support.email}`}>{t.support.email}</a>
       </p>

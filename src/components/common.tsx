@@ -36,14 +36,24 @@ function readableInk(hex: string): string {
   return cDark >= cWhite ? "#0b0e13" : "#ffffff";
 }
 
-export function Avatar({ user, size = 34 }: { user: User; size?: number }) {
+export function Avatar({
+  user,
+  size = 34,
+  tone,
+}: {
+  user: User;
+  size?: number;
+  /** Force a brand background hex (e.g. the nav pill) instead of the per-user color. */
+  tone?: string;
+}) {
   const skin = user.avatarSkin;
+  const bg = tone ?? user.avatarColor;
   return (
     <span
       className="avatar"
       style={{
-        background: skin ? "var(--surface-2)" : user.avatarColor,
-        color: readableInk(user.avatarColor),
+        background: skin ? "var(--surface-2)" : bg,
+        color: readableInk(bg),
         width: size,
         height: size,
         fontSize: skin ? size * 0.56 : size * 0.4,
