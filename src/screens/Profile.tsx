@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, NotifyPrefs } from "../lib/types";
 import { logout, memberStats, updateUser, useStore, syncCalendar, calConnectUrl, savePaymentLinks, CALENDAR_CONNECT_URL } from "../lib/store";
+import { loyaltyFor, weeklyStreak } from "../lib/engine";
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
 import { Billing } from "../components/Billing";
@@ -83,6 +84,8 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   }
 
   const fav = stats.favorite as ClassCategory | null;
+  const loyalty = loyaltyFor(stats.attended);
+  const streak = weeklyStreak(me.id, data);
 
   return (
     <div className="page">
@@ -97,7 +100,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       </div>
 
       {/* membership card */}
-      <div className="member-card">
+      <div className={`member-card tier-${loyalty.current.id}`}>
         <div className="mc-top">
           <span className="mc-brand">
             <span className="logo">
@@ -105,10 +108,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
             </span>
             {t.appName}
           </span>
-          <span className={`status-pill ${me.membershipActive ? "on" : "off"}`}>
-            <IcCheck width={14} height={14} />
-            {t.membership} {me.membershipActive ? t.active : t.inactive}
-          </span>
+          <span className="mc-tier">{loyalty.current.name}</span>
         </div>
         <div className="mc-id">
           <button className="mc-avatar-btn" onClick={() => setSkinOpen(true)} aria-label={t.avatarSkin.title}>
@@ -126,6 +126,24 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
             <b>{t.membershipCard.validUntil(fmtDMY(me.membershipValidUntil))}</b>
           ) : (
             <b>{me.membershipActive ? t.membershipCard.active : t.membershipCard.none}</b>
+          )}
+        </div>
+
+        {/* OMIX loyalty: weekly streak + progress to the next tier */}
+        <div className="mc-loyalty">
+          {streak > 0 && (
+            <div className="mc-streak" title={t.loyalty.streak(streak)}>
+              {Array.from({ length: Math.min(streak, 8) }).map((_, i) => (
+                <span key={i} aria-hidden="true">🔥</span>
+              ))}
+              <small>{t.loyalty.streak(streak)}</small>
+            </div>
+          )}
+          {loyalty.next && (
+            <div className="mc-progress-wrap">
+              <div className="mc-progress"><span style={{ width: `${loyalty.progress * 100}%` }} /></div>
+              <small className="mc-progress-label">{t.loyalty.toNext(loyalty.toNext, loyalty.next.name)}</small>
+            </div>
           )}
         </div>
       </div>

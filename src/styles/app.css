@@ -3020,3 +3020,46 @@
   font-weight: 700;
   font-size: 0.85rem;
 }
+
+/* ---- OMIX loyalty on the membership card (refactor spec §8) --------------- */
+.member-card .mc-tier {
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: var(--champagne);
+  text-transform: uppercase;
+}
+.member-card.tier-endurance { border-color: var(--sage-2); }
+.member-card.tier-elite .mc-tier { color: var(--champagne); text-shadow: 0 0 12px rgba(197,160,89,0.5); }
+.member-card.tier-marathoner {
+  background: radial-gradient(120% 140% at 100% 0%, #2c2c2c 0%, #141414 60%);
+  border-color: var(--champagne);
+}
+.mc-loyalty { position: relative; z-index: 1; margin-top: 16px; }
+.mc-streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: #cfc6b0;
+  margin-bottom: 10px;
+}
+.mc-streak small { margin-inline-start: 6px; }
+.mc-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.mc-progress span {
+  display: block;
+  height: 100%;
+  background: var(--champagne);
+  border-radius: 2px;
+}
+.mc-progress-label {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.76rem;
+  color: #b8ae97;
+}

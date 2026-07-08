@@ -120,6 +120,10 @@ export const t = {
     active: "מנוי פעיל",
     none: "אין מנוי פעיל",
   },
+  loyalty: {
+    streak: (n: number) => `רצף שבועי: ${n}`,
+    toNext: (n: number, tier: string) => `עוד ${n} אימונים למעמד ${tier}`,
+  },
   packages: {
     title: "כרטיסיות ומנויים",
     hint: "בחרו חבילה שמתאימה לכם - התשלום מאובטח דרך Bit או PayBox.",

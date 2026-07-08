@@ -28,6 +28,57 @@ export function trialDaysLeft(
   return TRIAL_DAYS - Math.floor((nowMs - u.approvedAt) / DAY_MS);
 }
 
+// ---- OMIX loyalty (refactor spec §8) ----------------------------------------
+export interface LoyaltyTier {
+  id: "pace" | "endurance" | "elite" | "marathoner";
+  name: string;
+  min: number; // attended classes to reach this tier
+}
+export const LOYALTY_TIERS: LoyaltyTier[] = [
+  { id: "pace", name: "OMIX Pace", min: 0 },
+  { id: "endurance", name: "OMIX Endurance", min: 25 },
+  { id: "elite", name: "OMIX Elite", min: 75 },
+  { id: "marathoner", name: "OMIX Marathoner", min: 150 },
+];
+
+/** Current loyalty tier + progress toward the next, from attended count. */
+export function loyaltyFor(attended: number) {
+  let idx = 0;
+  for (let i = 0; i < LOYALTY_TIERS.length; i++) if (attended >= LOYALTY_TIERS[i].min) idx = i;
+  const current = LOYALTY_TIERS[idx];
+  const next = LOYALTY_TIERS[idx + 1] ?? null;
+  const toNext = next ? next.min - attended : 0;
+  const span = next ? next.min - current.min : 1;
+  const progress = next ? Math.min(1, Math.max(0, (attended - current.min) / span)) : 1;
+  return { current, next, toNext, progress, index: idx };
+}
+
+/** OMIX Marathoner (150+ attended) may book 1h before general release. */
+export function loyaltyEarlyBookingMin(attended: number): number {
+  return attended >= 150 ? 60 : 0;
+}
+
+function weekStamp(d: Date): number {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - x.getDay()); // back to Sunday (week start)
+  return Math.floor(x.getTime() / 86_400_000);
+}
+
+/** Consecutive weeks (ending this week) with >= 1 attended class. */
+export function weeklyStreak(userId: string, s: AppData, nowMs = Date.now()): number {
+  const weeks = new Set<number>();
+  for (const b of s.bookings) {
+    if (b.userId !== userId || b.state !== "attended") continue;
+    const sess = s.sessions.find((x) => x.id === b.sessionId);
+    if (sess) weeks.add(weekStamp(sessionStartDate(sess)));
+  }
+  let streak = 0;
+  let w = weekStamp(new Date(nowMs));
+  while (weeks.has(w)) { streak++; w--; }
+  return streak;
+}
+
 /** What Omer is overdue on for a coaching client: weekly call (>7d), a daily
  *  WhatsApp touch (>2d), first meeting not done, and this month's payment. */
 export function coachingFlags(u: Pick<User, "coaching">, nowMs = Date.now()) {
