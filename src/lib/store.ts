@@ -174,6 +174,8 @@ export const savePaymentLinks = (l: { bitLink?: string; payboxLink?: string }) =
 export const CALENDAR_CONNECT_URL =
   "https://us-central1-omixfit-be3ff.cloudfunctions.net/calConnect";
 export const newSubId = () => engine.genId("sub");
+export const sendVerificationLink = (uid: string) =>
+  backend().then((b) => b.sendVerificationLink(uid));
 export const setApproval = (
   userId: string,
   status: import("./types").ApprovalStatus,

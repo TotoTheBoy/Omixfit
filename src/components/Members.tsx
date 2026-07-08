@@ -6,6 +6,7 @@ import {
   deleteLead,
   memberStats,
   sessionStartDate,
+  sendVerificationLink,
   setApproval,
   setLeadHandled,
   updateUser,
@@ -232,13 +233,31 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   if (u.approvalStatus === "pending") {
     const medical = !!hf && (["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const).some((k) => hf[k]);
     const note = hf?.notes?.trim();
+    const step1 = !!u.emailVerified; // account authentication (MFA)
+    const step2 = !!(u.name && u.age && u.address); // profile completion
+    const step3 = !!hf; // signed health declaration
+    const step4 = !!hf?.termsAccepted; // studio terms
+    const canApprove = step1 && step3 && step4; // steps 1, 3, 4 gate approval
+    async function resendVerify() {
+      try {
+        await sendVerificationLink(u.id);
+        toast(t.approvals.resendSent, "ok");
+      } catch {
+        toast(t.approvals.resendErr, "err");
+      }
+    }
     return (
       <Sheet
         onClose={onClose}
         hero={hero}
         footer={
           <div className="row gap-2" style={{ width: "100%" }}>
-            <button className="btn btn-lime grow" onClick={() => decide("approved")}>
+            <button
+              className="btn btn-lime grow"
+              disabled={!canApprove}
+              title={canApprove ? undefined : t.approvals.approveBlocked}
+              onClick={() => decide("approved")}
+            >
               {t.approvals.approve}
             </button>
             <button className="btn btn-danger" onClick={() => decide("rejected")}>
@@ -252,31 +271,38 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
         </span>
 
         <ul className="member-details">
-          <li><span>{t.emailLabel}</span><b dir="ltr">{u.email || "-"}</b></li>
-          <li><span>{t.phone}</span><b dir="ltr">{u.phone || "-"}</b></li>
           <li><span>{t.approvals.whereFrom}</span><b>{u.address || "-"}</b></li>
-          <li>
-            <span>{t.approvals.verifiedLabel}</span>
-            <b>{u.emailVerified ? `✅ ${t.approvals.verifiedYes}` : `⚠️ ${t.approvals.verifiedNo}`}</b>
-          </li>
+          <li><span>{t.phone}</span><b dir="ltr">{u.phone || "-"}</b></li>
+          <li><span>{t.emailLabel}</span><b dir="ltr">{u.email || "-"}</b></li>
+          {u.age ? <li><span>{t.health.ageLabel}</span><b>{u.age}</b></li> : null}
         </ul>
 
-        <div
-          style={{
-            padding: "10px 14px", borderRadius: 12, marginTop: 12, fontWeight: 700,
-            background: medical ? "#fff0f1" : "#e7fbf3",
-            color: medical ? "var(--danger-ink, #c0392b)" : "#0a7d56",
-          }}
-        >
-          {medical ? `🩺 ${t.approvals.medicalYes}` : `✓ ${t.approvals.medicalNo}`}
+        {medical && (
+          <div className="lead-medical-flag">
+            <b>🩺 {t.approvals.medicalYes}</b>
+            {note && <p>{note}</p>}
+          </div>
+        )}
+
+        <div className="lead-stepper">
+          <StepRow ok={step1} n={1} title={t.approvals.step1}
+            warn={!step1 ? t.approvals.step1Warn : undefined}
+            action={!step1 ? { label: t.approvals.resendVerify, onClick: resendVerify } : undefined} />
+          <StepRow ok={step2} n={2} title={t.approvals.step2}
+            warn={!step2 ? t.approvals.step2Warn : undefined} />
+          <StepRow ok={step3} n={3} title={t.approvals.step3}
+            sub={hf?.signedName ? t.approvals.signedBy(hf.signedName) : t.approvals.noHealthForm} />
+          <StepRow ok={step4} n={4} title={t.approvals.step4} />
         </div>
 
-        {note && (
+        {!canApprove && (
+          <p className="muted" style={{ marginTop: 10, fontSize: ".82rem" }}>{t.approvals.approveBlocked}</p>
+        )}
+        {note && !medical && (
           <p className="health-summary-notes" style={{ marginTop: 10 }}>
             <b>{t.health.notesLabel}:</b> {note}
           </p>
         )}
-        {!hf && <p className="muted" style={{ marginTop: 10 }}>{t.approvals.noHealthForm}</p>}
       </Sheet>
     );
   }
@@ -510,6 +536,33 @@ function MiniStat({ v, k }: { v: number; k: string }) {
     }}>
       <div style={{ fontSize: "1.5rem", fontWeight: 900, letterSpacing: "-.02em" }}>{v}</div>
       <div className="muted" style={{ fontSize: ".78rem", fontWeight: 600 }}>{k}</div>
+    </div>
+  );
+}
+
+function StepRow({
+  ok, n, title, warn, sub, action,
+}: {
+  ok: boolean;
+  n: number;
+  title: string;
+  warn?: string;
+  sub?: string;
+  action?: { label: string; onClick: () => void };
+}) {
+  return (
+    <div className={`lead-step ${ok ? "ok" : "todo"}`}>
+      <span className="lead-step-dot" aria-hidden="true">{ok ? "✓" : n}</span>
+      <div className="lead-step-body">
+        <b>{title}</b>
+        {sub && <small>{sub}</small>}
+        {warn && <small className="lead-step-warn">{warn}</small>}
+        {action && (
+          <button type="button" className="btn btn-ink btn-sm" style={{ marginTop: 6 }} onClick={action.onClick}>
+            {action.label}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

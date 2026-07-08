@@ -550,6 +550,18 @@ export const t = {
     medicalYes: "דיווח/ה על בעיה רפואית - לשים לב",
     medicalNo: "אין בעיה רפואית מדווחת",
     noHealthForm: "טרם מילא/ה הצהרת בריאות",
+    // new-lead onboarding pipeline (stepper)
+    step1: "אימות חשבון (מייל)",
+    step1Warn: "הלקוח/ה טרם ביצע/ה את האימות במייל",
+    step2: "השלמת פרופיל (שם, גיל, יישוב)",
+    step2Warn: "חסרים פרטי פרופיל",
+    step3: "הצהרת בריאות חתומה",
+    step4: "אישור תקנון הסטודיו",
+    signedBy: (name: string) => `נחתם ע״י ${name}`,
+    resendVerify: "שליחת קישור אימות",
+    resendSent: "נשלח קישור אימות ללקוח/ה",
+    resendErr: "שליחת הקישור נכשלה",
+    approveBlocked: "האישור ייפתח לאחר אימות מייל, הצהרת בריאות ואישור תקנון.",
     // lifecycle: new client / trial / login tracking
     newClient: "לקוח/ה חדש/ה",
     trialLeft: (n: number) => `ניסיון - נשארו ${n} ימים לרכישת כרטיסייה`,

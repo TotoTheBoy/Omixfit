@@ -555,6 +555,12 @@ export async function syncCalendar(
   return res.data as { connected: boolean; synced: number };
 }
 
+/** Staff: (re)send a branded verification e-mail to a pending registrant. */
+export async function sendVerificationLink(uid: string): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "sendVerificationLink");
+  await call({ uid });
+}
+
 /** Returns a Google consent URL for the CURRENT user's own calendar. */
 export async function calConnectUrl(): Promise<string> {
   const call = httpsCallable(getFunctions(app, "us-central1"), "calConnectUrl");

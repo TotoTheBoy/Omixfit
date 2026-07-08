@@ -3195,3 +3195,43 @@
   border-bottom: 1px solid var(--champagne); padding-bottom: 2px; line-height: 1.15;
 }
 .signature-done { color: var(--olive-600); font-weight: 800; font-size: 0.9rem; }
+
+/* ---- new-lead onboarding pipeline / stepper (refactor spec §9) ------------ */
+.lead-medical-flag {
+  background: #fff0f1;
+  color: var(--danger-ink, #c0392b);
+  border: 1px solid #f3c9cd;
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin: 12px 0;
+  font-weight: 700;
+}
+.lead-medical-flag p { margin: 6px 0 0; font-weight: 500; }
+.lead-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 14px;
+}
+.lead-step {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  position: relative;
+}
+.lead-step:not(:last-child) { border-bottom: 1px solid var(--line); }
+.lead-step-dot {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+}
+.lead-step.ok .lead-step-dot { background: var(--sage); color: #fff; }
+.lead-step.todo .lead-step-dot { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--line-strong); }
+.lead-step-body { display: flex; flex-direction: column; gap: 2px; }
+.lead-step-body small { color: var(--text-3); font-size: 0.8rem; }
+.lead-step-warn { color: var(--warn-ink) !important; font-weight: 600; }

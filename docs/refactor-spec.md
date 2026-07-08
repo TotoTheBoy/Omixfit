@@ -103,7 +103,7 @@ See the checklist appended to this section as items ship. Items map 1:1 to the
 Domain numbers above.
 - [x] 1 nav/header · [ ] 2 landing · [x] 3 notifications · [x] 4 avatar-relocate
 - [x] 5 membership card · [x] 6 schedule · [x] 7 packages · [x] 8 loyalty
-- [ ] 9 lead pipeline · [ ] 10 email templates · [x] 11 city directory
+- [x] 9 lead pipeline · [x] 10 email templates · [x] 11 city directory
 - [x] 12 name split · [x] 13 signature
 
 ---
