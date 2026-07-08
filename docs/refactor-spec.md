@@ -101,7 +101,7 @@ their full name in a calligraphy script font as a signature canvas; explicit
 ## Status
 See the checklist appended to this section as items ship. Items map 1:1 to the
 Domain numbers above.
-- [ ] 1 nav/header · [ ] 2 landing · [ ] 3 notifications · [ ] 4 avatar-relocate
-- [ ] 5 membership card · [ ] 6 schedule · [ ] 7 packages · [ ] 8 loyalty
+- [x] 1 nav/header · [ ] 2 landing · [x] 3 notifications · [ ] 4 avatar-relocate
+- [x] 5 membership card · [x] 6 schedule · [ ] 7 packages · [ ] 8 loyalty
 - [ ] 9 lead pipeline · [ ] 10 email templates · [ ] 11 city directory
 - [ ] 12 name split · [ ] 13 signature

@@ -8,7 +8,6 @@ import {
   waitlistCount,
 } from "../lib/store";
 import { fmtTime } from "../lib/date";
-import { CapacityBar } from "./common";
 import { IcCheck, IcClock, IcPin, IcUser } from "./icons";
 
 export function ClassCard({
@@ -88,7 +87,13 @@ export function ClassCard({
           </span>
         ) : (
           <div className="grow">
-            <CapacityBar booked={booked} capacity={session.capacity} />
+            {left <= 0 ? (
+              <span className="cap-text full">{t.full}</span>
+            ) : left <= 3 ? (
+              <span className="cap-text last">{left === 1 ? t.lastSpot : t.lastSpots(left)}</span>
+            ) : (
+              <span className="cap-text open">{t.spotsLeft(left)}</span>
+            )}
             {wlCount > 0 && left <= 0 && (
               <span className="wl-count">{t.waitlistCountLabel(wlCount)}</span>
             )}

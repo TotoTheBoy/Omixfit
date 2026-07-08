@@ -81,6 +81,9 @@ export interface User {
   /** Set true once Omer records that the member bought a pass (punch-card); the
    *  trial auto-disconnect leaves passholders alone. */
   hasPass?: boolean;
+  /** Sessions remaining on the current punch-card (כרטיסייה), shown on the
+   *  membership card in gold when set. */
+  passSessionsLeft?: number;
   /** Omer's clinical notes (sports-therapist): injuries, pain, and the exercise
    *  ADAPTATIONS she prepares for this client. Staff-only; shown during class. */
   trainerNotes?: string;

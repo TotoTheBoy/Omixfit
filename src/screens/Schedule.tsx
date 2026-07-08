@@ -151,7 +151,6 @@ export function Schedule() {
             onClick={() => toggleCat(c)}
             aria-pressed={cats.has(c)}
           >
-            <span className="swatch" aria-hidden="true" style={{ background: `hsl(${CATEGORY_META[c].hue} 80% 50%)` }} />
             {CATEGORY_META[c].label}
           </button>
         ))}

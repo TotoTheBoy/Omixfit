@@ -8,6 +8,12 @@ import { Billing } from "../components/Billing";
 import { toast } from "../components/Toast";
 import { IcBolt, IcCheck, IcSpark, IcCalendar, IcBookmark } from "../components/icons";
 
+/** YYYY-MM-DD → DD/MM/YYYY (membership card). */
+const fmtDMY = (ymd: string): string => {
+  const [y, m, d] = (ymd || "").split("-");
+  return d && m && y ? `${d}/${m}/${y}` : ymd;
+};
+
 export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const data = useStore((s) => s);
   const me = data.users.find((u) => u.id === data.currentUserId)!;
@@ -102,18 +108,21 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
             {t.membership} {me.membershipActive ? t.active : t.inactive}
           </span>
         </div>
-        <div className="mc-name">{me.name}</div>
-        <div className="mc-plan">{me.membershipPlan}</div>
-        <div className="mc-foot">
-          <div>
-            <small>{t.phone}</small>
-            <b dir="ltr">{me.phone}</b>
+        <div className="mc-id">
+          <Avatar user={me} size={52} tone="#c5a059" />
+          <div className="mc-id-text">
+            <div className="mc-name">{me.name}</div>
+            {me.membershipPlan && <div className="mc-plan">{me.membershipPlan}</div>}
           </div>
-          <div style={{ textAlign: "end" }}>
-            <small>{t.validUntil}</small>
-            <b>{me.membershipValidUntil}</b>
-          </div>
-          <Avatar user={me} size={48} />
+        </div>
+        <div className="mc-entitlement">
+          {me.passSessionsLeft != null ? (
+            <b className="mc-ent-gold">{t.membershipCard.passLeft(me.passSessionsLeft)}</b>
+          ) : me.membershipValidUntil ? (
+            <b>{t.membershipCard.validUntil(fmtDMY(me.membershipValidUntil))}</b>
+          ) : (
+            <b>{me.membershipActive ? t.membershipCard.active : t.membershipCard.none}</b>
+          )}
         </div>
       </div>
 
