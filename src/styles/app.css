@@ -269,7 +269,7 @@
   color: var(--text-3);
 }
 .daycol.is-today .dnum {
-  color: var(--lime-600);
+  color: var(--gold-600);
 }
 .daycol.is-today::before {
   content: "";
