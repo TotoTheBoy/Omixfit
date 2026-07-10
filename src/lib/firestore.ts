@@ -47,11 +47,13 @@ import type {
   HealthForm,
   Location,
   Lead,
+  LessonPlan,
   Payment,
   Service,
   SpecialEvent,
   EventSignup,
   Subscription,
+  TaskReminder,
   User,
 } from "./types";
 
@@ -76,6 +78,8 @@ const col = {
   events: collection(db, "events"),
   eventSignups: collection(db, "eventSignups"),
   leads: collection(db, "leads"),
+  lessonPlans: collection(db, "lessonPlans"),
+  taskReminders: collection(db, "taskReminders"),
   audit: collection(db, "audit"),
 };
 
@@ -112,6 +116,12 @@ function startListeners(): void {
   );
   onSnapshot(col.leads, (s) =>
     hydrate({ leads: s.docs.map((d) => d.data() as Lead) }),
+  );
+  onSnapshot(col.lessonPlans, (s) =>
+    hydrate({ lessonPlans: s.docs.map((d) => d.data() as LessonPlan) }),
+  );
+  onSnapshot(col.taskReminders, (s) =>
+    hydrate({ taskReminders: s.docs.map((d) => d.data() as TaskReminder) }),
   );
   onSnapshot(col.payments, (s) =>
     hydrate({ payments: s.docs.map((d) => d.data() as Payment) }),
@@ -658,6 +668,20 @@ export async function deleteEvent(id: string): Promise<void> {
 }
 export function newEventId(): string {
   return engine.genId("ev");
+}
+
+// ---- workout planner & notes (#11) -----------------------------------------
+export async function upsertLessonPlan(p: LessonPlan): Promise<void> {
+  await setDoc(doc(db, "lessonPlans", p.id), p);
+}
+export async function deleteLessonPlan(id: string): Promise<void> {
+  await deleteDoc(doc(db, "lessonPlans", id));
+}
+export async function upsertReminder(r: TaskReminder): Promise<void> {
+  await setDoc(doc(db, "taskReminders", r.id), r);
+}
+export async function deleteReminder(id: string): Promise<void> {
+  await deleteDoc(doc(db, "taskReminders", id));
 }
 
 /** PUBLIC (no login): fetch the events open for registration. */

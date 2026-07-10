@@ -18,6 +18,7 @@ import { TypeEditor } from "../components/TypeEditor";
 import { Reports } from "../components/Reports";
 import { EventsAdmin } from "../components/EventsAdmin";
 import { AdminOverview } from "../components/AdminOverview";
+import { Planner } from "../components/Planner";
 import { IcPlus, IcSpark, IcUsers, IcCalendar } from "../components/icons";
 
 type EditorState =
@@ -29,7 +30,7 @@ type EditorState =
 // Clients + Finance are their own top-level sections now.
 export function Manage() {
   const data = useStore((s) => s);
-  const [tab, setTab] = useState<"overview" | "schedule" | "catalog" | "reports" | "events">("overview");
+  const [tab, setTab] = useState<"overview" | "schedule" | "catalog" | "planner" | "reports" | "events">("overview");
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
   const [detail, setDetail] = useState<ClassSession | null>(null);
@@ -99,6 +100,9 @@ export function Manage() {
         <button className={tab === "catalog" ? "on" : ""} onClick={() => setTab("catalog")}>
           {t.catalog}
         </button>
+        <button className={tab === "planner" ? "on" : ""} onClick={() => setTab("planner")}>
+          {t.planner.tab}
+        </button>
         <button className={tab === "reports" ? "on" : ""} onClick={() => setTab("reports")}>
           {t.reports}
         </button>
@@ -108,6 +112,7 @@ export function Manage() {
       </div>
 
       {tab === "overview" && <AdminOverview />}
+      {tab === "planner" && <Planner />}
       {tab === "reports" && <Reports />}
       {tab === "events" && <EventsAdmin />}
 

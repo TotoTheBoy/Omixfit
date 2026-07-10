@@ -1,5 +1,5 @@
 import { CATEGORY_META, t } from "../lib/i18n";
-import { adminOverview, useStore } from "../lib/store";
+import { adminOverview, upsertReminder, useStore } from "../lib/store";
 
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (ms: number) => Math.max(0, Math.floor((Date.now() - ms) / DAY));
@@ -10,8 +10,9 @@ const daysAgo = (ms: number) => Math.max(0, Math.floor((Date.now() - ms) / DAY))
 export function AdminOverview() {
   const data = useStore((s) => s);
   const ov = adminOverview(data);
+  const openReminders = data.taskReminders.filter((r) => !r.done);
   const total =
-    ov.pending.length + ov.inactive.length + ov.stagnant.length + ov.lowOccupancy.length;
+    openReminders.length + ov.pending.length + ov.inactive.length + ov.stagnant.length + ov.lowOccupancy.length;
 
   if (total === 0) {
     return (
@@ -25,6 +26,24 @@ export function AdminOverview() {
 
   return (
     <div className="overview">
+      {openReminders.length > 0 && (
+        <div className="ov-card ov-pending">
+          <div className="ov-head">
+            <h3>{t.overview.reminders}</h3>
+            <span className="ov-count">{openReminders.length}</span>
+          </div>
+          <ul className="ov-list">
+            {openReminders.map((r) => (
+              <li key={r.id}>
+                <span className="nm">{r.text}</span>
+                <button className="link-btn" onClick={() => upsertReminder({ ...r, done: true })}>
+                  {t.planner.done}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <OverviewCard title={t.overview.pending} count={ov.pending.length} tone="pending">
         {ov.pending.map((u) => (
           <li key={u.id}>

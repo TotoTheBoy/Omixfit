@@ -3241,6 +3241,25 @@
 .ov-list li:first-child { border-top: none; }
 .ov-list .nm { font-weight: 600; }
 .ov-list .meta { color: var(--text-3); font-size: .82rem; text-align: end; }
+/* #11 workout planner & notes */
+.planner { display: flex; flex-direction: column; gap: 28px; }
+.reminder-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.reminder-list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.reminder-list li:first-child { border-top: none; }
+.reminder-list li.done .rem-text { text-decoration: line-through; color: var(--text-3); }
+.rem-check { flex: none; width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--olive); }
+.reminder-list li.done .rem-check { background: var(--olive); border-color: var(--olive); color: #fff; }
+.rem-box { width: 12px; height: 12px; }
+.rem-text { flex: 1; font-weight: 600; }
+.rem-when { color: var(--text-3); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.rem-del { color: var(--text-3); }
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.plan-card { text-align: start; display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .1s; }
+.plan-card:hover { border-color: var(--charcoal); box-shadow: var(--sh-1); transform: translateY(-2px); }
+.plan-tag { align-self: flex-start; font-size: .7rem; font-weight: 800; letter-spacing: .04em; color: var(--gold-600); background: rgba(138, 106, 31, 0.1); border-radius: 999px; padding: 3px 10px; }
+.plan-title { font-size: 1.02rem; }
+.plan-snip { color: var(--text-2); font-size: .82rem; line-height: 1.4; }
+.plan-date { color: var(--text-3); font-size: .74rem; margin-top: 2px; }
 
 /* admin-only clickable loyalty tier badge */
 .mc-tier-btn {

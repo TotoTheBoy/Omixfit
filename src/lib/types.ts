@@ -314,6 +314,29 @@ export interface EventSignup {
   createdAt: number;
 }
 
+/** A reusable lesson plan / workout structure the coach writes and tags, to
+ *  browse, filter and reuse later (#11 workout-plan archive / מערכי שיעור). */
+export interface LessonPlan {
+  id: string;
+  title: string;
+  tag: string; // category tag, e.g. "CrossFit" / "HIIT" / "Spinning"
+  content: string; // the plan / workout structure
+  createdAt: number;
+  updatedAt?: number;
+  authorId?: string;
+}
+
+/** An operational coach to-do; optionally pinned to a day + hour so it surfaces
+ *  before the relevant class (#11 task reminders). */
+export interface TaskReminder {
+  id: string;
+  text: string;
+  done: boolean;
+  createdAt: number;
+  date?: string; // YYYY-MM-DD
+  hour?: string; // HH:MM
+}
+
 export interface AppData {
   users: User[];
   classTypes: ClassType[];
@@ -325,6 +348,8 @@ export interface AppData {
   subscriptions: Subscription[];
   events: SpecialEvent[];
   leads: Lead[];
+  lessonPlans: LessonPlan[];
+  taskReminders: TaskReminder[];
   facility: Facility;
   audit: AuditEntry[];
   /** null when logged out (the app shows the login screen). */

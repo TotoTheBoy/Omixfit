@@ -25,6 +25,8 @@ const EMPTY: AppData = {
   subscriptions: [],
   events: [],
   leads: [],
+  lessonPlans: [],
+  taskReminders: [],
   facility: {
     name: "Omix",
     bookingWindowDays: 14,
@@ -168,6 +170,18 @@ export const submitLead = (who: { name: string; phone: string; email?: string; c
 export const setLeadHandled = (id: string, handled: boolean) =>
   backend().then((b) => b.setLeadHandled(id, handled));
 export const deleteLead = (id: string) => backend().then((b) => b.deleteLead(id));
+
+// workout planner & notes (#11)
+export const upsertLessonPlan = (p: import("./types").LessonPlan) =>
+  backend().then((b) => b.upsertLessonPlan(p));
+export const deleteLessonPlan = (id: string) =>
+  backend().then((b) => b.deleteLessonPlan(id));
+export const newLessonPlanId = () => engine.genId("lp");
+export const upsertReminder = (r: import("./types").TaskReminder) =>
+  backend().then((b) => b.upsertReminder(r));
+export const deleteReminder = (id: string) =>
+  backend().then((b) => b.deleteReminder(id));
+export const newReminderId = () => engine.genId("tr");
 export const syncCalendar = (mode?: "personal") =>
   backend().then((b) => b.syncCalendar(mode));
 export const calConnectUrl = () => backend().then((b) => b.calConnectUrl());
