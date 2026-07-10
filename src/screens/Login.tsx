@@ -26,10 +26,14 @@ export function Login({ onBack }: { onBack?: () => void }) {
     if (busy || !firebaseConfigured) return;
     setBusy(true);
     // Code-split: pull the firebase SDK in only when the user actually submits.
-    const { signIn, signUp, resetPassword, authErrorMessage } = await import("../lib/firebase");
+    const { signIn, signUp, authErrorMessage } = await import("../lib/firebase");
     try {
       if (isReset) {
-        await resetPassword(email);
+        // Branded reset email from office@ (Cloud Function) — not Firebase's
+        // default noreply, which lands in spam. Always show the generic message
+        // (never reveal whether an address is registered).
+        const { sendPasswordReset } = await import("../lib/store");
+        await sendPasswordReset(email).catch(() => {});
         toast(t.resetSent, "ok");
         setMode("signin");
         setBusy(false);
@@ -39,13 +43,7 @@ export function Login({ onBack }: { onBack?: () => void }) {
       else await signIn(email, password);
       // Success → <App />'s auth listener takes it from here.
     } catch (err) {
-      // Never reveal whether an email is registered on password reset.
-      if (isReset && String((err as { code?: unknown })?.code) === "auth/user-not-found") {
-        toast(t.resetSent, "ok");
-        setMode("signin");
-      } else {
-        toast(authErrorMessage(err), "err");
-      }
+      toast(authErrorMessage(err), "err");
       setBusy(false);
     }
   }

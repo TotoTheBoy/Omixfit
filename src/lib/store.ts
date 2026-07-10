@@ -155,6 +155,8 @@ export const deleteEvent = (id: string) => backend().then((b) => b.deleteEvent(i
 export const broadcastEvent = (eventId: string) => backend().then((b) => b.broadcastEvent(eventId));
 export const notifyScheduleChange = (sessionId: string) =>
   backend().then((b) => b.notifyScheduleChange(sessionId));
+export const sendPasswordReset = (email: string) =>
+  backend().then((b) => b.sendPasswordReset(email));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));

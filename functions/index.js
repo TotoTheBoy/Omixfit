@@ -564,3 +564,32 @@ exports.notifyScheduleChange = fnV1.https.onCall(async (data, context) => {
   }
   return { sent };
 });
+
+// Forgot-password: send a BRANDED reset e-mail from office@ (Gmail SMTP) instead
+// of Firebase's raw noreply@…firebaseapp.com sender, which lands in spam. Public
+// (called from the login screen, pre-auth). Unknown addresses are silently
+// ignored so the endpoint can't be used to probe which e-mails are registered.
+exports.sendPasswordReset = fnV1.https.onCall(async (data) => {
+  const email = data && typeof data.email === "string" ? data.email.trim() : "";
+  if (!email) throw new fnV1.https.HttpsError("invalid-argument", "email required");
+  const { getAuth } = require("firebase-admin/auth");
+  let link;
+  try {
+    link = await getAuth().generatePasswordResetLink(email);
+  } catch (e) {
+    return { sent: false }; // no such account → stay silent (no enumeration)
+  }
+  let name = "";
+  try {
+    const snap = await db.collection("users").where("email", "==", email.toLowerCase()).limit(1).get();
+    if (!snap.empty) name = (snap.docs[0].data().name || "").split(" ")[0];
+  } catch (e) { /* greeting is best-effort */ }
+  await sendMail(email, "איפוס סיסמה ל-Omix 🔑",
+    `<h2 style="color:#a9842f">איפוס סיסמה</h2>
+     <p>היי${name ? " " + name : ""},</p>
+     <p>קיבלנו בקשה לאיפוס הסיסמה שלך ב-Omix. לחץ/י על הכפתור כדי לבחור סיסמה חדשה:</p>
+     <p style="margin:22px 0"><a href="${link}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">איפוס הסיסמה</a></p>
+     <p>אם לא ביקשת לאפס סיסמה, אפשר להתעלם מהודעה זו בבטחה.</p>
+     <p>נתראה!<br><b>עומר · Omix</b></p>`);
+  return { sent: true };
+});

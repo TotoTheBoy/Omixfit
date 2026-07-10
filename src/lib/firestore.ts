@@ -700,6 +700,16 @@ export async function notifyScheduleChange(sessionId: string): Promise<number> {
   const res = await call({ sessionId });
   return (res.data as { sent?: number })?.sent ?? 0;
 }
+
+/** Forgot-password: send a BRANDED reset email (from office@, via a Cloud
+ *  Function) instead of Firebase's default noreply sender. Public / pre-auth. */
+export async function sendPasswordReset(email: string): Promise<boolean> {
+  await initFirestore();
+  if (!app) return false;
+  const call = httpsCallable(getFunctions(app, "us-central1"), "sendPasswordReset");
+  const res = await call({ email });
+  return !!(res.data as { sent?: boolean })?.sent;
+}
 export function newEventId(): string {
   return engine.genId("ev");
 }
