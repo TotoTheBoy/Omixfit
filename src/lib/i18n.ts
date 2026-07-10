@@ -136,6 +136,7 @@ export const t = {
     popular: "הכי משתלם",
     perSession: (n: number) => `${n} ₪ לאימון`,
     buy: "לרכישה",
+    storeEyebrow: "החנות שלי",
   },
   pwa: {
     install: "📱 הוספת אפליקציית Omixfit למסך הבית",

@@ -5,6 +5,9 @@ import { sessionStartDate, useStore } from "../lib/store";
 import { useNow } from "../lib/useNow";
 import { ClassCard } from "../components/ClassCard";
 import { SessionDetail } from "../components/SessionDetail";
+import { Packages } from "../components/Packages";
+import { PayOptions } from "../components/PayOptions";
+import { Sheet } from "../components/Sheet";
 import { IcBookmark } from "../components/icons";
 
 export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
@@ -12,6 +15,7 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
   const nowTick = useNow(); // re-split upcoming/past as sessions roll into the past
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [open, setOpen] = useState<ClassSession | null>(null);
+  const [payOpen, setPayOpen] = useState(false);
 
   const { upcoming, past } = useMemo(() => {
     const now = nowTick;
@@ -79,6 +83,20 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
             <ClassCard key={s.id} session={s} onOpen={setOpen} />
           ))}
         </div>
+      )}
+
+      {/* #2 packages & memberships store — relocated into "My Orders" as a
+          dedicated, premium section that invites purchase / renewal. */}
+      <section className="orders-store">
+        <span className="orders-store-eyebrow">{t.packages.storeEyebrow}</span>
+        <Packages onBuy={() => setPayOpen(true)} />
+      </section>
+
+      {payOpen && (
+        <Sheet title={t.pay.buyTitle} onClose={() => setPayOpen(false)}>
+          <p className="muted" style={{ margin: "0 0 14px" }}>{t.pay.choose}</p>
+          <PayOptions onDone={() => setPayOpen(false)} />
+        </Sheet>
       )}
 
       {open && <SessionDetail session={open} onClose={() => setOpen(null)} />}

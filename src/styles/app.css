@@ -3225,6 +3225,9 @@
 .pwa-option-main { display: flex; flex-direction: column; gap: 2px; }
 .pwa-option-main b { font-size: 1rem; }
 .pwa-option-main small { color: var(--text-3); font-size: .82rem; line-height: 1.35; }
+/* #2 packages/memberships store relocated into "My Orders" */
+.orders-store { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
+.orders-store-eyebrow { display: block; font-size: .74rem; font-weight: 800; letter-spacing: .12em; color: var(--gold-600); margin-bottom: 10px; }
 
 /* admin-only clickable loyalty tier badge */
 .mc-tier-btn {

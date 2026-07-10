@@ -6,8 +6,6 @@ import { loyaltyFor, weeklyStreak, LOYALTY_TIERS } from "../lib/engine";
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
 import { Billing } from "../components/Billing";
-import { Packages } from "../components/Packages";
-import { PayOptions } from "../components/PayOptions";
 import { PWAInstallAction } from "../components/PWAInstallAction";
 import { AVATAR_LIST, AvatarSkin } from "../components/avatars";
 import { toast } from "../components/Toast";
@@ -36,7 +34,6 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const [bit, setBit] = useState(fac.bitLink ?? "");
   const [paybox, setPaybox] = useState(fac.payboxLink ?? "");
   const isAdmin = me.role === "admin";
-  const [payOpen, setPayOpen] = useState(false);
   const [skinOpen, setSkinOpen] = useState(false);
 
   function savePay() {
@@ -168,16 +165,6 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           )}
         </div>
       </div>
-
-      {/* pricing tiers → Bit/PayBox checkout modal */}
-      {me.role === "member" && <Packages onBuy={() => setPayOpen(true)} />}
-
-      {payOpen && (
-        <Sheet title={t.pay.buyTitle} onClose={() => setPayOpen(false)}>
-          <p className="muted" style={{ margin: "0 0 14px" }}>{t.pay.choose}</p>
-          <PayOptions onDone={() => setPayOpen(false)} />
-        </Sheet>
-      )}
 
       {/* stats */}
       <h2 className="h2" style={{ marginBottom: 10 }}>{t.myStats}</h2>
