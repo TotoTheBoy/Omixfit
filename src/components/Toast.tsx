@@ -1,6 +1,6 @@
 // Module-level toast bus so any code (incl. store callbacks) can fire a toast.
 import { useEffect, useState } from "react";
-import { IcCheck, IcWarn } from "./icons";
+import { IcCheck, IcWarn, IcInfo } from "./icons";
 
 export type ToastKind = "ok" | "err" | "info";
 interface ToastItem {
@@ -43,6 +43,8 @@ export function Toaster() {
           <span className="ic">
             {t.kind === "ok" ? (
               <IcCheck width={18} height={18} />
+            ) : t.kind === "info" ? (
+              <IcInfo width={18} height={18} />
             ) : (
               <IcWarn width={18} height={18} />
             )}

@@ -38,7 +38,15 @@ export function PublicEvents() {
         <p className="login-sub" style={{ marginBottom: 18 }}>{t.events.publicSubtitle}</p>
 
         {events === null ? (
-          <p className="muted">{t.events.loading}</p>
+          <div aria-label={t.events.loading} role="status">
+            {[0, 1].map((i) => (
+              <div key={i} className="card" style={{ padding: 18, marginBottom: 16 }}>
+                <div className="skeleton" style={{ height: 22, width: "60%", marginBottom: 10 }} />
+                <div className="skeleton" style={{ height: 13, width: "42%", marginBottom: 16 }} />
+                <div className="skeleton" style={{ height: 44, width: "100%" }} />
+              </div>
+            ))}
+          </div>
         ) : list.length === 0 ? (
           <p className="muted">{t.events.noneOpen}</p>
         ) : (

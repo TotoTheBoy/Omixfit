@@ -25,3 +25,12 @@ Non-negotiables unchanged: Hebrew-first RTL, WCAG 2.1 AA, no risky rewrites — 
 4. **Loading polish** — a reusable `.skeleton` shimmer + a gentle breathing splash.
 
 Status: 1 ✅ · 2 ✅ · 3 ✅ · 4 ✅ (see commits).
+
+## Depth pass (follow-up)
+- **Empty states** upgraded across all 6 screens (Schedule / My Orders / Manage /
+  Members / Coaching / Overview): a soft cream gradient card, a circular gold icon
+  badge, and a gentle pop-in — from "placeholder" to intentional.
+- **Toasts** now use a distinct icon per kind — ✓ success, ⓘ info, ⚠ error
+  (info was previously sharing the error triangle).
+- **Skeleton loaders** wired into the public events page (shimmer cards while the
+  fetch resolves) using the `.skeleton` utility.

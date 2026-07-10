@@ -602,20 +602,35 @@
 /* ---- empty state ---------------------------------------------------------- */
 .empty {
   text-align: center;
-  padding: 56px 24px;
-  border: 2px dashed var(--line-strong);
-  border-radius: var(--r-lg);
-  background: var(--surface);
+  padding: 52px 24px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-xl);
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
   color: var(--text-2);
+  animation: pop-in 0.4s var(--ease) both;
 }
 .empty .ico {
-  font-size: 2.4rem;
-  margin-bottom: 10px;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  font-size: 2.2rem;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  color: var(--gold-600);
 }
 .empty :is(h2, h3) {
   margin: 0 0 6px;
   color: var(--text);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+}
+.empty p {
+  margin: 0 auto;
+  max-width: 340px;
+  line-height: 1.5;
 }
 
 /* ---- filters -------------------------------------------------------------- */
