@@ -181,6 +181,28 @@ ok("value score is 0–100", vs.every((x) => x.score >= 0 && x.score <= 100));
   ok("adminOverview ignores still-valid subscriptions", !ov.stagnant.some((s) => s.user.id === "u-fresh"));
 }
 
+// ---- hasMedicalFlag (#13) ----
+ok("hasMedicalFlag: no form → false", engine.hasMedicalFlag({ healthForm: undefined }) === false);
+ok("hasMedicalFlag: a 'yes' answer → true", engine.hasMedicalFlag({ healthForm: { q3: true } } as never) === true);
+ok(
+  "hasMedicalFlag: all-no form → false",
+  engine.hasMedicalFlag({ healthForm: { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false } } as never) === false,
+);
+
+// ---- adminOverview: inactivity + low-occupancy (#1) ----
+{
+  const now = Date.now();
+  const DAY = 86400000;
+  // an active member approved 60d ago with zero bookings → never attended → inactive
+  data.users.push({ ...member, id: "u-inactive", role: "member", membershipActive: true, approvalStatus: "approved", approvedAt: now - 60 * DAY });
+  // a class type whose only recent session (yesterday) drew no bookings → low-occupancy
+  data.classTypes.push({ ...data.classTypes[0], id: "ct-lonely", name: "Lonely" });
+  data.sessions.push({ ...data.sessions[0], id: "s-lonely", classTypeId: "ct-lonely", date: toKey(new Date(now - DAY)), startMin: 600, cancelled: false });
+  const ov = engine.adminOverview(data, now);
+  ok("adminOverview: long-approved never-attended member is inactive", ov.inactive.some((x) => x.user.id === "u-inactive"));
+  ok("adminOverview: class type with a recent zero-booking session is low-occupancy", ov.lowOccupancy.some((x) => x.type.id === "ct-lonely"));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) {
   // @ts-expect-error node global
