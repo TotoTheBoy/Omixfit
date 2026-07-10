@@ -17,7 +17,7 @@ const money = (a: number, c: string) =>
 // The subscriptions we set up together — offered as a one-tap starter set.
 const DEFAULTS: Subscription[] = [
   { id: "sub-gws", name: "Google Workspace", vendor: "Google", purpose: "אימייל עסקי (office@omixfit.com), יומן ו-Meet", amount: 8.1, currency: "EUR", cycle: "monthly", status: "trial", note: "מסלול Starter · משתמש 1 · החל בתקופת ניסיון 14 יום", url: "https://admin.google.com" },
-  { id: "sub-domain", name: "דומיין omixfit.com", vendor: "Wix", purpose: "כתובת האתר והאימייל", amount: 0, currency: "ILS", cycle: "yearly", status: "active", note: "חיוב שנתי - עדכני את הסכום והתאריך מתוך Wix", url: "https://manage.wix.com/account/domains" },
+  { id: "sub-domain", name: "דומיין omixfit.com", vendor: "Wix", purpose: "כתובת האתר והאימייל", amount: 0, currency: "ILS", cycle: "yearly", status: "active", note: "חיוב שנתי - עדכן/י את הסכום והתאריך מתוך Wix", url: "https://manage.wix.com/account/domains" },
   { id: "sub-vercel", name: "אחסון האתר", vendor: "Vercel", purpose: "אירוח דף הנחיתה והאפליקציה", amount: 0, currency: "USD", cycle: "free", status: "active", note: "מסלול Hobby - חינם", url: "https://vercel.com/dashboard" },
   { id: "sub-firebase", name: "שרת ומסד נתונים", vendor: "Firebase (Google)", purpose: "התחברות, מסד נתונים וסנכרון בזמן אמת", amount: 0, currency: "USD", cycle: "free", status: "active", note: "מסלול Spark - חינם", url: "https://console.firebase.google.com" },
 ];
