@@ -41,6 +41,9 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
   }, [data, nowTick]);
 
   const list = tab === "upcoming" ? upcoming : past;
+  const me = data.users.find((u) => u.id === data.currentUserId);
+  const credits = me?.passSessionsLeft;
+  const lowCredit = typeof credits === "number" && credits <= 2;
 
   return (
     <div className="page">
@@ -89,6 +92,12 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
           dedicated, premium section that invites purchase / renewal. */}
       <section className="orders-store">
         <span className="orders-store-eyebrow">{t.packages.storeEyebrow}</span>
+        {lowCredit && (
+          <div className="credit-nudge">
+            <b>{t.packages.lowCredit(credits!)}</b>
+            <span>{t.packages.lowCreditCta}</span>
+          </div>
+        )}
         <Packages onBuy={() => setPayOpen(true)} />
       </section>
 

@@ -219,20 +219,23 @@ export function SessionDetail({
               {roster.map(({ b, user }) => (
                 <div key={b.id} className="roster-row">
                   <Avatar user={user} size={32} />
-                  <span className="nm">
-                    {user.name}
-                    {hasMedicalFlag(user) && (
-                      <span
-                        className="roster-med"
-                        title={user.healthForm?.notes?.trim()
-                          ? `${t.medicalAlert} · ${user.healthForm.notes.trim()}`
-                          : t.medicalAlert}
-                        aria-label={t.medicalAlert}
-                      >
-                        <IcMedical width={14} height={14} />
-                      </span>
-                    )}
-                  </span>
+                  <div className="roster-main">
+                    <span className="nm">
+                      {user.name}
+                      {hasMedicalFlag(user) && (
+                        <span
+                          className="roster-med"
+                          title={user.healthForm?.notes?.trim()
+                            ? `${t.medicalAlert} · ${user.healthForm.notes.trim()}`
+                            : t.medicalAlert}
+                          aria-label={t.medicalAlert}
+                        >
+                          <IcMedical width={14} height={14} />
+                        </span>
+                      )}
+                    </span>
+                    {user.trainerNotes && <span className="roster-note">🩹 {user.trainerNotes}</span>}
+                  </div>
                   <span className="ph">{user.phone}</span>
                   <div className="att-toggle" onClick={(e) => e.stopPropagation()}>
                     <button

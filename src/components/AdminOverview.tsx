@@ -3,6 +3,7 @@ import { adminOverview, upsertReminder, useStore } from "../lib/store";
 
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (ms: number) => Math.max(0, Math.floor((Date.now() - ms) / DAY));
+const telHref = (phone: string) => `tel:${(phone || "").replace(/[-\s]/g, "")}`;
 
 /** #1 Admin Overview — a summary of ONLY the items that need attention or manual
  *  action, each computed live against a fixed threshold. Empty buckets are hidden
@@ -47,8 +48,10 @@ export function AdminOverview() {
       <OverviewCard title={t.overview.pending} count={ov.pending.length} tone="pending">
         {ov.pending.map((u) => (
           <li key={u.id}>
-            <span className="nm">{u.name}</span>
-            <span className="meta" dir="ltr">{u.phone}</span>
+            <a className="ov-call" href={telHref(u.phone)}>
+              <span className="nm">{u.name}</span>
+              <span className="meta" dir="ltr">📞 {u.phone}</span>
+            </a>
           </li>
         ))}
       </OverviewCard>
@@ -56,12 +59,14 @@ export function AdminOverview() {
       <OverviewCard title={t.overview.inactive} count={ov.inactive.length} tone="warn">
         {ov.inactive.map(({ user, lastAttendedMs }) => (
           <li key={user.id}>
-            <span className="nm">{user.name}</span>
-            <span className="meta">
-              {lastAttendedMs !== null
-                ? t.overview.lastAttended(daysAgo(lastAttendedMs))
-                : t.overview.neverAttended}
-            </span>
+            <a className="ov-call" href={telHref(user.phone)}>
+              <span className="nm">{user.name}</span>
+              <span className="meta">
+                {lastAttendedMs !== null
+                  ? t.overview.lastAttended(daysAgo(lastAttendedMs))
+                  : t.overview.neverAttended}
+              </span>
+            </a>
           </li>
         ))}
       </OverviewCard>
@@ -69,8 +74,10 @@ export function AdminOverview() {
       <OverviewCard title={t.overview.stagnant} count={ov.stagnant.length} tone="warn">
         {ov.stagnant.map(({ user, expiredMs }) => (
           <li key={user.id}>
-            <span className="nm">{user.name}</span>
-            <span className="meta">{t.overview.expiredAgo(daysAgo(expiredMs))}</span>
+            <a className="ov-call" href={telHref(user.phone)}>
+              <span className="nm">{user.name}</span>
+              <span className="meta">{t.overview.expiredAgo(daysAgo(expiredMs))}</span>
+            </a>
           </li>
         ))}
       </OverviewCard>

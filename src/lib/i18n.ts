@@ -185,6 +185,8 @@ export const t = {
     perSession: (n: number) => `${n} ₪ לאימון`,
     buy: "לרכישה",
     storeEyebrow: "החנות שלי",
+    lowCredit: (n: number) => (n <= 0 ? "נגמרו האימונים בכרטיסייה שלך" : `נותרו לך ${n} אימונים בכרטיסייה`),
+    lowCreditCta: "כדאי לחדש עכשיו כדי להמשיך להתאמן ברצף 💪",
   },
   pwa: {
     install: "📱 הוספת אפליקציית Omixfit למסך הבית",

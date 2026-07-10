@@ -72,6 +72,13 @@ New Cloud Functions: `broadcastEvent`, `notifyScheduleChange`, and `finalizeAtte
 (the last runs inside the existing hourly `sendReminders` ping — no new cron needed).
 WhatsApp broadcast remains a documented hook pending a Business API provider.
 
+### Tenant UX polish (proactive)
+- **Admin:** the class roster now shows the coach's injury/adaptation `trainerNotes`
+  during class (beside the medical flag); the Overview's flagged clients are
+  **tap-to-call** for the retention follow-up.
+- **Trainee:** a low punch-card balance (≤ 2 left) shows a **renewal nudge** right
+  above the relocated store in "My Orders".
+
 ### Extras (out-of-band requests)
 - **Forgot Password** on the login page — Firebase `sendPasswordResetEmail` (the
   emailed reset link is the verification factor). Reset mode hides the password
