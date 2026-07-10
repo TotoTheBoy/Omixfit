@@ -14,6 +14,7 @@ import {
   getAuth,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -97,6 +98,14 @@ export async function signUp(
 
 export async function signOutUser(): Promise<void> {
   if (auth) await signOut(auth);
+}
+
+/** "Forgot password" — email the user a secure reset link (the link in their
+ *  inbox is the verification factor). Uses Firebase's built-in reset flow; the
+ *  email template can be branded in the Firebase console. */
+export async function resetPassword(email: string): Promise<void> {
+  if (!auth) throw new Error("auth/not-configured");
+  await sendPasswordResetEmail(auth, email.trim());
 }
 
 /** Map a firebase auth error code to Hebrew copy (falls back to a generic msg). */

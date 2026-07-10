@@ -57,6 +57,12 @@ architecture boundary `engine.ts → store.ts → firestore.ts`.
 - **Batch C (admin intelligence):** ☐ 1 · ☐ 11
 - **Batch D (automation / backend):** ☐ 10 · ☐ 12a · ☐ 14
 
+### Extras (out-of-band requests)
+- **Forgot Password** on the login page — Firebase `sendPasswordResetEmail` (the
+  emailed reset link is the verification factor). Reset mode hides the password
+  field; privacy-safe messaging (no account enumeration). Default Firebase reset
+  email is used; can be branded in the console or via a Cloud Function later.
+
 ### Notes
 - Legal docs live at real, shareable URLs (`/legal`, `/legal/eula`, …) via the SPA
   rewrite; footer compliance link points there. Templates carry a review-with-counsel

@@ -229,6 +229,12 @@ export const t = {
   // email/password auth (Firebase)
   emailLabel: "אימייל",
   passwordLabel: "סיסמה",
+  forgotPassword: "שכחת/ה סיסמה?",
+  resetTitle: "איפוס סיסמה",
+  resetSub: "הזן/י את כתובת האימייל שלך ונשלח אליך קישור מאובטח לאיפוס הסיסמה.",
+  resetCta: "שליחת קישור לאיפוס",
+  resetSent: "אם הכתובת רשומה במערכת, נשלח אליה קישור לאיפוס הסיסמה. בדוק/י גם בתיבת הספאם.",
+  backToSignIn: "חזרה להתחברות",
   nameLabel: "שם מלא",
   emailPlaceholder: "name@example.com",
   signInTab: "התחברות",

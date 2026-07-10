@@ -6,7 +6,7 @@ import { OmixMark } from "../components/Brand";
 import { Toaster, toast } from "../components/Toast";
 import { IcChevR } from "../components/icons";
 
-type Mode = "signin" | "signup";
+type Mode = "signin" | "signup" | "reset";
 
 // Email/password sign-in (Firebase). Rendered by <App /> in the logged-out state
 // after the marketing landing page; `onBack` returns to it. On success the auth
@@ -19,19 +19,33 @@ export function Login({ onBack }: { onBack?: () => void }) {
   const [busy, setBusy] = useState(false);
 
   const isSignup = mode === "signup";
+  const isReset = mode === "reset";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (busy || !firebaseConfigured) return;
     setBusy(true);
     // Code-split: pull the firebase SDK in only when the user actually submits.
-    const { signIn, signUp, authErrorMessage } = await import("../lib/firebase");
+    const { signIn, signUp, resetPassword, authErrorMessage } = await import("../lib/firebase");
     try {
+      if (isReset) {
+        await resetPassword(email);
+        toast(t.resetSent, "ok");
+        setMode("signin");
+        setBusy(false);
+        return;
+      }
       if (isSignup) await signUp(email, password, name);
       else await signIn(email, password);
       // Success → <App />'s auth listener takes it from here.
     } catch (err) {
-      toast(authErrorMessage(err), "err");
+      // Never reveal whether an email is registered on password reset.
+      if (isReset && String((err as { code?: unknown })?.code) === "auth/user-not-found") {
+        toast(t.resetSent, "ok");
+        setMode("signin");
+      } else {
+        toast(authErrorMessage(err), "err");
+      }
       setBusy(false);
     }
   }
@@ -48,8 +62,8 @@ export function Login({ onBack }: { onBack?: () => void }) {
         <span className="brand-emblem">
           <OmixMark size={56} />
         </span>
-        <h1>{t.loginTitle}</h1>
-        <p className="login-sub">{t.loginSubtitle}</p>
+        <h1>{isReset ? t.resetTitle : t.loginTitle}</h1>
+        <p className="login-sub">{isReset ? t.resetSub : t.loginSubtitle}</p>
 
         {!firebaseConfigured && (
           <p className="login-error" role="alert">
@@ -57,26 +71,28 @@ export function Login({ onBack }: { onBack?: () => void }) {
           </p>
         )}
 
-        <div className="auth-tabs" role="tablist" aria-label={t.loginTitle}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!isSignup}
-            className={!isSignup ? "active" : ""}
-            onClick={() => setMode("signin")}
-          >
-            {t.signInTab}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={isSignup}
-            className={isSignup ? "active" : ""}
-            onClick={() => setMode("signup")}
-          >
-            {t.signUpTab}
-          </button>
-        </div>
+        {!isReset && (
+          <div className="auth-tabs" role="tablist" aria-label={t.loginTitle}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isSignup}
+              className={!isSignup ? "active" : ""}
+              onClick={() => setMode("signin")}
+            >
+              {t.signInTab}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isSignup}
+              className={isSignup ? "active" : ""}
+              onClick={() => setMode("signup")}
+            >
+              {t.signUpTab}
+            </button>
+          </div>
+        )}
 
         <form className="auth-form" onSubmit={onSubmit}>
           {isSignup && (
@@ -108,40 +124,59 @@ export function Login({ onBack }: { onBack?: () => void }) {
               required
             />
           </div>
-          <div className="field">
-            <label htmlFor="auth-password">{t.passwordLabel}</label>
-            <input
-              id="auth-password"
-              className="input"
-              type="password"
-              dir="ltr"
-              autoComplete={isSignup ? "new-password" : "current-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={isSignup ? 8 : 6}
-            />
-          </div>
+          {!isReset && (
+            <div className="field">
+              <label htmlFor="auth-password">{t.passwordLabel}</label>
+              <input
+                id="auth-password"
+                className="input"
+                type="password"
+                dir="ltr"
+                autoComplete={isSignup ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={isSignup ? 8 : 6}
+              />
+            </div>
+          )}
           <button
             type="submit"
             className="btn btn-lime btn-block btn-lg"
             disabled={busy || !firebaseConfigured}
           >
-            {busy ? t.authWorking : isSignup ? t.signUpCta : t.signInCta}
+            {busy ? t.authWorking : isReset ? t.resetCta : isSignup ? t.signUpCta : t.signInCta}
           </button>
         </form>
 
-        <p className="login-note">
-          {isSignup ? t.haveAccountPrompt : t.noAccountPrompt}{" "}
-          <button
-            type="button"
-            className="link-btn"
-            onClick={() => setMode(isSignup ? "signin" : "signup")}
-          >
-            {isSignup ? t.signInTab : t.signUpTab}
-          </button>
-        </p>
-        {!isSignup && <p className="login-note login-demo">{t.loginDemoNote}</p>}
+        {isReset ? (
+          <p className="login-note">
+            <button type="button" className="link-btn" onClick={() => setMode("signin")}>
+              ← {t.backToSignIn}
+            </button>
+          </p>
+        ) : (
+          <>
+            {!isSignup && (
+              <p className="login-note">
+                <button type="button" className="link-btn" onClick={() => setMode("reset")}>
+                  {t.forgotPassword}
+                </button>
+              </p>
+            )}
+            <p className="login-note">
+              {isSignup ? t.haveAccountPrompt : t.noAccountPrompt}{" "}
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => setMode(isSignup ? "signin" : "signup")}
+              >
+                {isSignup ? t.signInTab : t.signUpTab}
+              </button>
+            </p>
+            {!isSignup && <p className="login-note login-demo">{t.loginDemoNote}</p>}
+          </>
+        )}
         <VersionTag className="login-version" />
       </div>
       <Toaster />
