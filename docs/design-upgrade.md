@@ -34,3 +34,8 @@ Status: 1 ✅ · 2 ✅ · 3 ✅ · 4 ✅ (see commits).
   (info was previously sharing the error triangle).
 - **Skeleton loaders** wired into the public events page (shimmer cards while the
   fetch resolves) using the `.skeleton` utility.
+- **Staggered entrance cascade** — cards (schedule / stats / overview / catalog /
+  packages / lesson plans) now ripple in one beat after another (capped at .25s),
+  instead of popping in all at once. Reduced-motion safe.
+- **Richer session-detail hero** — a large translucent category-emoji watermark +
+  a corner light sheen, so each class's sheet has its own visual identity.

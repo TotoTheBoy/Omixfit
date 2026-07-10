@@ -897,6 +897,30 @@
   filter: blur(8px);
   opacity: 0.5;
 }
+.detail-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 100% at 100% 0%, rgba(255, 255, 255, 0.16), transparent 55%);
+  pointer-events: none;
+}
+.detail-hero .hero-emoji {
+  position: absolute;
+  inset-inline-end: -6px;
+  bottom: -30px;
+  font-size: 7rem;
+  line-height: 1;
+  opacity: 0.15;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  z-index: 0;
+}
+.detail-hero .chip,
+.detail-hero h2,
+.detail-hero .sub {
+  position: relative;
+  z-index: 1;
+}
 
 /* ---- roster list ---------------------------------------------------------- */
 .roster {
@@ -3287,6 +3311,12 @@
 .credit-nudge { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; margin-bottom: 14px; border-radius: var(--r-md); background: rgba(138, 106, 31, 0.1); border: 1px solid rgba(138, 106, 31, 0.3); }
 .credit-nudge b { color: var(--gold-600); }
 .credit-nudge span { font-size: .85rem; color: var(--text-2); }
+/* staggered entrance cascade — each card enters a beat after the previous */
+.class-card:nth-child(2), .cat-card:nth-child(2), .plan-card:nth-child(2), .pkg-card:nth-child(2), .stat:nth-child(2), .ov-card:nth-child(2) { animation-delay: .05s; }
+.class-card:nth-child(3), .cat-card:nth-child(3), .plan-card:nth-child(3), .pkg-card:nth-child(3), .stat:nth-child(3), .ov-card:nth-child(3) { animation-delay: .10s; }
+.class-card:nth-child(4), .cat-card:nth-child(4), .plan-card:nth-child(4), .pkg-card:nth-child(4), .stat:nth-child(4), .ov-card:nth-child(4) { animation-delay: .15s; }
+.class-card:nth-child(5), .cat-card:nth-child(5), .plan-card:nth-child(5), .pkg-card:nth-child(5), .stat:nth-child(5), .ov-card:nth-child(5) { animation-delay: .20s; }
+.class-card:nth-child(n+6), .cat-card:nth-child(n+6), .plan-card:nth-child(n+6), .pkg-card:nth-child(n+6), .stat:nth-child(n+6), .ov-card:nth-child(n+6) { animation-delay: .25s; }
 
 /* admin-only clickable loyalty tier badge */
 .mc-tier-btn {

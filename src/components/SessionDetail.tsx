@@ -105,6 +105,7 @@ export function SessionDetail({
       }}
     >
       <div className="glow" style={{ background: `hsl(${meta.hue} 90% 60%)` }} />
+      <span className="hero-emoji" aria-hidden="true">{meta.emoji}</span>
       <button
         className="iconbtn"
         onClick={onClose}
