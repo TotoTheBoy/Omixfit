@@ -1,6 +1,6 @@
 /* ===========================================================================
-   Omixfit design system - sporty, premium, high-energy.
-   Dark "ink" chrome + electric-lime brand accent. Light, airy content.
+   Omixfit design system - premium editorial luxury.
+   Warm cream + matte charcoal + champagne-gold accent + muted sage. Light, airy.
    RTL-first: uses logical properties (inline-start/end) throughout.
    =========================================================================== */
 
@@ -71,7 +71,7 @@
   --sh-1: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
   --sh-2: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 6px rgba(16, 24, 40, 0.05);
   --sh-3: 0 12px 32px rgba(16, 24, 40, 0.12), 0 4px 12px rgba(16, 24, 40, 0.06);
-  --sh-lime: 0 8px 24px rgba(182, 230, 23, 0.35);
+  --sh-lime: 0 8px 24px rgba(197, 160, 89, 0.35);
 
   --font: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -234,8 +234,9 @@ textarea:focus-visible,
   box-shadow: var(--sh-lime);
 }
 .btn-lime:hover {
-  background: #e2ff63;
-  box-shadow: 0 10px 28px rgba(182, 230, 23, 0.45);
+  background: #d4b06a;
+  box-shadow: 0 10px 28px rgba(197, 160, 89, 0.45);
+  transform: translateY(-1px);
 }
 .btn-ink {
   background: var(--ink-800);
@@ -243,6 +244,8 @@ textarea:focus-visible,
 }
 .btn-ink:hover {
   background: var(--ink-700);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-2);
 }
 .btn-ghost {
   background: var(--surface);
@@ -353,8 +356,8 @@ textarea:focus-visible,
 .input:focus,
 .select:focus {
   outline: none;
-  border-color: var(--ink-700);
-  box-shadow: 0 0 0 3px rgba(17, 22, 29, 0.08);
+  border-color: var(--gold-600);
+  box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.18);
 }
 
 /* ---- utility -------------------------------------------------------------- */
@@ -414,6 +417,32 @@ textarea:focus-visible,
     opacity: 1;
     transform: none;
   }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.97); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  100% { background-position-x: -200%; }
+}
+
+/* ---- applied motion & loading (premium feel; reduced-motion neutralises below) */
+.page { animation: fade-in 0.28s var(--ease); }
+.stat,
+.ov-card,
+.plan-card,
+.class-card,
+.cat-card,
+.pkg-card {
+  animation: pop-in 0.35s var(--ease) both;
+}
+.app-splash > * { animation: breathe 1.8s ease-in-out infinite; }
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--r-md);
+  color: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
