@@ -472,3 +472,76 @@ export function clientBalances(s: AppData): ClientBalance[] {
     .filter((b) => b.purchased > 0)
     .sort((a, b) => a.remaining - b.remaining);
 }
+
+// ---- Admin overview dashboard (#1) -----------------------------------------
+// Aggregates ONLY the items that need the admin's attention, each computed live
+// from the domain data against a fixed threshold (no stored/mock state).
+
+export interface AdminOverview {
+  /** New registrants awaiting approval. */
+  pending: User[];
+  /** Active members with no attended class in the last month. */
+  inactive: { user: User; lastAttendedMs: number | null }[];
+  /** Members whose subscription expired > 30 days ago with no renewal since. */
+  stagnant: { user: User; expiredMs: number }[];
+  /** Class types whose sessions in the last 2 weeks drew zero bookings. */
+  lowOccupancy: { type: ClassType; sessions: number }[];
+}
+
+export function adminOverview(data: AppData, now: number = Date.now()): AdminOverview {
+  const DAY = 24 * 60 * 60 * 1000;
+  const MONTH = 30 * DAY;
+  const TWO_WEEKS = 14 * DAY;
+  const members = data.users.filter((u) => u.role === "member");
+
+  const pending = data.users.filter((u) => u.approvalStatus === "pending");
+
+  // latest attended session time per user
+  const lastAttended = new Map<string, number>();
+  for (const b of data.bookings) {
+    if (b.state !== "attended") continue;
+    const s = data.sessions.find((x) => x.id === b.sessionId);
+    if (!s) continue;
+    const ms = sessionStartDate(s).getTime();
+    const prev = lastAttended.get(b.userId);
+    if (prev === undefined || ms > prev) lastAttended.set(b.userId, ms);
+  }
+
+  const inactive = members
+    .filter((u) => u.membershipActive && u.approvalStatus !== "pending")
+    .map((u) => ({ user: u, lastAttendedMs: lastAttended.get(u.id) ?? null }))
+    .filter(({ user, lastAttendedMs }) =>
+      lastAttendedMs !== null
+        ? now - lastAttendedMs > MONTH
+        : user.approvedAt !== undefined && now - user.approvedAt > MONTH,
+    );
+
+  const stagnant = members
+    .map((u) => {
+      if (!u.membershipValidUntil) return null;
+      const expiredMs = fromKey(u.membershipValidUntil).getTime();
+      if (expiredMs >= now || now - expiredMs < MONTH) return null;
+      const renewed = data.payments.some((p) => p.userId === u.id && p.date > expiredMs);
+      return renewed ? null : { user: u, expiredMs };
+    })
+    .filter((x): x is { user: User; expiredMs: number } => x !== null);
+
+  const bookedSessionIds = new Set(
+    data.bookings
+      .filter((b) => b.state !== "cancelled")
+      .map((b) => b.sessionId),
+  );
+  const lowOccupancy: { type: ClassType; sessions: number }[] = [];
+  for (const type of data.classTypes) {
+    const recent = data.sessions.filter((s) => {
+      if (s.classTypeId !== type.id || s.cancelled) return false;
+      const ms = sessionStartDate(s).getTime();
+      return ms <= now && ms >= now - TWO_WEEKS;
+    });
+    if (recent.length >= 1 && recent.every((s) => !bookedSessionIds.has(s.id))) {
+      lowOccupancy.push({ type, sessions: recent.length });
+    }
+  }
+
+  return { pending, inactive, stagnant, lowOccupancy };
+}

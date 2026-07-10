@@ -95,6 +95,7 @@ export const bookability = (session: ClassSession, userId: string, s: AppData = 
 export const actionFor = (session: ClassSession, userId: string, s: AppData = state) =>
   engine.actionFor(session, userId, s);
 export const hasMedicalFlag = engine.hasMedicalFlag;
+export const adminOverview = engine.adminOverview;
 export const memberStats = (userId: string, s: AppData = state) =>
   engine.memberStats(userId, s);
 export type { BookOutcome, ActionState, WaitlistOutcome } from "./engine";

@@ -157,6 +157,30 @@ const vs = engine.clientValueScores(data);
 ok("clientValueScores ranks the top spender first", vs[0].user.id === member.id && vs[0].revenue === 300);
 ok("value score is 0–100", vs.every((x) => x.score >= 0 && x.score <= 100));
 
+// ---- admin overview thresholds (#1) ----
+{
+  const now = Date.now();
+  const DAY = 86400000;
+  const mk = (id: string, validUntil: string) => ({
+    ...member,
+    id,
+    name: id,
+    approvalStatus: "approved" as const,
+    membershipActive: true,
+    membershipValidUntil: validUntil,
+    approvedAt: now - 200 * DAY,
+  });
+  data.users.push(mk("u-stale", toKey(new Date(now - 45 * DAY)))); // expired 45d ago, no renewal
+  data.users.push(mk("u-fresh", toKey(new Date(now + 30 * DAY)))); // still valid
+  const ov = engine.adminOverview(data, now);
+  ok(
+    "adminOverview pending matches raw pending count",
+    ov.pending.length === data.users.filter((u) => u.approvalStatus === "pending").length,
+  );
+  ok("adminOverview flags expired-no-renewal as stagnant", ov.stagnant.some((s) => s.user.id === "u-stale"));
+  ok("adminOverview ignores still-valid subscriptions", !ov.stagnant.some((s) => s.user.id === "u-fresh"));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) {
   // @ts-expect-error node global
