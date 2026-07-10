@@ -55,7 +55,7 @@ architecture boundary `engine.ts → store.ts → firestore.ts`.
 - **Batch A (frontend quick wins) — ✅ COMPLETE:** ✅ 3 cards · ✅ 6 footer · ✅ 9 checkout · ✅ 5 gender-neutral · ✅ 12b copy-link (per-event deep links) · ✅ 12c landing slider (live)
 - **Batch B (content & surfaces) — ✅ COMPLETE:** ✅ 7 legal docs (real `/legal/<slug>` URLs) · ✅ 2 packages store relocated into "My Orders" · ✅ 4 PWA install (2-option modal + 1-click) · ✅ 13 roster medical alerts · ✅ 8 live telemetry (favorite + transactions, read-only)
 - **Batch C (admin intelligence) — ✅ COMPLETE:** ✅ 1 admin overview dashboard (inactivity/stagnation/low-occupancy/pending, live) · ✅ 11 workout planner (tagged lesson-plan archive + task reminders, new Firestore collections)
-- **Batch D (automation / backend):** ☐ 10 · ✅ 12a event broadcast email (WhatsApp hook TODO) · ☐ 14
+- **Batch D (automation / backend):** ☐ 10 · ✅ 12a event broadcast email (WhatsApp hook TODO) · ✅ 14 attendance auto-finalize (cron + No-Show refund)
 
 ### Deploys pending (user runs these)
 - **#11** needs `firebase deploy --only firestore:rules` — adds `lessonPlans` + `taskReminders` collection rules (signed-in read/write). Until deployed, the planner reads/writes are denied by the live rules.

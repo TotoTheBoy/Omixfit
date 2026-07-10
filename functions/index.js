@@ -301,7 +301,8 @@ exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
     }
   }
   const trialsDisconnected = await sweepTrials().catch((e) => { logger.error("sweepTrials", e); return 0; });
-  res.json({ sent, trialsDisconnected });
+  const sessionsFinalized = await finalizeAttendance().catch((e) => { logger.error("finalizeAttendance", e); return 0; });
+  res.json({ sent, trialsDisconnected, sessionsFinalized });
 });
 
 // Trial → pass rule: a member approved > 7 days ago who never bought a pass is
@@ -328,6 +329,51 @@ async function sweepTrials() {
     }
   }
   return disconnected;
+}
+
+// #14 Passive "default-present" attendance. Runs off the same hourly ping. For
+// each not-yet-finalized session that has already ended, mark its still-confirmed
+// bookings "attended" and consume one punch-card credit each (idempotent via
+// booking.creditDeducted). Anyone the coach flagged No-Show beforehand is already
+// out of the "confirmed" set, so they're skipped. Sessions that ended long ago
+// are marked finalized WITHOUT processing, so enabling this doesn't retroactively
+// bill a backlog of past classes.
+const FINALIZE_WINDOW_MS = 12 * 3600 * 1000;
+async function finalizeAttendance() {
+  const now = Date.now();
+  const sessions = await db.collection("sessions").get();
+  let finalized = 0;
+  for (const sd of sessions.docs) {
+    const s = sd.data();
+    if (s.cancelled || s.attendanceFinalized || !s.date) continue;
+    const [y, m, d] = s.date.split("-").map(Number);
+    const start = new Date(y, m - 1, d, 0, 0, 0);
+    start.setMinutes(s.startMin || 0);
+    const end = start.getTime() + (s.durationMin || 60) * 60000;
+    if (end > now) continue; // not ended yet
+    if (now - end > FINALIZE_WINDOW_MS) {
+      await sd.ref.update({ attendanceFinalized: true }).catch(() => {}); // skip backlog
+      continue;
+    }
+    const bk = await db.collection("bookings")
+      .where("sessionId", "==", sd.id).where("state", "==", "confirmed").get();
+    for (const bd of bk.docs) {
+      const b = bd.data();
+      const patch = { state: "attended" };
+      if (!b.creditDeducted) {
+        const ud = await db.doc("users/" + b.userId).get();
+        const left = ud.exists ? ud.data().passSessionsLeft : undefined;
+        if (typeof left === "number" && left > 0) {
+          await ud.ref.update({ passSessionsLeft: left - 1 }).catch(() => {});
+          patch.creditDeducted = true;
+        }
+      }
+      await bd.ref.update(patch).catch(() => {});
+    }
+    await sd.ref.update({ attendanceFinalized: true }).catch(() => {});
+    finalized++;
+  }
+  return finalized;
 }
 
 // ---------------------------------------------------------------------------

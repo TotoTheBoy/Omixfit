@@ -586,9 +586,23 @@ export async function setAttendance(
   bookingId: string,
   attended: boolean,
 ): Promise<void> {
-  await updateDoc(doc(db, "bookings", bookingId), {
-    state: attended ? "attended" : "no_show",
-  });
+  // #14: keep the punch-card balance in step with attendance. Marking present
+  // consumes one credit (once); a No-Show override refunds the auto-deducted one.
+  const st = getState();
+  const b = st.bookings.find((x) => x.id === bookingId);
+  const patch: Record<string, unknown> = { state: attended ? "attended" : "no_show" };
+  if (b) {
+    const user = st.users.find((u) => u.id === b.userId);
+    const left = user?.passSessionsLeft;
+    if (attended && !b.creditDeducted && typeof left === "number" && left > 0) {
+      await updateDoc(doc(db, "users", b.userId), { passSessionsLeft: left - 1 });
+      patch.creditDeducted = true;
+    } else if (!attended && b.creditDeducted && typeof left === "number") {
+      await updateDoc(doc(db, "users", b.userId), { passSessionsLeft: left + 1 });
+      patch.creditDeducted = false;
+    }
+  }
+  await updateDoc(doc(db, "bookings", bookingId), patch);
 }
 
 export async function updateUser(

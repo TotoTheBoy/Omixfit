@@ -142,6 +142,9 @@ export interface ClassSession {
   locationId: string;
   room: string;
   cancelled?: boolean;
+  /** #14: the post-class "default-present" attendance sweep has run for this
+   *  session (so it isn't finalized twice). */
+  attendanceFinalized?: boolean;
   /** Online session → a free Jitsi video room (meet.jit.si/omix-<id>). */
   online?: boolean;
   /** Set when generated from a recurrence rule. */
@@ -168,6 +171,10 @@ export interface Booking {
   userId: string;
   state: BookingState;
   createdAt: number;
+  /** #14: a punch-card credit was consumed for this attendance, so a later
+   *  No-Show override refunds it exactly once (idempotent across the auto-sweep
+   *  and manual toggles). */
+  creditDeducted?: boolean;
 }
 
 export interface Location {
