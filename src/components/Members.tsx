@@ -3,6 +3,7 @@ import { CATEGORY_META, t } from "../lib/i18n";
 import type { Role, User } from "../lib/types";
 import {
   classTypeOf,
+  hasMedicalFlag,
   deleteLead,
   memberStats,
   sessionStartDate,
@@ -73,10 +74,7 @@ export function Members() {
                 <span className="mr-body">
                   <span className="mr-name">
                     {u.name}
-                    {u.healthForm &&
-                      (["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const).some(
-                        (k) => u.healthForm![k],
-                      ) && <span className="tag flag">{t.approvals.healthFlag}</span>}
+                    {hasMedicalFlag(u) && <span className="tag flag">{t.approvals.healthFlag}</span>}
                   </span>
                   <span className="mr-sub" dir="ltr">{u.email || u.phone}</span>
                 </span>
@@ -232,7 +230,7 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   // Pending registrant → a stripped-down REVIEW card: just what Omer needs to
   // approve/decline (she already knows her clients). No stats/role/activity.
   if (u.approvalStatus === "pending") {
-    const medical = !!hf && (["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const).some((k) => hf[k]);
+    const medical = hasMedicalFlag(u);
     const note = hf?.notes?.trim();
     const step1 = !!u.emailVerified; // account authentication (MFA)
     const step2 = !!(u.name && u.age && u.address); // profile completion

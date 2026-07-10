@@ -73,6 +73,7 @@ export const t = {
   newType: "סוג שיעור חדש",
   editSession: "עריכת שיעור",
   roster: "רשימת נרשמים",
+  medicalAlert: "התראה רפואית — יש לשים לב לפני האימון",
   capacityLabel: "תפוסה",
   instructorLabel: "מדריך/ה",
   roomLabel: "אולם",

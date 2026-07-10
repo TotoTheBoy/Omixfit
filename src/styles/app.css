@@ -907,6 +907,21 @@
   font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
 }
+/* high-visibility medical alert next to a flagged trainee's name (#13) */
+.roster-med {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-inline-start: 6px;
+  vertical-align: middle;
+  border-radius: 6px;
+  background: #fdecec;
+  color: #b0271b;
+  border: 1px solid rgba(176, 39, 27, 0.4);
+  flex: none;
+}
 
 /* segmented control */
 .seg {

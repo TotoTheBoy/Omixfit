@@ -6,6 +6,7 @@ import {
   cancelBooking,
   classTypeOf,
   confirmedCount,
+  hasMedicalFlag,
   joinWaitlist,
   setAttendance,
   useStore,
@@ -15,7 +16,7 @@ import { Sheet } from "./Sheet";
 import { Avatar, CapacityBar } from "./common";
 import { toast } from "./Toast";
 import { celebrate } from "./Celebration";
-import { IcClock, IcClose, IcPin, IcUser } from "./icons";
+import { IcClock, IcClose, IcMedical, IcPin, IcUser } from "./icons";
 
 export function SessionDetail({
   session,
@@ -218,7 +219,20 @@ export function SessionDetail({
               {roster.map(({ b, user }) => (
                 <div key={b.id} className="roster-row">
                   <Avatar user={user} size={32} />
-                  <span className="nm">{user.name}</span>
+                  <span className="nm">
+                    {user.name}
+                    {hasMedicalFlag(user) && (
+                      <span
+                        className="roster-med"
+                        title={user.healthForm?.notes?.trim()
+                          ? `${t.medicalAlert} · ${user.healthForm.notes.trim()}`
+                          : t.medicalAlert}
+                        aria-label={t.medicalAlert}
+                      >
+                        <IcMedical width={14} height={14} />
+                      </span>
+                    )}
+                  </span>
                   <span className="ph">{user.phone}</span>
                   <div className="att-toggle" onClick={(e) => e.stopPropagation()}>
                     <button

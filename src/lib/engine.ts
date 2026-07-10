@@ -9,6 +9,14 @@
 import type { AppData, Booking, ClassSession, ClassType, User } from "./types";
 import { fromKey } from "./date";
 
+/** True when a member's PAR-Q health declaration flags any pre-activity risk.
+ *  Surfaced to staff on class rosters and the member pipeline so the coach is
+ *  aware of a medical condition / injury / limitation before the workout. */
+export function hasMedicalFlag(u: Pick<User, "healthForm">): boolean {
+  const hf = u.healthForm;
+  return !!hf && (["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const).some((k) => hf[k]);
+}
+
 const DAY_MS = 86_400_000;
 export const NEW_CLIENT_DAYS = 21;
 export const TRIAL_DAYS = 7; // buy a pass within this window or get disconnected
