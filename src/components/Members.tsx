@@ -352,7 +352,45 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
           <span>{t.approvals.lastLoginLabel}</span>
           <b>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("he-IL") : t.approvals.neverLoggedIn}</b>
         </li>
+        {u.role === "member" && (
+          <li>
+            <span>{t.favoriteCat}</span>
+            <b>
+              {st.favorite
+                ? `${CATEGORY_META[st.favorite as keyof typeof CATEGORY_META].emoji} ${CATEGORY_META[st.favorite as keyof typeof CATEGORY_META].label}`
+                : t.notYet}
+            </b>
+          </li>
+        )}
       </ul>
+
+      {/* #8 live transaction records for this member — derived from the payments
+          collection, read-only (no manual override of these metrics). */}
+      {u.role === "member" && (() => {
+        const txns = data.payments
+          .filter((p) => p.userId === u.id)
+          .sort((a, b) => b.date - a.date);
+        return (
+          <div style={{ marginBottom: 4 }}>
+            <div className="row gap-2" style={{ marginBottom: 8 }}>
+              <h3 className="h2">{t.memberTxns}</h3>
+              <span className="chip" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>{txns.length}</span>
+            </div>
+            {txns.length === 0 ? (
+              <p className="muted">{t.memberTxnsNone}</p>
+            ) : (
+              <ul className="member-details">
+                {txns.slice(0, 8).map((p) => (
+                  <li key={p.id}>
+                    <span>{new Date(p.date).toLocaleDateString("he-IL")} · {p.serviceName}</span>
+                    <b dir="ltr">₪{p.amount}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })()}
 
       {isNewClient(u) && (
         <div style={{ padding: "8px 14px", borderRadius: 12, margin: "0 0 4px", fontWeight: 700, background: "#e7efff", color: "#1550a8" }}>

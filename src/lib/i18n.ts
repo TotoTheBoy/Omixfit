@@ -74,6 +74,8 @@ export const t = {
   editSession: "עריכת שיעור",
   roster: "רשימת נרשמים",
   medicalAlert: "התראה רפואית — יש לשים לב לפני האימון",
+  memberTxns: "עסקאות ותשלומים",
+  memberTxnsNone: "אין עדיין עסקאות רשומות",
   capacityLabel: "תפוסה",
   instructorLabel: "מדריך/ה",
   roomLabel: "אולם",
