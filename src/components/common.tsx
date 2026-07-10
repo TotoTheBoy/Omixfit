@@ -2,20 +2,20 @@ import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, User } from "../lib/types";
 import { AvatarSkin } from "./avatars";
 import { fmtWeekRange, HEB_MONTHS } from "../lib/date";
-import { buildTimeLabel, VERSION_LABEL } from "../lib/version";
+import { buildTimeLabel, VERSION_LABEL, BUILD_SHA } from "../lib/version";
 import { IcChevL, IcChevR } from "./icons";
 
-// Tiny build-identity line so anyone can see which commit is deployed
-// (hover for the build time). Rendered in the profile + login footers.
+// Clean site footer: version identifier + copyright + a compliance link, no raw
+// build hashes/dots on screen. The full build identity (commit + build time) is
+// preserved in the hover tooltip for deploy verification.
 export function VersionTag({ className = "" }: { className?: string }) {
   const built = buildTimeLabel();
+  const detail = `${VERSION_LABEL} · ${BUILD_SHA}${built ? ` · ${built}` : ""}`;
   return (
-    <div
-      className={`version-tag ${className}`.trim()}
-      dir="ltr"
-      title={built ? `${t.version} · ${built}` : t.version}
-    >
-      {t.version} {VERSION_LABEL}
+    <div className={`version-tag ${className}`.trim()} dir="rtl" title={detail}>
+      <span className="ver-meta" dir="ltr">{t.version} {VERSION_LABEL}</span>
+      <span className="ver-copy">© {new Date().getFullYear()} OMIXFIT · {t.rightsReserved}</span>
+      <a className="ver-link" href={`${import.meta.env.BASE_URL}legal`}>{t.termsLink}</a>
     </div>
   );
 }

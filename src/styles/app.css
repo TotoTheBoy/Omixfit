@@ -1969,11 +1969,24 @@
 
 /* ---- version tag ---------------------------------------------------------- */
 .version-tag {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--text-3);
   letter-spacing: 0.01em;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.55;
 }
+.version-tag .ver-copy { color: var(--text-3); }
+.version-tag .ver-link {
+  color: var(--text-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+.version-tag .ver-link:hover { color: var(--charcoal); }
 .profile-version {
   margin: 18px 0 4px;
 }
@@ -2988,6 +3001,20 @@
 .legal-item h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; color: #7a5c17; }
 .legal-item p { color: var(--text-2); }
 .legal-disclaimer { margin-top: 24px; padding: 14px 16px; background: rgba(184,144,47,.12); border: 1px solid rgba(184,144,47,.3); border-radius: 12px; font-size: .85rem; color: var(--text-2); }
+/* 4-doc tab strip (modal) wraps gracefully; standalone /legal pages get a brand + index list */
+.legal-tabs { flex-wrap: wrap; gap: 6px; height: auto; }
+.legal-tabs button { flex: 1 1 auto; white-space: nowrap; }
+.legal-brand { display: inline-flex; align-items: center; text-decoration: none; }
+.legal-index { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.legal-index a {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 18px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-lg); color: var(--charcoal); text-decoration: none;
+  font-weight: 700; transition: border-color .15s, box-shadow .15s;
+}
+.legal-index a:hover { border-color: var(--charcoal); box-shadow: var(--sh-1); }
+.legal-index-title { font-size: 1.02rem; }
+.legal-index-go { color: var(--gold-600); font-weight: 900; }
 
 /* ---- pricing packages (refactor spec §7) --------------------------------- */
 .packages { margin-bottom: 22px; }
@@ -3147,16 +3174,27 @@
 .skin-svg { display: inline-grid; place-items: center; width: 30px; height: 30px; }
 .skin-svg svg { width: 100%; height: 100%; }
 
-/* bolder palette accents on the profile stat tiles (batch-2: more colour) */
-.profile-grid .stat { border-top: 3px solid var(--line); }
-.profile-grid .stat:nth-child(1) { border-top-color: var(--sage); }
-.profile-grid .stat:nth-child(2) { border-top-color: var(--champagne); }
-.profile-grid .stat:nth-child(3) { border-top-color: var(--champagne); }
-.profile-grid .stat:nth-child(4) { border-top-color: var(--sage); }
+/* #3 trainee dashboard — a continuous premium colour story across the 4 metric
+   tiles: Deep Charcoal → Rich Muted Olive → Champagne Gold → Warm Cream. Each
+   tone keeps its label/value at WCAG AA (>=4.5:1) on its own background. */
+.profile-grid .stat { border: 1px solid var(--line); }
 .profile-grid .stat .v { font-weight: 900; }
-/* the dark stat tile → true matte charcoal + gold value */
-.stat.dark { background: var(--charcoal); border-color: var(--charcoal); }
-.stat.dark .v { color: var(--champagne); }
+
+.stat.tone-charcoal { background: var(--charcoal); border-color: var(--charcoal); color: var(--on-ink); }
+.stat.tone-charcoal .k { color: var(--on-ink-2); }
+.stat.tone-charcoal .v { color: var(--champagne); }
+
+.stat.tone-olive { background: var(--olive); border-color: var(--olive); color: var(--on-ink); }
+.stat.tone-olive .k { color: var(--on-ink); }
+.stat.tone-olive .v { color: #fff; }
+
+.stat.tone-gold { background: var(--champagne); border-color: var(--gold-600); color: var(--charcoal); }
+.stat.tone-gold .k { color: var(--charcoal); }
+.stat.tone-gold .v { color: var(--charcoal); }
+
+.stat.tone-cream { background: var(--surface); border: 1.5px solid var(--charcoal); color: var(--text-2); }
+.stat.tone-cream .k { color: var(--text-3); }
+.stat.tone-cream .v { color: var(--charcoal); }
 
 /* ---- city combobox (refactor spec §11) ----------------------------------- */
 .city-combo { position: relative; }

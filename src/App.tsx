@@ -12,6 +12,7 @@ import { Members } from "./components/Members";
 import { Finance } from "./components/Finance";
 import { Coaching } from "./components/Coaching";
 import { PublicEvents } from "./screens/PublicEvents";
+import { LegalPage } from "./screens/LegalPage";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { OmixLogo, OmixMark } from "./components/Brand";
 import { IntervalTimer } from "./components/IntervalTimer";
@@ -106,6 +107,17 @@ export default function App() {
   // Public retreat/event signup page — no login required, so it renders before
   // the auth gate.
   if (publicRoute === "events") return <PublicEvents />;
+  // Public, path-based legal documents at real URLs (/legal, /legal/eula, …).
+  // The SPA rewrite serves index.html for these paths; we read location.pathname
+  // and render the matching document before the auth gate (no login required).
+  const legalSlug = (() => {
+    const base = import.meta.env.BASE_URL;
+    const rel = location.pathname.startsWith(base)
+      ? location.pathname.slice(base.length)
+      : location.pathname.replace(/^\//, "");
+    return rel === "legal" || rel.startsWith("legal/") ? rel.replace(/^legal\/?/, "") : null;
+  })();
+  if (legalSlug !== null) return <LegalPage slug={legalSlug} />;
 
   // Resolving the session, or signed in but cloud data still streaming in →
   // show a splash rather than flashing the logged-out screens.

@@ -13,8 +13,10 @@ export const BUILD_SHA: string =
 export const BUILD_TIME: string =
   typeof __BUILD_TIME__ === "string" ? __BUILD_TIME__ : "";
 
-/** Short label for the UI, e.g. "v0.1.0 · 6e5c65b". */
-export const VERSION_LABEL = `v${APP_VERSION} · ${BUILD_SHA}`;
+/** Clean short label for the UI, e.g. "v0.1.0". The commit SHA is intentionally
+    kept out of the visible footer (it moves to the hover tooltip) — see the
+    footer cleanup in VersionTag. */
+export const VERSION_LABEL = `v${APP_VERSION}`;
 
 /** Localized build date (or empty if unknown) for a tooltip. */
 export function buildTimeLabel(): string {

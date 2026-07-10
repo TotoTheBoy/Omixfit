@@ -182,13 +182,14 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       {/* stats */}
       <h2 className="h2" style={{ marginBottom: 10 }}>{t.myStats}</h2>
       <div className="profile-grid" style={{ marginBottom: 22 }}>
-        <Stat icon={<IcCheck width={15} height={15} />} k={t.attendedCount} v={String(stats.attended)} />
-        <Stat icon={<IcCalendar width={15} height={15} />} k={t.upcomingCount} v={String(stats.upcoming)} dark />
-        <Stat icon={<IcBookmark width={15} height={15} />} k={t.totalCount} v={String(stats.total)} />
+        <Stat icon={<IcCheck width={15} height={15} />} k={t.attendedCount} v={String(stats.attended)} tone="charcoal" />
+        <Stat icon={<IcCalendar width={15} height={15} />} k={t.upcomingCount} v={String(stats.upcoming)} tone="olive" />
+        <Stat icon={<IcBookmark width={15} height={15} />} k={t.totalCount} v={String(stats.total)} tone="gold" />
         <Stat
           icon={<IcSpark width={15} height={15} />}
           k={t.favoriteCat}
           v={fav ? `${CATEGORY_META[fav].emoji} ${CATEGORY_META[fav].label}` : t.notYet}
+          tone="cream"
         />
       </div>
 
@@ -361,15 +362,17 @@ function Stat({
   icon,
   k,
   v,
-  dark,
+  tone,
 }: {
   icon: React.ReactNode;
   k: string;
   v: string;
-  dark?: boolean;
+  /** Premium colour-story variant; the 4 dashboard cards run charcoal → olive
+      → champagne gold → warm cream in sequence (see .stat.tone-* in app.css). */
+  tone?: "charcoal" | "olive" | "gold" | "cream";
 }) {
   return (
-    <div className={`stat ${dark ? "dark" : ""}`}>
+    <div className={`stat${tone ? ` tone-${tone}` : ""}`}>
       <div className="k">{icon} {k}</div>
       <div className="v" style={{ fontSize: "1.5rem" }}>{v}</div>
     </div>
