@@ -3176,12 +3176,55 @@
   font-size: 0.95rem;
   line-height: 1.5;
 }
+.pwa-ios-steps { counter-reset: pwastep; }
 .pwa-ios-steps li {
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
+.pwa-ios-steps li::before {
+  counter-increment: pwastep;
+  content: counter(pwastep);
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--charcoal);
+  color: var(--on-ink);
+  font-weight: 800;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* #4 two-option install selection modal */
+.pwa-choose { margin: 0 0 14px; }
+.pwa-options { display: flex; flex-direction: column; gap: 12px; }
+.pwa-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: start;
+  width: 100%;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .1s;
+}
+.pwa-option:hover { border-color: var(--charcoal); box-shadow: var(--sh-1); }
+.pwa-option:active { transform: scale(.99); }
+.pwa-option-primary { background: var(--charcoal); border-color: var(--charcoal); color: var(--on-ink); }
+.pwa-option-primary .pwa-option-main small { color: var(--on-ink-2); }
+.pwa-option-ic { font-size: 1.5rem; flex: none; }
+.pwa-option-main { display: flex; flex-direction: column; gap: 2px; }
+.pwa-option-main b { font-size: 1rem; }
+.pwa-option-main small { color: var(--text-3); font-size: .82rem; line-height: 1.35; }
 
 /* admin-only clickable loyalty tier badge */
 .mc-tier-btn {

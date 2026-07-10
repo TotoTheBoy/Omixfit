@@ -4,31 +4,79 @@ import { usePWAInstall } from "../lib/usePWAInstall";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
 
-/** "Add Omixfit to your home screen" — proactive, user-triggered install
- *  (docs/refactor-spec.md batch-2 D5). Android fires the native prompt; iOS
- *  Safari opens a guided bottom-sheet. Hidden once already installed. */
+/** "Add Omixfit to your home screen" (#4). Opens a selection modal with two
+ *  paths: a one-click automatic install (wherever the browser supports the
+ *  native prompt) and a platform-aware step-by-step manual guide. Hidden once
+ *  the app is already installed. */
 export function PWAInstallAction() {
-  const { installed, promptInstall } = usePWAInstall();
-  const [iosOpen, setIosOpen] = useState(false);
+  const { canInstall, installed, isIOS, promptInstall } = usePWAInstall();
+  const [open, setOpen] = useState(false);
+  const [guide, setGuide] = useState(false);
   if (installed) return null;
 
-  async function onClick() {
+  const steps = isIOS ? t.pwa.iosSteps : t.pwa.androidSteps;
+
+  async function autoInstall() {
     const r = await promptInstall();
-    if (r === "ios") setIosOpen(true);
-    else if (r === "unavailable") toast(t.pwa.useMenu, "info");
+    if (r === "accepted") {
+      toast(t.pwa.installedToast, "ok");
+      close();
+    } else if (r === "ios" || r === "unavailable") {
+      // No native prompt here → fall back to the manual guide.
+      setGuide(true);
+    }
+    // "dismissed" → leave the modal open so they can try the guide instead.
+  }
+
+  function close() {
+    setOpen(false);
+    setGuide(false);
   }
 
   return (
     <div className="pwa-install-section">
-      <button className="btn btn-ghost pwa-install-btn" onClick={onClick}>
+      <button className="btn btn-ghost pwa-install-btn" onClick={() => setOpen(true)}>
         {t.pwa.install}
       </button>
-      {iosOpen && (
-        <Sheet title={t.pwa.iosTitle} onClose={() => setIosOpen(false)}>
-          <ol className="pwa-ios-steps">
-            <li>{t.pwa.iosStep1}</li>
-            <li>{t.pwa.iosStep2}</li>
-          </ol>
+
+      {open && (
+        <Sheet title={t.pwa.title} onClose={close}>
+          {!guide ? (
+            <div className="pwa-options">
+              <p className="muted pwa-choose">{t.pwa.chooseHint}</p>
+              {canInstall && (
+                <button className="pwa-option pwa-option-primary" onClick={autoInstall}>
+                  <span className="pwa-option-ic" aria-hidden="true">⚡</span>
+                  <span className="pwa-option-main">
+                    <b>{t.pwa.autoTitle}</b>
+                    <small>{t.pwa.autoSub}</small>
+                  </span>
+                </button>
+              )}
+              <button className="pwa-option" onClick={() => setGuide(true)}>
+                <span className="pwa-option-ic" aria-hidden="true">📖</span>
+                <span className="pwa-option-main">
+                  <b>{t.pwa.manualTitle}</b>
+                  <small>{t.pwa.manualSub}</small>
+                </span>
+              </button>
+            </div>
+          ) : (
+            <div className="pwa-guide">
+              <h3 className="h2" style={{ marginTop: 0 }}>{isIOS ? t.pwa.iosTitle : t.pwa.androidTitle}</h3>
+              <ol className="pwa-ios-steps">
+                {steps.map((s, i) => <li key={i}>{s}</li>)}
+              </ol>
+              {canInstall && (
+                <button className="btn btn-lime btn-block" style={{ marginTop: 12 }} onClick={autoInstall}>
+                  ⚡ {t.pwa.autoTitle}
+                </button>
+              )}
+              <button className="link-btn" style={{ marginTop: 12 }} onClick={() => setGuide(false)}>
+                ← {t.back}
+              </button>
+            </div>
+          )}
         </Sheet>
       )}
     </div>

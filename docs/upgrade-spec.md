@@ -53,7 +53,7 @@ architecture boundary `engine.ts → store.ts → firestore.ts`.
 
 ## Status
 - **Batch A (frontend quick wins) — ✅ COMPLETE:** ✅ 3 cards · ✅ 6 footer · ✅ 9 checkout · ✅ 5 gender-neutral · ✅ 12b copy-link (per-event deep links) · ✅ 12c landing slider (live)
-- **Batch B (content & surfaces):** ✅ 7 legal docs (real `/legal/<slug>` URLs: eula/terms/privacy/waiver) · ☐ 2 · ☐ 4 · ✅ 13 roster medical alerts · ✅ 8 live telemetry (favorite + transactions, read-only)
+- **Batch B (content & surfaces):** ✅ 7 legal docs (real `/legal/<slug>` URLs: eula/terms/privacy/waiver) · ☐ 2 · ✅ 4 PWA install (2-option modal + 1-click) · ✅ 13 roster medical alerts · ✅ 8 live telemetry (favorite + transactions, read-only)
 - **Batch C (admin intelligence):** ☐ 1 · ☐ 11
 - **Batch D (automation / backend):** ☐ 10 · ☐ 12a · ☐ 14
 
