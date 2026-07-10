@@ -55,11 +55,22 @@ architecture boundary `engine.ts → store.ts → firestore.ts`.
 - **Batch A (frontend quick wins) — ✅ COMPLETE:** ✅ 3 cards · ✅ 6 footer · ✅ 9 checkout · ✅ 5 gender-neutral · ✅ 12b copy-link (per-event deep links) · ✅ 12c landing slider (live)
 - **Batch B (content & surfaces) — ✅ COMPLETE:** ✅ 7 legal docs (real `/legal/<slug>` URLs) · ✅ 2 packages store relocated into "My Orders" · ✅ 4 PWA install (2-option modal + 1-click) · ✅ 13 roster medical alerts · ✅ 8 live telemetry (favorite + transactions, read-only)
 - **Batch C (admin intelligence) — ✅ COMPLETE:** ✅ 1 admin overview dashboard (inactivity/stagnation/low-occupancy/pending, live) · ✅ 11 workout planner (tagged lesson-plan archive + task reminders, new Firestore collections)
-- **Batch D (automation / backend):** ☐ 10 · ✅ 12a event broadcast email (WhatsApp hook TODO) · ✅ 14 attendance auto-finalize (cron + No-Show refund)
+- **Batch D (automation / backend) — ✅ COMPLETE:** ✅ 10 drag-drop reschedule + notify participants · ✅ 12a event broadcast email (WhatsApp hook TODO) · ✅ 14 attendance auto-finalize (cron + No-Show refund)
 
-### Deploys pending (user runs these)
-- **#11** needs `firebase deploy --only firestore:rules` — adds `lessonPlans` + `taskReminders` collection rules (signed-in read/write). Until deployed, the planner reads/writes are denied by the live rules.
-- **Batch D** will need `firebase deploy --only functions` (new Cloud Functions).
+## 🎉 All 14 missions shipped (+ Forgot Password). Code-complete on `master`.
+
+### Deploys the user runs to make the backend work live
+```bash
+# Firestore rules (#11 lessonPlans + taskReminders collections)
+firebase deploy --only firestore:rules
+# Cloud Functions (#12a broadcastEvent, #10 notifyScheduleChange, #14 finalizeAttendance)
+firebase deploy --only functions
+# or everything (build + hosting + rules) as usual:
+npm run deploy   # = build + firebase deploy --only hosting,firestore:rules  (add functions if desired)
+```
+New Cloud Functions: `broadcastEvent`, `notifyScheduleChange`, and `finalizeAttendance`
+(the last runs inside the existing hourly `sendReminders` ping — no new cron needed).
+WhatsApp broadcast remains a documented hook pending a Business API provider.
 
 ### Extras (out-of-band requests)
 - **Forgot Password** on the login page — Firebase `sendPasswordResetEmail` (the

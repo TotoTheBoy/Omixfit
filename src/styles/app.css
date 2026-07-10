@@ -1089,8 +1089,11 @@
 .mgr-col-head.is-today small {
   color: var(--on-ink-2);
 }
+/* #10 drag-and-drop reschedule: draggable class blocks + day drop highlight */
+.mgr-col.drag-over { outline: 2px dashed var(--gold-600); outline-offset: -3px; border-radius: var(--r-md); background: rgba(138, 106, 31, 0.06); }
 .mgr-slot {
   text-align: start;
+  cursor: grab;
   border: 1px solid var(--line);
   border-inline-start: 4px solid hsl(var(--cat-hue) 85% 55%);
   background: var(--surface);

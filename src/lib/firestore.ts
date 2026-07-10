@@ -690,6 +690,16 @@ export async function broadcastEvent(eventId: string): Promise<number> {
   const res = await call({ eventId });
   return (res.data as { sent?: number })?.sent ?? 0;
 }
+
+/** #10 Email everyone booked on a session that its schedule changed (call after
+ *  the session doc is saved). Returns how many were notified. */
+export async function notifyScheduleChange(sessionId: string): Promise<number> {
+  await initFirestore();
+  if (!app) return 0;
+  const call = httpsCallable(getFunctions(app, "us-central1"), "notifyScheduleChange");
+  const res = await call({ sessionId });
+  return (res.data as { sent?: number })?.sent ?? 0;
+}
 export function newEventId(): string {
   return engine.genId("ev");
 }

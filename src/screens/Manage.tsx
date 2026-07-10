@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassSession, ClassType } from "../lib/types";
-import { classTypeOf, confirmedCount, useStore } from "../lib/store";
+import { classTypeOf, confirmedCount, notifyScheduleChange, upsertSession, useStore } from "../lib/store";
+import { Sheet } from "../components/Sheet";
+import { toast } from "../components/Toast";
 import {
   addDays,
   fmtTime,
@@ -37,6 +39,9 @@ export function Manage() {
   const [typeEditor, setTypeEditor] = useState<
     { mode: "closed" } | { mode: "create" } | { mode: "edit"; type: ClassType }
   >({ mode: "closed" });
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+  const [notify, setNotify] = useState<ClassSession | null>(null);
 
   const days = weekDays(weekStart);
   const weekKeys = new Set(days.map(toKey));
@@ -70,6 +75,21 @@ export function Manage() {
     for (const arr of map.values()) arr.sort((a, b) => a.startMin - b.startMin);
     return map;
   }, [weekSessions]);
+
+  // #10 Drag a class block onto another day → reschedule it there, then prompt
+  // to notify the booked participants of the change.
+  async function handleDrop(dayKey: string) {
+    const id = dragId;
+    setDragId(null);
+    setDragOverKey(null);
+    if (!id) return;
+    const session = data.sessions.find((s) => s.id === id);
+    if (!session || session.date === dayKey) return; // no-op on the same day
+    const moved = { ...session, date: dayKey };
+    await upsertSession(moved);
+    toast(t.reschedule.moved(`${dayKey.slice(8, 10)}/${dayKey.slice(5, 7)}`), "ok");
+    setNotify(moved); // open the "notify participants?" prompt
+  }
 
   return (
     <div className="page">
@@ -182,7 +202,13 @@ export function Manage() {
           const key = toKey(d);
           const slots = byDay.get(key) ?? [];
           return (
-            <div key={key} className="mgr-col">
+            <div
+              key={key}
+              className={`mgr-col ${dragOverKey === key ? "drag-over" : ""}`}
+              onDragOver={(e) => { if (dragId) { e.preventDefault(); if (dragOverKey !== key) setDragOverKey(key); } }}
+              onDragLeave={() => setDragOverKey((k) => (k === key ? null : k))}
+              onDrop={(e) => { e.preventDefault(); handleDrop(key); }}
+            >
               <div className={`mgr-col-head ${isToday(key) ? "is-today" : ""}`}>
                 {HEB_DAYS_LONG[d.getDay()]}
                 <small>{d.getDate()}/{d.getMonth() + 1}</small>
@@ -195,6 +221,9 @@ export function Manage() {
                     key={s.id}
                     className={`mgr-slot ${s.cancelled ? "is-cancelled" : ""}`}
                     style={{ ["--cat-hue" as string]: CATEGORY_META[type.category].hue }}
+                    draggable
+                    onDragStart={() => setDragId(s.id)}
+                    onDragEnd={() => { setDragId(null); setDragOverKey(null); }}
                     onClick={() => setDetail(s)}
                   >
                     <div className="ms-time">{fmtTime(s.startMin)}</div>
@@ -237,6 +266,32 @@ export function Manage() {
           type={typeEditor.mode === "edit" ? typeEditor.type : null}
           onClose={() => setTypeEditor({ mode: "closed" })}
         />
+      )}
+      {notify && (
+        <Sheet
+          title={t.reschedule.notifyTitle}
+          onClose={() => setNotify(null)}
+          footer={
+            <div className="row gap-2" style={{ width: "100%" }}>
+              <button
+                className="btn btn-lime grow"
+                onClick={() => {
+                  notifyScheduleChange(notify.id)
+                    .then((n) => toast(t.reschedule.sent(n), "ok"))
+                    .catch(() => toast(t.reschedule.sendErr, "err"));
+                  setNotify(null);
+                }}
+              >
+                {t.reschedule.notifyYes}
+              </button>
+              <button className="btn btn-ghost" onClick={() => setNotify(null)}>
+                {t.reschedule.notifyNo}
+              </button>
+            </div>
+          }
+        >
+          <p style={{ lineHeight: 1.5 }}>{t.reschedule.notifyBody}</p>
+        </Sheet>
       )}
     </div>
   );

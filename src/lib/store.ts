@@ -153,6 +153,8 @@ export const upsertEvent = (ev: import("./types").SpecialEvent) =>
   backend().then((b) => b.upsertEvent(ev));
 export const deleteEvent = (id: string) => backend().then((b) => b.deleteEvent(id));
 export const broadcastEvent = (eventId: string) => backend().then((b) => b.broadcastEvent(eventId));
+export const notifyScheduleChange = (sessionId: string) =>
+  backend().then((b) => b.notifyScheduleChange(sessionId));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));

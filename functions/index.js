@@ -533,3 +533,34 @@ exports.broadcastEvent = fnV1.https.onCall(async (data, context) => {
   await ed.ref.update({ broadcastAt: Date.now() }).catch(() => {});
   return { sent };
 });
+
+// #10 Notify everyone booked on a session that its day/time changed. Call this
+// AFTER the session doc is updated, so the e-mail reflects the new schedule.
+exports.notifyScheduleChange = fnV1.https.onCall(async (data, context) => {
+  const role = await callerRole(context);
+  if (!["admin", "manager", "instructor"].includes(role)) {
+    throw new fnV1.https.HttpsError("permission-denied", "staff only");
+  }
+  const sessionId = data && data.sessionId;
+  if (!sessionId) throw new fnV1.https.HttpsError("invalid-argument", "sessionId required");
+  const info = await sessionInfo(sessionId);
+  if (!info) return { sent: 0 };
+  const bk = await db.collection("bookings").where("sessionId", "==", sessionId).get();
+  let sent = 0;
+  for (const bd of bk.docs) {
+    const b = bd.data();
+    if (b.state !== "confirmed" && b.state !== "waitlisted") continue;
+    const u = await db.doc("users/" + b.userId).get();
+    const email = u.exists && u.data().email;
+    if (!email) continue;
+    const name = (u.data().name || "").split(" ")[0];
+    await sendMail(email, `עדכון מועד: ${info.title}`,
+      `<h2 style="color:#a9842f">עודכן מועד השיעור 🗓️</h2>
+       <p>היי ${name},</p>
+       <p>מועד <b>${info.title}</b> עודכן.<br>המועד החדש: <b>${info.date}</b> בשעה <b>${info.time}</b>.</p>
+       ${ctaButton("צפייה בהזמנות שלי")}
+       <p>נתראה!<br><b>עומר · Omix</b></p>`).catch((e) => logger.error("schedule change mail", e));
+    sent++;
+  }
+  return { sent };
+});
