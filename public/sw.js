@@ -2,7 +2,7 @@
 // Cache-first for the built shell, network-first for navigations so updates land.
 // Paths are relative to the SW location so this works at any base (root or a
 // GitHub Pages subpath like /Omixfit/).
-const CACHE = "omix-shell-v3";
+const CACHE = "omix-shell-v4";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icons/favicon.svg"];
 const SHELL_FALLBACK = new URL("index.html", self.registration.scope).href;
 
