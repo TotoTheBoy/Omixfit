@@ -569,6 +569,8 @@ export const t = {
     markedPaid: "סומן כשולם",
     copyLink: "העתקת קישור הרשמה",
     linkCopied: "הקישור הועתק",
+    broadcastSent: (n: number) => `נשלחה הודעה על האירוע ל-${n} מתאמנים/ות`,
+    broadcastErr: "שליחת ההודעה על האירוע נכשלה",
     emptyAdmin: "עדיין אין אירועים",
   },
 

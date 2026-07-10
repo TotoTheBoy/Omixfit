@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { t } from "../lib/i18n";
 import {
-  useStore, upsertEvent, deleteEvent, newEventId,
+  useStore, upsertEvent, deleteEvent, newEventId, broadcastEvent,
   fetchEventSignups, markEventSignupPaid,
 } from "../lib/store";
 import type { EventSignup, SpecialEvent } from "../lib/types";
@@ -109,10 +109,18 @@ function EventEditor({ ev, onClose }: { ev: SpecialEvent | null; onClose: () => 
   );
   const set = (p: Partial<SpecialEvent>) => setF((x) => ({ ...x, ...p }));
 
-  function save() {
+  async function save() {
     if (!f.title.trim() || !f.date) { toast(t.events.needNamePhone, "err"); return; }
-    upsertEvent({ ...f, title: f.title.trim(), price: Number(f.price) || 0, capacity: Number(f.capacity) || 0 });
+    const wasPublished = ev?.published ?? false;
+    const event = { ...f, title: f.title.trim(), price: Number(f.price) || 0, capacity: Number(f.capacity) || 0 };
+    await upsertEvent(event);
     toast(t.events.save, "ok");
+    // #12a: the moment an event becomes published, broadcast it to members.
+    if (event.published && !wasPublished) {
+      broadcastEvent(event.id)
+        .then((n) => toast(t.events.broadcastSent(n), "ok"))
+        .catch(() => toast(t.events.broadcastErr, "err"));
+    }
     onClose();
   }
 

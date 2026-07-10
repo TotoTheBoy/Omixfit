@@ -666,6 +666,16 @@ export async function upsertEvent(ev: SpecialEvent): Promise<void> {
 export async function deleteEvent(id: string): Promise<void> {
   await deleteDoc(doc(db, "events", id));
 }
+
+/** #12a Broadcast a newly published event to active members (server-side email).
+ *  Returns how many recipients were e-mailed. */
+export async function broadcastEvent(eventId: string): Promise<number> {
+  await initFirestore();
+  if (!app) return 0;
+  const call = httpsCallable(getFunctions(app, "us-central1"), "broadcastEvent");
+  const res = await call({ eventId });
+  return (res.data as { sent?: number })?.sent ?? 0;
+}
 export function newEventId(): string {
   return engine.genId("ev");
 }

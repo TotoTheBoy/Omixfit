@@ -450,3 +450,40 @@ exports.notifySessionCancelled = fnV1.https.onCall(async (data, context) => {
   }
   return { sent };
 });
+
+// Broadcast a newly published event/retreat to active members (#12a). Email now;
+// WhatsApp is left as a documented hook for when a Business API provider exists.
+// Staff-only, and respects a member's e-mail opt-out (prefs.email === false).
+exports.broadcastEvent = fnV1.https.onCall(async (data, context) => {
+  const role = await callerRole(context);
+  if (!["admin", "manager", "instructor"].includes(role)) {
+    throw new fnV1.https.HttpsError("permission-denied", "staff only");
+  }
+  const eventId = data && data.eventId;
+  if (!eventId) throw new fnV1.https.HttpsError("invalid-argument", "eventId required");
+  const ed = await db.doc("events/" + eventId).get();
+  if (!ed.exists || !ed.data().published) return { sent: 0 };
+  const ev = ed.data();
+  const eventUrl = `${APP_URL}#/events/${eventId}`;
+  const whenLine = `${ev.date || ""}${ev.time ? " · " + ev.time : ""}`;
+  const snap = await db.collection("users").where("membershipActive", "==", true).get();
+  let sent = 0;
+  for (const ud of snap.docs) {
+    const u = ud.data();
+    if (u.role !== "member" || !u.email) continue;
+    if (u.prefs && u.prefs.email === false) continue; // respect opt-out
+    const name = (u.name || "").split(" ")[0];
+    await sendMail(u.email, `אירוע חדש ב-Omix: ${ev.title} 🎉`,
+      `<h2 style="color:#a9842f">אירוע חדש נפתח להרשמה! 🎉</h2>
+       <p>היי ${name},</p>
+       <p>נפתח אירוע חדש: <b>${ev.title}</b>${whenLine ? `<br>מתי: <b>${whenLine}</b>` : ""}${ev.location ? `<br>היכן: <b>${ev.location}</b>` : ""}</p>
+       <p>המקומות מוגבלים — כדאי להזדרז ולשריין מקום.</p>
+       <p style="margin:22px 0"><a href="${eventUrl}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">להרשמה לאירוע</a></p>
+       <p>נתראה!<br><b>עומר · Omix</b></p>`).catch((e) => logger.error("broadcastEvent mail", e));
+    sent++;
+  }
+  // TODO(WhatsApp): once a WhatsApp Business API provider (Twilio / Meta Cloud
+  // API) is configured, dispatch the same broadcast to opted-in subscribers here.
+  await ed.ref.update({ broadcastAt: Date.now() }).catch(() => {});
+  return { sent };
+});

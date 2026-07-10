@@ -152,6 +152,7 @@ export const saveSubscriptions = (items: import("./types").Subscription[]) =>
 export const upsertEvent = (ev: import("./types").SpecialEvent) =>
   backend().then((b) => b.upsertEvent(ev));
 export const deleteEvent = (id: string) => backend().then((b) => b.deleteEvent(id));
+export const broadcastEvent = (eventId: string) => backend().then((b) => b.broadcastEvent(eventId));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));
