@@ -2974,6 +2974,18 @@
 .lux-pack-unit { display: block; font-size: .9rem; font-weight: 600; color: #6b6049; margin-top: 4px; }
 .lux-pack-d { display: block; margin-top: 12px; font-size: .82rem; font-weight: 800; color: #7a5c17; letter-spacing: .03em; }
 
+/* live events rail — horizontal editorial slider, synced to published events (#12c) */
+.lux-events-rail { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 4px 14px; margin-top: 22px; -webkit-overflow-scrolling: touch; }
+.lux-event-card { scroll-snap-align: start; flex: 0 0 min(280px, 78vw); display: flex; flex-direction: column; gap: 8px; padding: 20px; background: #fffdf8; border: 1px solid #e7dcc4; border-radius: 18px; text-decoration: none; color: #241c12; transition: box-shadow .15s, transform .15s, border-color .15s; }
+.lux-event-card:hover { box-shadow: 0 16px 40px rgba(184,144,47,.18); transform: translateY(-4px); border-color: #d8b766; }
+.lux-event-date { font-size: .8rem; font-weight: 700; color: #7a5c17; letter-spacing: .02em; }
+.lux-event-card h3 { font-size: 1.2rem; font-weight: 900; line-height: 1.25; margin: 0; }
+.lux-event-loc { font-size: .85rem; color: #6b6049; }
+.lux-event-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; }
+.lux-event-price { font-size: 1.05rem; font-weight: 900; color: #241c12; }
+.lux-event-go { font-size: .82rem; font-weight: 800; color: #7a5c17; }
+.lux-events-cta { text-align: center; margin-top: 20px; }
+
 /* contact + footer */
 .lux-contact { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
 .lux-contact a { color: #ece3d2; font-weight: 700; font-size: .92rem; text-decoration: none; padding: 11px 22px; border-radius: 999px; border: 1px solid rgba(236,227,210,.24); transition: background .15s, border-color .15s; }

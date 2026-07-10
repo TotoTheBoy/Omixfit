@@ -4,6 +4,8 @@ import { VersionTag } from "../components/common";
 import { OmixLogo, OmixMark } from "../components/Brand";
 import { Legal } from "../components/Legal";
 import { LeadForm } from "../components/LeadForm";
+import { fetchPublishedEvents } from "../lib/store";
+import type { SpecialEvent } from "../lib/types";
 
 // Contact targets.
 const WHATSAPP = "https://wa.me/972507954902";
@@ -38,6 +40,12 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
   const S = t.spine;
   const [legal, setLegal] = useState(false);
   const [lead, setLead] = useState(false);
+  // Live events slider — reads the same published events as the public page, so
+  // newly created/published events propagate here automatically (#12c).
+  const [events, setEvents] = useState<SpecialEvent[] | null>(null);
+  useEffect(() => {
+    fetchPublishedEvents().then(setEvents).catch(() => setEvents([]));
+  }, []);
   useReveal();
 
   return (
@@ -129,13 +137,32 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
-      {/* ---- events ---- */}
+      {/* ---- events (live, synced with published events) ---- */}
       <section className="lux-sec alt">
         <div className="lux-head reveal">
           <span className="lux-eyebrow">{t.events.tab}</span>
           <h2 className="lux-h2">{t.events.publicTitle}</h2>
           <p className="lux-sub">{t.events.publicSubtitle}</p>
-          <a className="lux-btn gold" href="#events" style={{ marginTop: 18 }}>{t.events.seeAll}</a>
+        </div>
+        {events && events.length > 0 && (
+          <div className="lux-events-rail reveal">
+            {events.map((ev) => (
+              <a className="lux-event-card" key={ev.id} href={`#/events/${ev.id}`}>
+                <span className="lux-event-date">
+                  {ev.date}{ev.time ? ` · ${ev.time}` : ""}
+                </span>
+                <h3>{ev.title}</h3>
+                {ev.location && <span className="lux-event-loc">{ev.location}</span>}
+                <span className="lux-event-foot">
+                  <span className="lux-event-price">₪{ev.price}</span>
+                  <span className="lux-event-go" aria-hidden="true">{t.events.signup} ←</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+        <div className="lux-events-cta reveal">
+          <a className="lux-btn gold" href="#events">{t.events.seeAll}</a>
         </div>
       </section>
 

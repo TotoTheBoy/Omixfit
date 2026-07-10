@@ -9,7 +9,11 @@ import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
 import { IcPlus } from "./icons";
 
-const PUBLIC_LINK = () => `${location.origin}/#events`;
+const BASE = import.meta.env.BASE_URL; // "/" at root, "/<subpath>/" under a subpath
+const PUBLIC_LINK = () => `${location.origin}${BASE}#events`;
+// Deep link that opens ONE event on the public page (fixes #12b — the old link
+// only ever opened the generic events list).
+const eventLink = (id: string) => `${location.origin}${BASE}#/events/${id}`;
 
 /** Owner UI (a Manage tab) to create/publish events and see who registered. */
 export function EventsAdmin() {
@@ -62,6 +66,12 @@ function EventRow({ ev, onEdit }: { ev: SpecialEvent; onEdit: () => void }) {
           </span>
           <div className="mr-sub">{ev.date}{ev.time ? ` · ${ev.time}` : ""} · ₪{ev.price}</div>
         </div>
+        <button
+          className="btn btn-ghost btn-sm"
+          title={t.events.copyLink}
+          aria-label={t.events.copyLink}
+          onClick={() => { navigator.clipboard?.writeText(eventLink(ev.id)); toast(t.events.linkCopied, "ok"); }}
+        >🔗</button>
         <button className="btn btn-ghost btn-sm" onClick={onEdit}>{t.events.edit}</button>
       </div>
       <button className="link-btn" style={{ marginTop: 8 }} onClick={toggleSignups}>

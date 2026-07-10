@@ -7,25 +7,54 @@ import { Toaster, toast } from "../components/Toast";
 
 /** Public (no-login) retreat / special-event registration page — reached at
  *  #events. Anyone (incl. non-members) can browse published events and sign up. */
+// Pull an individual-event id out of the hash: "#/events/<id>" → "<id>",
+// "#events" / "#/events" → "" (the full list).
+const eventIdFromHash = () => location.hash.replace(/^#\/?events\/?/, "");
+
 export function PublicEvents() {
   const [events, setEvents] = useState<SpecialEvent[] | null>(null);
+  const [targetId, setTargetId] = useState(eventIdFromHash);
   useEffect(() => {
     fetchPublishedEvents().then(setEvents).catch(() => setEvents([]));
   }, []);
+  // Deep links change only the hash sub-path (publicRoute stays "events"), so
+  // listen here to react when the shared/copied link targets a single event.
+  useEffect(() => {
+    const onHash = () => setTargetId(eventIdFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // A copied deep link opens that one event ("individual event page"); an unknown
+  // id gracefully falls back to the full list.
+  const focused = targetId && events ? events.find((e) => e.id === targetId) : null;
+  const list = focused ? [focused] : events ?? [];
 
   return (
     <div className="onboard" style={{ alignItems: "flex-start", overflowY: "auto", paddingBlock: 32 }}>
       <div className="onboard-card" style={{ maxWidth: 560, width: "100%" }}>
         <span className="brand-emblem"><OmixMark size={48} /></span>
-        <h1 style={{ marginBottom: 4 }}>{t.events.publicTitle}</h1>
+        <h1 style={{ marginBottom: 4 }}>{focused ? focused.title : t.events.publicTitle}</h1>
         <p className="login-sub" style={{ marginBottom: 18 }}>{t.events.publicSubtitle}</p>
 
         {events === null ? (
           <p className="muted">{t.events.loading}</p>
-        ) : events.length === 0 ? (
+        ) : list.length === 0 ? (
           <p className="muted">{t.events.noneOpen}</p>
         ) : (
-          events.map((ev) => <EventCard key={ev.id} ev={ev} />)
+          <>
+            {focused && (
+              <a
+                className="link-btn"
+                href="#events"
+                onClick={() => { location.hash = "events"; }}
+                style={{ marginBottom: 12, display: "inline-block" }}
+              >
+                ← {t.events.seeAll}
+              </a>
+            )}
+            {list.map((ev) => <EventCard key={ev.id} ev={ev} />)}
+          </>
         )}
 
         <a className="link-btn" href="#/" onClick={() => { location.hash = ""; }} style={{ marginTop: 18 }}>
