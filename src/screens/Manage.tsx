@@ -17,10 +17,7 @@ import { WeekNav } from "../components/common";
 import { SessionEditor } from "../components/SessionEditor";
 import { SessionDetail } from "../components/SessionDetail";
 import { TypeEditor } from "../components/TypeEditor";
-import { Reports } from "../components/Reports";
 import { EventsAdmin } from "../components/EventsAdmin";
-import { AdminOverview } from "../components/AdminOverview";
-import { Planner } from "../components/Planner";
 import { IcPlus, IcSpark, IcUsers, IcCalendar } from "../components/icons";
 
 type EditorState =
@@ -32,7 +29,7 @@ type EditorState =
 // Clients + Finance are their own top-level sections now.
 export function Manage() {
   const data = useStore((s) => s);
-  const [tab, setTab] = useState<"overview" | "schedule" | "catalog" | "planner" | "reports" | "events">("overview");
+  const [tab, setTab] = useState<"schedule" | "catalog" | "events">("schedule");
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
   const [detail, setDetail] = useState<ClassSession | null>(null);
@@ -95,7 +92,7 @@ export function Manage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="h1">{t.manageTitle}</h1>
+          <h1 className="h1">{t.nav.calendar}</h1>
           <div className="sub">{data.locations[0].name}</div>
         </div>
         {tab === "schedule" && (
@@ -111,29 +108,17 @@ export function Manage() {
       </div>
 
       <div className="seg" style={{ marginBottom: 18 }}>
-        <button className={tab === "overview" ? "on" : ""} onClick={() => setTab("overview")}>
-          {t.overview.tab}
-        </button>
         <button className={tab === "schedule" ? "on" : ""} onClick={() => setTab("schedule")}>
           {t.scheduleTab}
         </button>
         <button className={tab === "catalog" ? "on" : ""} onClick={() => setTab("catalog")}>
           {t.catalog}
         </button>
-        <button className={tab === "planner" ? "on" : ""} onClick={() => setTab("planner")}>
-          {t.planner.tab}
-        </button>
-        <button className={tab === "reports" ? "on" : ""} onClick={() => setTab("reports")}>
-          {t.reports}
-        </button>
         <button className={tab === "events" ? "on" : ""} onClick={() => setTab("events")}>
           {t.events.tab}
         </button>
       </div>
 
-      {tab === "overview" && <AdminOverview />}
-      {tab === "planner" && <Planner />}
-      {tab === "reports" && <Reports />}
       {tab === "events" && <EventsAdmin />}
 
       {tab === "catalog" && data.classTypes.length === 0 && (

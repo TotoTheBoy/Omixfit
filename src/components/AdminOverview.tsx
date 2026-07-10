@@ -20,11 +20,15 @@ export function AdminOverview() {
   const revTrend =
     s.revenuePrevMonth > 0 ? Math.round(((s.revenueMonth - s.revenuePrevMonth) / s.revenuePrevMonth) * 100) : null;
   const maxTrend = Math.max(1, ...s.attendanceTrend.map((d) => d.value));
+  const hour = new Date().getHours();
+  const timeGreet = hour < 12 ? t.greet.morning : hour < 18 ? t.greet.noon : t.greet.evening;
+  const firstName = me?.firstName || me?.name?.split(" ")[0] || "";
+  const greeting = `${timeGreet}${firstName ? `, ${firstName}` : ""} 👋`;
 
   return (
     <div className="dash">
       <div className="dash-greet">
-        <h2 className="h1">{t.dash.hello(me?.firstName || me?.name?.split(" ")[0] || "")}</h2>
+        <h2 className="h1">{greeting}</h2>
       </div>
 
       {/* KPI cards — the brand colour story: gold · charcoal · olive · cream */}

@@ -10,6 +10,7 @@ import {
 } from "../lib/store";
 import { clientBalances, clientValueScores, revenueSummary } from "../lib/engine";
 import { Avatar } from "./common";
+import { Reports } from "./Reports";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
 
@@ -17,7 +18,7 @@ const KINDS: ServiceKind[] = ["personal", "group", "zoom", "therapy", "injury"];
 const BILLINGS: BillingModel[] = ["package", "subscription", "session"];
 
 export function Finance() {
-  const [tab, setTab] = useState<"overview" | "balances" | "services">("overview");
+  const [tab, setTab] = useState<"overview" | "balances" | "services" | "reports">("overview");
   const [payOpen, setPayOpen] = useState(false);
   const [editSvc, setEditSvc] = useState<Service | null | "new">(null);
 
@@ -33,11 +34,15 @@ export function Finance() {
         <button role="tab" aria-selected={tab === "services"} className={tab === "services" ? "on" : ""} onClick={() => setTab("services")}>
           {t.finance.servicesTab}
         </button>
+        <button role="tab" aria-selected={tab === "reports"} className={tab === "reports" ? "on" : ""} onClick={() => setTab("reports")}>
+          {t.finance.reportsTab}
+        </button>
       </div>
 
       {tab === "overview" && <Overview onRecord={() => setPayOpen(true)} />}
       {tab === "balances" && <Balances onRecord={() => setPayOpen(true)} />}
       {tab === "services" && <Services onEdit={(s) => setEditSvc(s)} onNew={() => setEditSvc("new")} />}
+      {tab === "reports" && <Reports />}
 
       {payOpen && <RecordPaymentSheet onClose={() => setPayOpen(false)} />}
       {editSvc && (

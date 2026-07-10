@@ -4,18 +4,18 @@ import { logout, onAuthIdentity, useStore } from "./lib/store";
 import { Schedule } from "./screens/Schedule";
 import { MyBookings } from "./screens/MyBookings";
 import { Manage } from "./screens/Manage";
+import { Trainees } from "./screens/Trainees";
+import { Zone } from "./screens/Zone";
 import { Profile } from "./screens/Profile";
 import { Login } from "./screens/Login";
 import { Landing } from "./screens/Landing";
 import { Onboarding, VerifyEmail } from "./screens/Onboarding";
-import { Members } from "./components/Members";
+import { AdminOverview } from "./components/AdminOverview";
 import { Finance } from "./components/Finance";
-import { Coaching } from "./components/Coaching";
 import { PublicEvents } from "./screens/PublicEvents";
 import { LegalPage } from "./screens/LegalPage";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { OmixLogo, OmixMark } from "./components/Brand";
-import { IntervalTimer } from "./components/IntervalTimer";
 import { Toaster } from "./components/Toast";
 import { Celebration } from "./components/Celebration";
 import { Avatar } from "./components/common";
@@ -37,12 +37,12 @@ const IcCoins = (p: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type View = "schedule" | "bookings" | "manage" | "clients" | "finance" | "coaching" | "profile";
-const VIEWS = ["bookings", "manage", "clients", "finance", "coaching", "profile"];
+type View = "overview" | "calendar" | "trainees" | "finance" | "zone" | "schedule" | "bookings" | "profile";
+const VIEWS = ["overview", "calendar", "trainees", "finance", "zone", "schedule", "bookings", "profile"];
 
 function readHash(): View {
   const h = location.hash.replace("#", "");
-  return (VIEWS.includes(h) ? h : "schedule") as View;
+  return (VIEWS.includes(h) ? h : "overview") as View;
 }
 
 export default function App() {
@@ -56,7 +56,6 @@ export default function App() {
   const [view, setView] = useState<View>(readHash);
   const [publicRoute, setPublicRoute] = useState(() => location.hash.replace(/^#\/?/, "").split("/")[0]);
   const [switcher, setSwitcher] = useState(false);
-  const [timerOpen, setTimerOpen] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
@@ -99,9 +98,14 @@ export default function App() {
   // If a staff-only/member-only view doesn't fit the current role, fall back.
   useEffect(() => {
     if (!me) return;
-    if ((view === "manage" || view === "clients") && !isStaff) go("schedule");
-    if ((view === "finance" || view === "coaching") && !canFinance) go("schedule");
-    if (view === "bookings" && isStaff) go("schedule");
+    const staffViews = ["overview", "calendar", "trainees", "finance", "zone", "profile"];
+    const memberViews = ["schedule", "bookings", "profile"];
+    if (isStaff) {
+      if (!staffViews.includes(view)) go("overview");
+      else if (view === "finance" && !canFinance) go("overview");
+    } else if (!memberViews.includes(view)) {
+      go("schedule");
+    }
   }, [me, isStaff, canFinance, view]);
 
   // Public retreat/event signup page — no login required, so it renders before
@@ -159,19 +163,14 @@ export default function App() {
 
   const nav: { id: View; label: string; icon: JSX.Element; badge?: number }[] = isStaff
     ? [
-        { id: "schedule", label: t.nav.schedule, icon: <IcCalendar /> },
-        { id: "manage", label: t.nav.manage, icon: <IcGrid /> },
-        { id: "clients", label: t.nav.members, icon: <IcUsers />, badge: pendingCount },
-        ...(canFinance
-          ? [
-              { id: "finance" as View, label: t.finance.tab, icon: <IcCoins /> },
-              { id: "coaching" as View, label: t.coaching.tab, icon: <span aria-hidden="true">🎯</span> },
-            ]
-          : []),
-        { id: "profile", label: t.nav.profile, icon: <IcUser /> },
+        { id: "overview", label: t.nav.overview, icon: <IcGrid /> },
+        { id: "calendar", label: t.nav.calendar, icon: <IcCalendar /> },
+        { id: "trainees", label: t.nav.trainees, icon: <IcUsers />, badge: pendingCount },
+        ...(canFinance ? [{ id: "finance" as View, label: t.nav.financeReports, icon: <IcCoins /> }] : []),
+        { id: "zone", label: t.nav.zone, icon: <span aria-hidden="true">⚡</span> },
       ]
     : [
-        { id: "schedule", label: t.nav.schedule, icon: <IcCalendar /> },
+        { id: "schedule", label: t.nav.calendarShort, icon: <IcCalendar /> },
         { id: "bookings", label: t.nav.myBookings, icon: <IcBookmark /> },
         { id: "profile", label: t.nav.profile, icon: <IcUser /> },
       ];
@@ -207,21 +206,10 @@ export default function App() {
 
         <div className="appbar-spacer" />
 
-        {isStaff && (
-          <button
-            className="timer-launch"
-            onClick={() => setTimerOpen(true)}
-            aria-label={t.timer.launch}
-          >
-            <span aria-hidden="true">⏱</span>
-            <span className="tl-label">{t.timer.launch}</span>
-          </button>
-        )}
-
-        <button className="userswitch" onClick={() => setSwitcher(true)}>
+        <button className="userswitch" onClick={() => go("profile")} aria-label={t.nav.profile}>
           <span className="who">
-            <span>{me.name}</span>
-            <small>{t.roles[me.role]}</small>
+            <span>{[me.firstName, me.lastName].filter(Boolean).join(" ") || me.name}</span>
+            <small>{isStaff ? t.nav.studioMgmt : t.roles[me.role]}</small>
           </span>
           <Avatar user={me} size={32} tone="#3b4436" />
           <IcChevR width={16} height={16} style={{ opacity: 0.6 }} />
@@ -229,26 +217,21 @@ export default function App() {
       </header>
 
       <main id="main" tabIndex={-1}>
-        {view === "schedule" && <Schedule />}
-        {view === "bookings" && <MyBookings onGoSchedule={() => go("schedule")} />}
-        {view === "manage" && <Manage />}
-        {view === "clients" && isStaff && (
+        {view === "overview" && isStaff && (
           <div className="page">
-            <div className="page-head">
-              <div>
-                <h1 className="h1">{t.membersTitle}</h1>
-                <div className="sub">{data.locations[0]?.name}</div>
-              </div>
-            </div>
-            <Members />
+            <AdminOverview />
           </div>
         )}
+        {view === "calendar" && isStaff && <Manage />}
+        {view === "trainees" && isStaff && <Trainees />}
         {view === "finance" && canFinance && (
           <div className="page">
             <Finance />
           </div>
         )}
-        {view === "coaching" && canFinance && <Coaching />}
+        {view === "zone" && isStaff && <Zone />}
+        {view === "schedule" && <Schedule />}
+        {view === "bookings" && !isStaff && <MyBookings onGoSchedule={() => go("schedule")} />}
         {view === "profile" && <Profile onSwitchUser={() => setSwitcher(true)} />}
       </main>
 
@@ -273,7 +256,6 @@ export default function App() {
         ))}
       </nav>
 
-      {timerOpen && <IntervalTimer onClose={() => setTimerOpen(false)} />}
       {switcher && <UserSwitcher onClose={() => setSwitcher(false)} />}
       <Toaster />
       <Celebration />

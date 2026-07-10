@@ -16,6 +16,25 @@ export const t = {
     members: "מתאמנים",
     profile: "הפרופיל שלי",
     today: "היום",
+    overview: "סקירה",
+    calendar: "יומן סטודיו",
+    calendarShort: "יומן",
+    trainees: "מתאמנים",
+    financeReports: "כספים ודוחות",
+    zone: "אימון ZONE",
+    studioMgmt: "ניהול סטודיו",
+  },
+  greet: {
+    morning: "בוקר טוב",
+    noon: "צהריים טובים",
+    evening: "ערב טוב",
+  },
+  zone: {
+    sub: "כל מה שצריך במהלך האימון — טיימר, מערכי שיעור ונוכחות",
+    attendance: "נוכחות · השיעורים היום",
+  },
+  trainees: {
+    directory: "רשימת מתאמנים",
   },
 
   roles: {
@@ -897,6 +916,7 @@ export const t = {
     recentPayments: "תשלומים אחרונים",
     recordPayment: "רישום תשלום",
     servicesTab: "שירותים ומחירים",
+    reportsTab: "דוחות",
     newService: "שירות חדש",
     editService: "עריכת שירות",
     client: "מתאמן/ת",

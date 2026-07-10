@@ -45,13 +45,8 @@ export function Coaching() {
     updateUser(u.id, { coaching: { ...(u.coaching ?? { active: true }), ...p } });
 
   return (
-    <div className="page">
-      <div className="page-head">
-        <div>
-          <h1 className="h1">{t.coaching.title}</h1>
-          <div className="sub">{t.coaching.subtitle}</div>
-        </div>
-      </div>
+    <div>
+      <p className="muted" style={{ margin: "0 0 14px", fontSize: ".85rem" }}>{t.coaching.subtitle}</p>
 
       {clients.length === 0 ? (
         <div className="empty">
