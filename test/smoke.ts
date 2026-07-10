@@ -203,6 +203,18 @@ ok(
   ok("adminOverview: class type with a recent zero-booking session is low-occupancy", ov.lowOccupancy.some((x) => x.type.id === "ct-lonely"));
 }
 
+// ---- dashboardStats (owner dashboard KPIs) ----
+{
+  const ds = engine.dashboardStats(data, Date.now());
+  ok("dashboardStats: revenueMonth is a non-negative number", typeof ds.revenueMonth === "number" && ds.revenueMonth >= 0);
+  ok("dashboardStats: attendanceTrend spans 7 days", ds.attendanceTrend.length === 7);
+  ok(
+    "dashboardStats: activeMembers matches active member count",
+    ds.activeMembers === data.users.filter((u) => u.role === "member" && u.membershipActive).length,
+  );
+  ok("dashboardStats: fillRate is within 0–100", ds.fillRate >= 0 && ds.fillRate <= 100);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) {
   // @ts-expect-error node global

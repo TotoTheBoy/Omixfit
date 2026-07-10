@@ -3318,6 +3318,43 @@
 .class-card:nth-child(5), .cat-card:nth-child(5), .plan-card:nth-child(5), .pkg-card:nth-child(5), .stat:nth-child(5), .ov-card:nth-child(5) { animation-delay: .20s; }
 .class-card:nth-child(n+6), .cat-card:nth-child(n+6), .plan-card:nth-child(n+6), .pkg-card:nth-child(n+6), .stat:nth-child(n+6), .ov-card:nth-child(n+6) { animation-delay: .25s; }
 
+/* owner dashboard — KPI cards, today list, attendance trend chart */
+.dash { display: flex; flex-direction: column; gap: 26px; }
+.dash-greet .h1 { margin: 0; }
+.kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 720px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+.kpi { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: var(--r-lg); border: 1px solid var(--line); box-shadow: var(--sh-1); min-height: 100px; justify-content: center; animation: pop-in .35s var(--ease) both; }
+.kpi-k { font-size: .8rem; font-weight: 600; }
+.kpi-v { font-size: 1.9rem; font-weight: 900; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.kpi-trend { font-size: .74rem; font-weight: 700; }
+.kpi-gold { background: var(--champagne); border-color: var(--gold-600); color: var(--charcoal); }
+.kpi-gold .kpi-k { color: var(--charcoal); }
+.kpi-charcoal { background: var(--charcoal); border-color: var(--charcoal); color: var(--on-ink); }
+.kpi-charcoal .kpi-k { color: var(--on-ink-2); }
+.kpi-charcoal .kpi-v { color: var(--champagne); }
+.kpi-charcoal .kpi-trend { color: var(--on-ink-2); }
+.kpi-olive { background: var(--olive); border-color: var(--olive); color: var(--on-ink); }
+.kpi-olive .kpi-k { color: var(--on-ink); }
+.kpi-cream { background: var(--surface); border: 1.5px solid var(--charcoal); }
+.kpi-cream .kpi-k { color: var(--text-3); }
+.kpi-cream .kpi-v { color: var(--charcoal); }
+.kpi-cream .kpi-trend { color: var(--ok-ink); }
+
+.dash-today { display: flex; flex-direction: column; }
+.today-row { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-top: 1px solid var(--line); }
+.today-row:first-child { border-top: none; }
+.tr-time { font-weight: 800; font-variant-numeric: tabular-nums; min-width: 46px; }
+.tr-name { flex: 1; font-weight: 600; min-width: 0; }
+.tr-fill { font-weight: 800; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.tr-fill.full { color: var(--gold-600); }
+
+.spark { display: flex; align-items: flex-end; gap: 6px; height: 150px; }
+.spark-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; min-width: 0; }
+.spark-v { font-size: .72rem; font-weight: 800; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.spark-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.spark-bar { width: 70%; max-width: 34px; min-height: 4px; background: linear-gradient(180deg, var(--champagne), var(--gold-600)); border-radius: 6px 6px 0 0; transition: height .45s var(--ease); }
+.spark-lbl { font-size: .66rem; color: var(--text-3); font-variant-numeric: tabular-nums; }
+
 /* admin-only clickable loyalty tier badge */
 .mc-tier-btn {
   border: 1px solid rgba(197, 160, 89, 0.5);

@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import type { AppData, Booking, ClassSession, ClassType, User } from "./types";
-import { fromKey } from "./date";
+import { fromKey, startOfWeek, toKey, weekDays } from "./date";
 
 /** True when a member's PAR-Q health declaration flags any pre-activity risk.
  *  Surfaced to staff on class rosters and the member pipeline so the coach is
@@ -544,4 +544,76 @@ export function adminOverview(data: AppData, now: number = Date.now()): AdminOve
   }
 
   return { pending, inactive, stagnant, lowOccupancy };
+}
+
+// ---- Owner dashboard KPIs (the "business at a glance") ----------------------
+
+export interface DashboardStats {
+  revenueMonth: number;
+  revenuePrevMonth: number;
+  activeMembers: number;
+  newMembersMonth: number;
+  visitsWeek: number;
+  fillRate: number; // % of capacity booked across this week's sessions
+  pending: number;
+  classesToday: { session: ClassSession; booked: number }[];
+  attendanceTrend: { key: string; value: number }[]; // last 7 days, oldest → today
+}
+
+export function dashboardStats(data: AppData, now: number = Date.now()): DashboardStats {
+  const nowD = new Date(now);
+  const monthStart = new Date(nowD.getFullYear(), nowD.getMonth(), 1).getTime();
+  const prevMonthStart = new Date(nowD.getFullYear(), nowD.getMonth() - 1, 1).getTime();
+  const todayKey = toKey(nowD);
+  const weekKeys = new Set(weekDays(startOfWeek(nowD)).map(toKey));
+
+  const revenueMonth = data.payments.filter((p) => p.date >= monthStart).reduce((a, p) => a + (p.amount || 0), 0);
+  const revenuePrevMonth = data.payments
+    .filter((p) => p.date >= prevMonthStart && p.date < monthStart)
+    .reduce((a, p) => a + (p.amount || 0), 0);
+
+  const members = data.users.filter((u) => u.role === "member");
+  const activeMembers = members.filter((u) => u.membershipActive).length;
+  const newMembersMonth = members.filter((u) => u.approvedAt !== undefined && u.approvedAt >= monthStart).length;
+
+  const weekSessions = data.sessions.filter((s) => weekKeys.has(s.date) && !s.cancelled);
+  const weekSessionIds = new Set(weekSessions.map((s) => s.id));
+  const visitsWeek = data.bookings.filter((b) => b.state === "attended" && weekSessionIds.has(b.sessionId)).length;
+  let booked = 0;
+  let capacity = 0;
+  for (const s of weekSessions) {
+    booked += confirmedCount(s.id, data);
+    capacity += s.capacity;
+  }
+  const fillRate = capacity ? Math.round((booked / capacity) * 100) : 0;
+
+  const pending = data.users.filter((u) => u.approvalStatus === "pending").length;
+
+  const classesToday = data.sessions
+    .filter((s) => s.date === todayKey && !s.cancelled)
+    .sort((a, b) => a.startMin - b.startMin)
+    .map((s) => ({ session: s, booked: confirmedCount(s.id, data) }));
+
+  const attendanceTrend: { key: string; value: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate() - i);
+    const k = toKey(d);
+    const dayIds = new Set(data.sessions.filter((s) => s.date === k).map((s) => s.id));
+    attendanceTrend.push({
+      key: k,
+      value: data.bookings.filter((b) => b.state === "attended" && dayIds.has(b.sessionId)).length,
+    });
+  }
+
+  return {
+    revenueMonth,
+    revenuePrevMonth,
+    activeMembers,
+    newMembersMonth,
+    visitsWeek,
+    fillRate,
+    pending,
+    classesToday,
+    attendanceTrend,
+  };
 }
