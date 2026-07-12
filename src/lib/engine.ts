@@ -285,6 +285,9 @@ export function memberStats(userId: string, s: AppData) {
   ).length;
   const tally = new Map<string, number>();
   for (const b of mine) {
+    // Favourite reflects classes actually ATTENDED, not just booked — so a brand
+    // new member with a single booking (and 0 attendance) has no favourite yet.
+    if (b.state !== "attended") continue;
     const sess = s.sessions.find((x) => x.id === b.sessionId);
     if (!sess) continue;
     const cat = s.classTypes.find((c) => c.id === sess.classTypeId)!.category;

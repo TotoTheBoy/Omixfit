@@ -56,6 +56,7 @@ export default function App() {
   const [view, setView] = useState<View>(readHash);
   const [publicRoute, setPublicRoute] = useState(() => location.hash.replace(/^#\/?/, "").split("/")[0]);
   const [switcher, setSwitcher] = useState(false);
+  const [zonePresenting, setZonePresenting] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
@@ -161,6 +162,20 @@ export default function App() {
     history.replaceState(null, "", `#${v}`);
   }
 
+  // Omix Zone presentation mode: a contained, client-safe environment. All
+  // navigation is hidden so a handed-off device can't reach admin controls —
+  // exiting back to admin requires the passcode (handled inside <Zone />).
+  if (isStaff && zonePresenting) {
+    return (
+      <div className="app app-presenting">
+        <main id="main" tabIndex={-1}>
+          <Zone presenting onSetPresenting={setZonePresenting} />
+        </main>
+        <Toaster />
+      </div>
+    );
+  }
+
   const nav: { id: View; label: string; icon: JSX.Element; badge?: number }[] = isStaff
     ? [
         { id: "overview", label: t.nav.overview, icon: <IcGrid /> },
@@ -229,7 +244,7 @@ export default function App() {
             <Finance />
           </div>
         )}
-        {view === "zone" && isStaff && <Zone />}
+        {view === "zone" && isStaff && <Zone presenting={false} onSetPresenting={setZonePresenting} />}
         {view === "schedule" && <Schedule />}
         {view === "bookings" && !isStaff && <MyBookings onGoSchedule={() => go("schedule")} />}
         {view === "profile" && <Profile onSwitchUser={() => setSwitcher(true)} />}

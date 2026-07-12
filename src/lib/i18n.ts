@@ -21,7 +21,7 @@ export const t = {
     calendarShort: "יומן",
     trainees: "מתאמנים",
     financeReports: "כספים ודוחות",
-    zone: "אימון ZONE",
+    zone: "Omix Zone",
     studioMgmt: "ניהול סטודיו",
   },
   greet: {
@@ -32,6 +32,18 @@ export const t = {
   zone: {
     sub: "כל מה שצריך במהלך האימון — טיימר, מערכי שיעור ונוכחות",
     attendance: "נוכחות · השיעורים היום",
+    present: "🔒 מצב הצגה",
+    presentHint: "מסתיר נתוני ניהול ומציג תצוגה נקייה ללקוחות. היציאה דורשת קוד.",
+    presentingBanner: "מצב הצגה — נתוני ניהול מוסתרים",
+    exit: "יציאה ממצב הצגה",
+    setPinTitle: "הגדרת קוד יציאה",
+    setPinHint: "בחר/י קוד בן 4 ספרות. תצטרך/י אותו כדי לחזור לניהול.",
+    enterPinTitle: "הזן/י קוד יציאה",
+    pinPlaceholder: "קוד בן 4 ספרות",
+    pinTooShort: "יש להזין קוד בן 4 ספרות לפחות",
+    pinWrong: "קוד שגוי, נסה/י שוב",
+    startPresent: "שמירה והפעלה",
+    unlock: "יציאה",
   },
   trainees: {
     directory: "רשימת מתאמנים",

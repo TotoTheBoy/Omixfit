@@ -143,7 +143,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           ) : me.membershipValidUntil ? (
             <b>{t.membershipCard.validUntil(fmtDMY(me.membershipValidUntil))}</b>
           ) : (
-            <b>{me.membershipActive ? t.membershipCard.active : t.membershipCard.none}</b>
+            <b>{me.hasPass ? t.membershipCard.active : t.membershipCard.none}</b>
           )}
         </div>
 

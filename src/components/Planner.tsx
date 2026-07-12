@@ -16,11 +16,12 @@ import { IcPlus, IcTrash, IcCheck } from "./icons";
 
 /** #11 Coach workspace: operational task reminders + a tagged, reusable archive
  *  of lesson plans (מערכי שיעור). Both persist live in Firestore. */
-export function Planner() {
+export function Planner({ hideReminders = false }: { hideReminders?: boolean }) {
   const data = useStore((s) => s);
   const me = data.users.find((u) => u.id === data.currentUserId);
   const [reminderText, setReminderText] = useState("");
   const [editing, setEditing] = useState<LessonPlan | null>(null);
+  const [viewing, setViewing] = useState<LessonPlan | null>(null);
   const [creating, setCreating] = useState(false);
   const [tagFilter, setTagFilter] = useState("");
 
@@ -58,6 +59,7 @@ export function Planner() {
 
   return (
     <div className="planner">
+      {!hideReminders && (
       <section className="planner-sec">
         <h2 className="h2" style={{ marginBottom: 10 }}>{t.planner.remindersTitle}</h2>
         <div className="row gap-2" style={{ marginBottom: 12 }}>
@@ -98,6 +100,7 @@ export function Planner() {
           </ul>
         )}
       </section>
+      )}
 
       <section className="planner-sec">
         <div className="row gap-2" style={{ justifyContent: "space-between", marginBottom: 4 }}>
@@ -126,7 +129,7 @@ export function Planner() {
         ) : (
           <div className="plan-grid">
             {plans.map((p) => (
-              <button key={p.id} className="plan-card" onClick={() => setEditing(p)}>
+              <button key={p.id} className="plan-card" onClick={() => setViewing(p)}>
                 {p.tag && <span className="plan-tag">{p.tag}</span>}
                 <b className="plan-title">{p.title}</b>
                 <span className="plan-snip">{p.content.slice(0, 90)}</span>
@@ -137,10 +140,40 @@ export function Planner() {
         )}
       </section>
 
+      {viewing && (
+        <PlanViewer
+          plan={viewing}
+          onEdit={() => { setEditing(viewing); setViewing(null); }}
+          onClose={() => setViewing(null)}
+        />
+      )}
       {(creating || editing) && (
         <PlanEditor plan={editing} authorId={me?.id} onClose={() => { setCreating(false); setEditing(null); }} />
       )}
     </div>
+  );
+}
+
+/** Large, readable view of a lesson plan — opens when the card is tapped so the
+ *  coach can read the workout during a session; "edit" is one tap away (#2). */
+function PlanViewer({
+  plan,
+  onEdit,
+  onClose,
+}: {
+  plan: LessonPlan;
+  onEdit: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet
+      title={plan.title}
+      onClose={onClose}
+      footer={<button className="btn btn-lime grow" onClick={onEdit}>✎ {t.planner.editPlan}</button>}
+    >
+      {plan.tag && <span className="plan-tag" style={{ display: "inline-block", marginBottom: 14 }}>{plan.tag}</span>}
+      <div className="plan-read">{plan.content || "—"}</div>
+    </Sheet>
   );
 }
 
