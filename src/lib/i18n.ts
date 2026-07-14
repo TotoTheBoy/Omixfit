@@ -912,6 +912,7 @@ export const t = {
   calendarMine: {
     title: "היומן שלי",
     subtitle: "סנכרון האימונים שלך ליומן Google הפרטי שלך.",
+    subtitleCoach: "סנכרון השיעורים שאת/ה מדריכ/ה ליומן Google הפרטי שלך.",
     connect: "חיבור היומן שלי",
     reconnect: "חיבור מחדש",
     sync: "סנכרון האימונים שלי",
@@ -919,6 +920,7 @@ export const t = {
     synced: (n: number) => `סונכרנו ${n} אימונים ליומן שלך ✅`,
     notConnected: "היומן שלך עדיין לא מחובר. לחץ/י על 'חיבור היומן שלי'.",
     hint: "רק השיעורים שנרשמת אליהם יתווספו ליומן הפרטי שלך.",
+    hintCoach: "השיעורים שאת/ה מדריכ/ה יתווספו אוטומטית ליומן הפרטי שלך.",
   },
 
   // admin-only business subscriptions / billing tracker

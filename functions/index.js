@@ -160,6 +160,45 @@ async function syncPersonal(uid) {
       logger.error("personal sync " + bd.id, e);
     }
   }
+
+  // Instructors also mirror the classes they TEACH into their own calendar.
+  // There is no booking to hang the per-user event id on, so taught event ids
+  // live in the calTokens doc — keeps the sync idempotent and self-pruning.
+  const taught = (tk.exists && tk.data().taught) || {};
+  let taughtChanged = false;
+  const ssnap = await db.collection("sessions").where("instructorId", "==", uid).get();
+  for (const sd of ssnap.docs) {
+    const s = sd.data();
+    const active = !s.cancelled && s.date && s.date >= todayKey;
+    const evId = taught[sd.id];
+    try {
+      if (!active) {
+        if (evId) {
+          await cal.events.delete({ calendarId: CAL_ID, eventId: evId }).catch(() => {});
+          delete taught[sd.id];
+          taughtChanged = true;
+        }
+        continue;
+      }
+      if (!titles[s.classTypeId]) {
+        const t = await db.doc("classTypes/" + s.classTypeId).get();
+        titles[s.classTypeId] = t.exists ? t.data().name : "אימון";
+      }
+      const ev = buildEvent(s, "הדרכה · " + titles[s.classTypeId], sd.id);
+      if (evId) {
+        await cal.events.update({ calendarId: CAL_ID, eventId: evId, requestBody: ev });
+      } else {
+        const created = await cal.events.insert({ calendarId: CAL_ID, requestBody: ev });
+        taught[sd.id] = created.data.id;
+        taughtChanged = true;
+      }
+      synced++;
+    } catch (e) {
+      logger.error("taught sync " + sd.id, e);
+    }
+  }
+  if (taughtChanged) await db.doc(`calTokens/${uid}`).set({ taught }, { merge: true });
+
   return { connected: true, synced };
 }
 

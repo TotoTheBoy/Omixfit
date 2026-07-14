@@ -283,25 +283,30 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       {/* proactive PWA install (Android prompt / iOS guide) */}
       <PWAInstallAction />
 
-      {/* every member can sync THEIR OWN booked classes to their own calendar */}
-      <div className="cal-card">
-        <div className="cal-head">
-          <span aria-hidden="true">🗓️</span>
-          <div>
-            <b>{t.calendarMine.title}</b>
-            <small>{t.calendarMine.subtitle}</small>
+      {/* Personal calendar sync into the user's OWN Google calendar. Shown to
+          members (their booked classes) and instructors (the classes they
+          teach) — NOT to admin/manager, who run the studio calendar below and
+          don't need a personal connection. */}
+      {(me.role === "member" || me.role === "instructor") && (
+        <div className="cal-card">
+          <div className="cal-head">
+            <span aria-hidden="true">🗓️</span>
+            <div>
+              <b>{t.calendarMine.title}</b>
+              <small>{me.role === "instructor" ? t.calendarMine.subtitleCoach : t.calendarMine.subtitle}</small>
+            </div>
           </div>
+          <div className="cal-actions">
+            <button className="btn btn-lime" onClick={connectMyCal}>
+              {me.calConnected ? t.calendarMine.reconnect : t.calendarMine.connect}
+            </button>
+            <button className="btn btn-ghost" onClick={syncMyCal} disabled={calMineBusy}>
+              {calMineBusy ? t.calendarMine.syncing : t.calendarMine.sync}
+            </button>
+          </div>
+          <small className="cal-hint">{me.role === "instructor" ? t.calendarMine.hintCoach : t.calendarMine.hint}</small>
         </div>
-        <div className="cal-actions">
-          <button className="btn btn-lime" onClick={connectMyCal}>
-            {me.calConnected ? t.calendarMine.reconnect : t.calendarMine.connect}
-          </button>
-          <button className="btn btn-ghost" onClick={syncMyCal} disabled={calMineBusy}>
-            {calMineBusy ? t.calendarMine.syncing : t.calendarMine.sync}
-          </button>
-        </div>
-        <small className="cal-hint">{t.calendarMine.hint}</small>
-      </div>
+      )}
 
       {me.role === "admin" && (
         <div className="cal-card">
