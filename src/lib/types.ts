@@ -111,6 +111,10 @@ export interface User {
   /** True once the member connected their own Google Calendar (set by the OAuth
    *  callback function); gates the "sync my classes" UI. */
   calConnected?: boolean;
+  /** When the automated "we miss you" retention nudge was last e-mailed to this
+   *  member (server-side). Enforces a cooldown so a lapsed member is nudged at
+   *  most once per cycle. */
+  lastRetentionAt?: number;
 }
 
 export type ClassCategory =

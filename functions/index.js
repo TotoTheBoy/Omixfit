@@ -341,7 +341,8 @@ exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
   }
   const trialsDisconnected = await sweepTrials().catch((e) => { logger.error("sweepTrials", e); return 0; });
   const sessionsFinalized = await finalizeAttendance().catch((e) => { logger.error("finalizeAttendance", e); return 0; });
-  res.json({ sent, trialsDisconnected, sessionsFinalized });
+  const membersNudged = await sweepRetention().catch((e) => { logger.error("sweepRetention", e); return 0; });
+  res.json({ sent, trialsDisconnected, sessionsFinalized, membersNudged });
 });
 
 // Trial → pass rule: a member approved > 7 days ago who never bought a pass is
@@ -368,6 +369,62 @@ async function sweepTrials() {
     }
   }
   return disconnected;
+}
+
+// Automated retention: a member who trained before but has gone quiet (no
+// attendance in RETENTION_LAPSE_DAYS and nothing booked ahead) gets ONE warm
+// "we miss you" nudge, then a long cooldown (lastRetentionAt) so we never spam.
+// Skipped: e-mail opt-outs, members who never actually attended (still
+// onboarding, not lapsed), and anyone with an upcoming class. Runs once a day
+// off the hourly reminder ping (Israel ~10:00) to stay cheap and well-timed.
+const RETENTION_LAPSE_DAYS = 21;
+const RETENTION_COOLDOWN_MS = 30 * 24 * 3600 * 1000;
+function jerusalemHour(now) {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jerusalem", hour: "2-digit", hour12: false }).format(now),
+  );
+}
+async function sweepRetention() {
+  const now = new Date();
+  if (jerusalemHour(now) !== 10) return 0; // once a day, mid-morning
+  const nowMs = now.getTime();
+  const todayKey = now.toISOString().slice(0, 10);
+  const lapseKey = new Date(nowMs - RETENTION_LAPSE_DAYS * 864e5).toISOString().slice(0, 10);
+  const snap = await db.collection("users").where("approvalStatus", "==", "approved").get();
+  let nudged = 0;
+  for (const ud of snap.docs) {
+    const u = ud.data();
+    if (u.role !== "member" || !u.email) continue;
+    if (u.prefs && u.prefs.email === false) continue; // respect e-mail opt-out
+    if (u.lastRetentionAt && nowMs - u.lastRetentionAt < RETENTION_COOLDOWN_MS) continue;
+    const bsnap = await db.collection("bookings").where("userId", "==", ud.id).get();
+    if (bsnap.empty) continue;
+    let lastAttendedKey = "";
+    let hasUpcoming = false;
+    for (const bd of bsnap.docs) {
+      const b = bd.data();
+      const sd = await db.doc("sessions/" + b.sessionId).get();
+      if (!sd.exists) continue;
+      const s = sd.data();
+      const date = s.date || "";
+      if (b.state === "attended" && date > lastAttendedKey) lastAttendedKey = date;
+      if (b.state === "confirmed" && !s.cancelled && date >= todayKey) hasUpcoming = true;
+    }
+    if (!lastAttendedKey) continue;            // never actually trained → onboarding, not retention
+    if (hasUpcoming) continue;                  // already coming back
+    if (lastAttendedKey >= lapseKey) continue;  // trained recently → not lapsed
+    const name = (u.name || "").split(" ")[0];
+    await sendMail(u.email, "מתגעגעים אליך ב-Omix 💛",
+      `<h2 style="color:#a9842f">מתגעגעים אליך!</h2>
+       <p>היי ${name},</p>
+       <p>עבר קצת זמן מאז האימון האחרון שלך — ואנחנו כאן ומחכים לך. גם אימון אחד השבוע עושה את כל ההבדל, והגוף שלך יודה לך על החזרה לתנועה.</p>
+       <p>שריינ/י מקום עכשיו, ונתראה על המזרן 🌿</p>
+       ${ctaButton("קביעת אימון")}
+       <p>באהבה,<br><b>עומר · Omix</b></p>`).catch((e) => logger.error("retention mail", e));
+    await ud.ref.update({ lastRetentionAt: nowMs }).catch(() => {});
+    nudged++;
+  }
+  return nudged;
 }
 
 // #14 Passive "default-present" attendance. Runs off the same hourly ping. For
