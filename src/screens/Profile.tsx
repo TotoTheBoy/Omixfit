@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
-import type { ClassCategory, NotifyPrefs } from "../lib/types";
-import { logout, memberStats, updateUser, useStore, syncCalendar, calConnectUrl, savePaymentLinks, CALENDAR_CONNECT_URL } from "../lib/store";
+import type { ClassCategory, ClassSession, NotifyPrefs } from "../lib/types";
+import { logout, memberStats, updateUser, useStore, syncCalendar, calConnectUrl, savePaymentLinks, classTypeOf, sessionStartDate, CALENDAR_CONNECT_URL } from "../lib/store";
+import { fromKey, fmtTime, fmtDayHeading } from "../lib/date";
 import { loyaltyFor, weeklyStreak, LOYALTY_TIERS } from "../lib/engine";
 import { Avatar, VersionTag } from "../components/common";
 import { Sheet } from "../components/Sheet";
@@ -166,6 +167,33 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         </div>
       </div>
 
+      {/* next class */}
+      {me.role === "member" && (() => {
+        const now = Date.now();
+        const next = data.bookings
+          .filter((b) => b.userId === me.id && b.state === "confirmed")
+          .map((b) => data.sessions.find((se) => se.id === b.sessionId))
+          .filter((se): se is ClassSession => !!se && sessionStartDate(se).getTime() > now)
+          .sort((a, b) => sessionStartDate(a).getTime() - sessionStartDate(b).getTime())[0];
+        return (
+          <div className="next-class">
+            <span className="nc-label">{t.nextClass}</span>
+            {next ? (
+              <div className="nc-body">
+                <span className="nc-emoji" aria-hidden="true">{CATEGORY_META[classTypeOf(next, data).category].emoji}</span>
+                <div className="nc-info">
+                  <b>{classTypeOf(next, data).name}</b>
+                  <span>{fmtDayHeading(fromKey(next.date))} · {fmtTime(next.startMin)}</span>
+                  <small>{next.room}</small>
+                </div>
+              </div>
+            ) : (
+              <a className="nc-empty" href="#schedule">{t.noNextClass}</a>
+            )}
+          </div>
+        );
+      })()}
+
       {/* stats */}
       <h2 className="h2" style={{ marginBottom: 10 }}>{t.myStats}</h2>
       <div className="profile-grid" style={{ marginBottom: 22 }}>
@@ -179,6 +207,42 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
           tone="cream"
         />
       </div>
+
+      {/* my payments */}
+      {me.role === "member" && (() => {
+        const mine = data.payments.filter((p) => p.userId === me.id).sort((a, b) => b.date - a.date);
+        return (
+          <div className="card" style={{ padding: "6px 18px 14px", marginBottom: 22 }}>
+            <h2 className="h2" style={{ margin: "14px 0 8px" }}>{t.myPayments}</h2>
+            {mine.length === 0 ? (
+              <p className="muted">{t.noPayments}</p>
+            ) : (
+              <ul className="member-details">
+                {mine.slice(0, 8).map((p) => (
+                  <li key={p.id}>
+                    <span>{new Date(p.date).toLocaleDateString("he-IL")} · {p.serviceName}</span>
+                    <b dir="ltr">₪{p.amount}</b>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* my details */}
+      {me.role === "member" && (
+        <div className="card" style={{ padding: "6px 18px 14px", marginBottom: 22 }}>
+          <h2 className="h2" style={{ margin: "14px 0 8px" }}>{t.myDetails}</h2>
+          <ul className="member-details">
+            {me.email && <li><span>{t.emailLabel}</span><b dir="ltr">{me.email}</b></li>}
+            <li><span>{t.phone}</span><b dir="ltr">{me.phone || "-"}</b></li>
+            {me.age ? <li><span>{t.health.ageLabel}</span><b>{me.age}</b></li> : null}
+            {me.address && <li><span>{t.health.addressLabel}</span><b>{me.address}</b></li>}
+            {me.approvedAt ? <li><span>{t.memberSince}</span><b>{new Date(me.approvedAt).toLocaleDateString("he-IL")}</b></li> : null}
+          </ul>
+        </div>
+      )}
 
       {/* notification channels */}
       <div className="card" style={{ padding: "6px 18px 14px" }}>

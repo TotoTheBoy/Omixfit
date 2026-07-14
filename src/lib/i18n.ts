@@ -209,6 +209,11 @@ export const t = {
   upcomingCount: "שיעורים קרובים",
   totalCount: "סה״כ הזמנות",
   favoriteCat: "הסגנון האהוב",
+  nextClass: "השיעור הבא שלך",
+  noNextClass: "אין שיעור קרוב — הזמן/י מקום בלוח",
+  myPayments: "התשלומים שלי",
+  noPayments: "אין עדיין רכישות",
+  myDetails: "הפרטים שלי",
   notYet: "טרם נקבע",
   membershipCard: {
     validUntil: (d: string) => `מנוי בתוקף עד: ${d}`,
