@@ -1,6 +1,7 @@
 import { CATEGORY_META, t } from "../lib/i18n";
 import { adminOverview, classTypeOf, dashboardStats, upsertReminder, useStore } from "../lib/store";
 import { fmtTime } from "../lib/date";
+import { AnnouncementsAdmin } from "./AnnouncementsAdmin";
 
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (ms: number) => Math.max(0, Math.floor((Date.now() - ms) / DAY));
@@ -162,6 +163,8 @@ export function AdminOverview() {
           </div>
         </section>
       )}
+
+      <AnnouncementsAdmin />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { t } from "./lib/i18n";
 import { logout, onAuthIdentity, useStore } from "./lib/store";
+import { Home } from "./screens/Home";
 import { Schedule } from "./screens/Schedule";
 import { MyBookings } from "./screens/MyBookings";
 import { Manage } from "./screens/Manage";
@@ -37,8 +38,8 @@ const IcCoins = (p: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-type View = "overview" | "calendar" | "trainees" | "finance" | "zone" | "schedule" | "bookings" | "profile";
-const VIEWS = ["overview", "calendar", "trainees", "finance", "zone", "schedule", "bookings", "profile"];
+type View = "overview" | "calendar" | "trainees" | "finance" | "zone" | "home" | "schedule" | "bookings" | "profile";
+const VIEWS = ["overview", "calendar", "trainees", "finance", "zone", "home", "schedule", "bookings", "profile"];
 
 function readHash(): View {
   const h = location.hash.replace("#", "");
@@ -100,12 +101,12 @@ export default function App() {
   useEffect(() => {
     if (!me) return;
     const staffViews = ["overview", "calendar", "trainees", "finance", "zone", "profile"];
-    const memberViews = ["schedule", "bookings", "profile"];
+    const memberViews = ["home", "schedule", "bookings", "profile"];
     if (isStaff) {
       if (!staffViews.includes(view)) go("overview");
       else if (view === "finance" && !canFinance) go("overview");
     } else if (!memberViews.includes(view)) {
-      go("schedule");
+      go("home");
     }
   }, [me, isStaff, canFinance, view]);
 
@@ -185,6 +186,7 @@ export default function App() {
         { id: "zone", label: t.nav.zone, icon: <span aria-hidden="true">⚡</span> },
       ]
     : [
+        { id: "home", label: t.nav.home, icon: <IcGrid /> },
         { id: "schedule", label: t.nav.calendarShort, icon: <IcCalendar /> },
         { id: "bookings", label: t.nav.myBookings, icon: <IcBookmark /> },
         { id: "profile", label: t.nav.profile, icon: <IcUser /> },
@@ -245,6 +247,11 @@ export default function App() {
           </div>
         )}
         {view === "zone" && isStaff && <Zone presenting={false} onSetPresenting={setZonePresenting} />}
+        {view === "home" && !isStaff && (
+          <div className="page">
+            <Home onGo={go} />
+          </div>
+        )}
         {view === "schedule" && <Schedule />}
         {view === "bookings" && !isStaff && <MyBookings onGoSchedule={() => go("schedule")} />}
         {view === "profile" && <Profile onSwitchUser={() => setSwitcher(true)} />}

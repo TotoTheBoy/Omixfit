@@ -108,8 +108,9 @@ service cloud.firestore {
     }
 
     // Workout planner — the coach's lesson-plan archive + task reminders (#11).
-    match /lessonPlans/{id}   { allow read, write: if signedIn(); }
-    match /taskReminders/{id} { allow read, write: if signedIn(); }
+    match /lessonPlans/{id}    { allow read, write: if signedIn(); }
+    match /taskReminders/{id}  { allow read, write: if signedIn(); }
+    match /announcements/{id}  { allow read, write: if signedIn(); }
 
     // Anything not matched above is denied.
     match /{document=**} { allow read, write: if false; }

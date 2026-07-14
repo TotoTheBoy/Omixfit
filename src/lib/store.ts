@@ -27,6 +27,7 @@ const EMPTY: AppData = {
   leads: [],
   lessonPlans: [],
   taskReminders: [],
+  announcements: [],
   facility: {
     name: "Omix",
     bookingWindowDays: 14,
@@ -188,6 +189,11 @@ export const upsertReminder = (r: import("./types").TaskReminder) =>
 export const deleteReminder = (id: string) =>
   backend().then((b) => b.deleteReminder(id));
 export const newReminderId = () => engine.genId("tr");
+export const upsertAnnouncement = (a: import("./types").Announcement) =>
+  backend().then((b) => b.upsertAnnouncement(a));
+export const deleteAnnouncement = (id: string) =>
+  backend().then((b) => b.deleteAnnouncement(id));
+export const newAnnouncementId = () => engine.genId("an");
 export const syncCalendar = (mode?: "personal") =>
   backend().then((b) => b.syncCalendar(mode));
 export const calConnectUrl = () => backend().then((b) => b.calConnectUrl());

@@ -103,6 +103,10 @@ export interface User {
   /** Admin-only loyalty tier override — staff aren't gated by attended count and
    *  set their own OMIX tier by tapping the card badge. */
   loyaltyOverride?: "pace" | "endurance" | "elite" | "marathoner";
+  /** Highest loyalty-tier index the member has already been shown a celebration
+   *  for. Baselined silently on first load; a genuine rank-up (index climbs
+   *  above this) triggers the "עלית דרגה" banner on the home dashboard. */
+  loyaltySeen?: number;
   prefs?: NotifyPrefs;
   /** True once the member connected their own Google Calendar (set by the OAuth
    *  callback function); gates the "sync my classes" UI. */
@@ -344,6 +348,17 @@ export interface TaskReminder {
   hour?: string; // HH:MM
 }
 
+/** A studio-wide announcement (staff post → every trainee sees it on their home). */
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: number;
+  authorId?: string;
+  /** Optional accent for the card: news (default) / event / important. */
+  tone?: "news" | "event" | "important";
+}
+
 export interface AppData {
   users: User[];
   classTypes: ClassType[];
@@ -357,6 +372,7 @@ export interface AppData {
   leads: Lead[];
   lessonPlans: LessonPlan[];
   taskReminders: TaskReminder[];
+  announcements: Announcement[];
   facility: Facility;
   audit: AuditEntry[];
   /** null when logged out (the app shows the login screen). */

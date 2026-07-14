@@ -47,6 +47,7 @@ import type {
   HealthForm,
   Location,
   Lead,
+  Announcement,
   LessonPlan,
   Payment,
   Service,
@@ -80,6 +81,7 @@ const col = {
   leads: collection(db, "leads"),
   lessonPlans: collection(db, "lessonPlans"),
   taskReminders: collection(db, "taskReminders"),
+  announcements: collection(db, "announcements"),
   audit: collection(db, "audit"),
 };
 
@@ -122,6 +124,9 @@ function startListeners(): void {
   );
   onSnapshot(col.taskReminders, (s) =>
     hydrate({ taskReminders: s.docs.map((d) => d.data() as TaskReminder) }),
+  );
+  onSnapshot(col.announcements, (s) =>
+    hydrate({ announcements: s.docs.map((d) => d.data() as Announcement) }),
   );
   onSnapshot(col.payments, (s) =>
     hydrate({ payments: s.docs.map((d) => d.data() as Payment) }),
@@ -726,6 +731,14 @@ export async function upsertReminder(r: TaskReminder): Promise<void> {
 }
 export async function deleteReminder(id: string): Promise<void> {
   await deleteDoc(doc(db, "taskReminders", id));
+}
+
+// ---- studio announcements (staff post → trainee home feed) ------------------
+export async function upsertAnnouncement(a: Announcement): Promise<void> {
+  await setDoc(doc(db, "announcements", a.id), a);
+}
+export async function deleteAnnouncement(id: string): Promise<void> {
+  await deleteDoc(doc(db, "announcements", id));
 }
 
 /** PUBLIC (no login): fetch the events open for registration. */
