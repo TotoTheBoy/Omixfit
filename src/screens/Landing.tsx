@@ -12,7 +12,11 @@ const WHATSAPP = "https://wa.me/972507954902";
 const INSTAGRAM = "https://instagram.com/omer_lifshitz";
 const EMAIL = "mailto:office@omixfit.com";
 
-const CREDS = ["מאמנת כושר וריצה מוסמכת", "רצת מרתון פעילה", "תואר בטיפול בספורט"];
+const CREDS = [
+  "מאמנת כושר מוסמכת",
+  "לימודי ספורטתרפיה (B.Sc) · הקריה האקדמית אונו",
+  "מניעת פציעות ושיקום ספורטיבי",
+];
 
 function useReveal() {
   useEffect(() => {
@@ -52,12 +56,13 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
   return (
     <div className="lux">
       <header className="lux-bar">
-        <OmixLogo size={48} className="lux-logo-lg" />
+        <OmixLogo size={56} className="lux-logo-lg" />
         <button className="lux-link" onClick={onEnter}>{L.signIn}</button>
       </header>
 
       {/* ---- hero: Omer front & centre ---- */}
       <section className="lux-hero-band">
+        <img className="lux-hero-watermark" src={`${import.meta.env.BASE_URL}omix-mark.png`} alt="" aria-hidden="true" />
         <div className="lux-hero-split">
         <div className="lux-hero-text">
           <span className="lux-rule reveal" aria-hidden="true" />
@@ -154,6 +159,22 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
+      {/* ---- gallery (image placeholders — filled later) ---- */}
+      <section className="lux-sec lux-gallery">
+        <div className="lux-head reveal">
+          <span className="lux-eyebrow green">{L.galleryKicker}</span>
+          <h2 className="lux-h2">{L.galleryTitle}</h2>
+        </div>
+        <div className="lux-gallery-grid reveal">
+          {[0, 1, 2].map((i) => (
+            <div className="lux-img-slot" key={i}>
+              <span className="lux-img-slot-ico" aria-hidden="true">📷</span>
+              <span className="lux-img-slot-txt">{L.imgSoon}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ---- packages ---- */}
       <section className="lux-sec">
         <div className="lux-head reveal">
@@ -205,7 +226,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
       {/* ---- final + contact (dark band) ---- */}
       <section className="lux-final">
         <div className="lux-final-inner reveal">
-          <OmixMark size={46} />
+          <OmixMark size={92} />
           <h2>{L.finalTitle}</h2>
           <p>{L.finalSub}</p>
           <button className="lux-btn gold lg" onClick={onEnter}>{L.ctaEnter}</button>
