@@ -40,6 +40,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
   const S = t.spine;
   const [legal, setLegal] = useState(false);
   const [lead, setLead] = useState(false);
+  const [certs, setCerts] = useState(false);
   // Live events slider — reads the same published events as the public page, so
   // newly created/published events propagate here automatically (#12c).
   const [events, setEvents] = useState<SpecialEvent[] | null>(null);
@@ -51,28 +52,46 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
   return (
     <div className="lux">
       <header className="lux-bar">
-        <OmixLogo size={32} />
+        <OmixLogo size={48} className="lux-logo-lg" />
         <button className="lux-link" onClick={onEnter}>{L.signIn}</button>
       </header>
 
-      {/* ---- hero ---- */}
-      <section className="lux-hero">
-        <span className="lux-rule reveal" aria-hidden="true" />
-        <span className="lux-eyebrow reveal">{L.kicker}</span>
-        <h1 className="lux-title reveal">
-          {L.title1} {L.title2} <em>{L.title3}</em>
-        </h1>
-        <p className="lux-lead reveal">{L.subtitle}</p>
-        <div className="lux-cta reveal">
-          <button className="lux-btn gold" onClick={onEnter}>{L.ctaEnter}</button>
-          <button className="lux-btn ghost" onClick={() => setLead(true)}>{t.lead.cta}</button>
-          <a className="lux-btn ghost" href={WHATSAPP} target="_blank" rel="noreferrer">{L.ctaContact}</a>
+      {/* ---- hero: Omer front & centre ---- */}
+      <section className="lux-hero-band">
+        <div className="lux-hero-split">
+        <div className="lux-hero-text">
+          <span className="lux-rule reveal" aria-hidden="true" />
+          <span className="lux-eyebrow reveal">{L.kicker}</span>
+          <h1 className="lux-title reveal">
+            {L.title1} {L.title2} <em>{L.title3}</em>
+          </h1>
+          <p className="lux-lead reveal">{L.subtitle}</p>
+          <div className="lux-cta reveal">
+            <a className="lux-btn gold" href={WHATSAPP} target="_blank" rel="noreferrer">{L.ctaContact}</a>
+            <button className="lux-btn ghost" onClick={() => setLead(true)}>{t.lead.cta}</button>
+            <button className="lux-btn ghost" onClick={onEnter}>{L.ctaEnter}</button>
+          </div>
+          <ul className="lux-creds reveal">
+            {CREDS.map((c) => (
+              <li key={c}><span aria-hidden="true">✦</span> {c}</li>
+            ))}
+          </ul>
         </div>
-        <ul className="lux-creds reveal">
-          {CREDS.map((c) => (
-            <li key={c}><span aria-hidden="true">✦</span> {c}</li>
-          ))}
-        </ul>
+        <div className="lux-hero-media reveal">
+          <img
+            className="lux-hero-img"
+            src={`${import.meta.env.BASE_URL}omer-hero.jpg`}
+            alt={`${L.heroName} · ${L.heroRole}`}
+            width={1067}
+            height={1600}
+            loading="eager"
+          />
+          <span className="lux-hero-tag">
+            <b>{L.heroName}</b>
+            <small>{L.heroRole}</small>
+          </span>
+        </div>
+        </div>
       </section>
 
       {/* ---- about (dark band) ---- */}
@@ -81,6 +100,23 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
           <span className="lux-eyebrow gold">{L.aboutKicker}</span>
           <h2 className="lux-h2 light">{L.aboutTitle}</h2>
           <p className="lux-about-body">{L.aboutBody}</p>
+        </div>
+      </section>
+
+      {/* ---- certificates ---- */}
+      <section className="lux-sec lux-certs">
+        <div className="lux-head reveal">
+          <span className="lux-eyebrow green">{L.certsKicker}</span>
+          <h2 className="lux-h2">{L.certsTitle}</h2>
+          <p className="lux-sub">{L.certsSub}</p>
+        </div>
+        <div className="lux-cert-badges reveal">
+          {CREDS.map((c) => (
+            <div className="lux-cert-badge" key={c}><span aria-hidden="true">🎓</span> {c}</div>
+          ))}
+        </div>
+        <div className="lux-events-cta reveal">
+          <button className="lux-btn gold" onClick={() => setCerts(true)}>{L.certsCta}</button>
         </div>
       </section>
 
@@ -182,7 +218,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
       </section>
 
       <footer className="lux-foot">
-        <OmixLogo size={22} />
+        <OmixLogo size={30} />
         <div className="lux-foot-links">
           <a className="lux-foot-link" href="#events">{t.events.tab}</a>
           <button className="lux-foot-link" onClick={() => setLegal(true)}>{t.legal.open}</button>
@@ -190,6 +226,25 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </footer>
 
+      {certs && (
+        <div className="legal-screen" role="dialog" aria-label={L.certsModalTitle}>
+          <header className="legal-top">
+            <strong>{L.certsModalTitle}</strong>
+            <button className="iconbtn" onClick={() => setCerts(false)} aria-label={t.legal.close}>✕</button>
+          </header>
+          <div className="legal-body">
+            <div className="lux-cert-badges" style={{ marginBottom: 22 }}>
+              {CREDS.map((c) => (
+                <div className="lux-cert-badge" key={c}><span aria-hidden="true">🎓</span> {c}</div>
+              ))}
+            </div>
+            <div className="empty">
+              <div className="ico">🎓</div>
+              <p>{L.certsEmpty}</p>
+            </div>
+          </div>
+        </div>
+      )}
       {legal && <Legal onClose={() => setLegal(false)} />}
       {lead && <LeadForm onClose={() => setLead(false)} />}
     </div>
