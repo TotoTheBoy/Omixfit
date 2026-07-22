@@ -736,23 +736,24 @@
 .tabbar a {
   flex: 1 1 0;
   min-width: 0;
+  min-height: 52px; /* comfortable touch target on phone + iPad */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  color: #b3aa93;
+  gap: 4px;
+  color: #c7bda3;
   text-decoration: none;
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: 0.68rem; /* was 0.6rem — readable for non-technical users */
+  font-weight: 700;
   position: relative;
-  padding: 9px 2px;
+  padding: 8px 2px;
   border-radius: 15px;
   transition: color 0.15s, background 0.15s, box-shadow 0.2s;
 }
 .tabbar a svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 .tabbar a .tab-label {
   max-width: 100%;
@@ -851,8 +852,8 @@
   gap: 10px;
 }
 .iconbtn {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: none;
   background: var(--surface-2);
