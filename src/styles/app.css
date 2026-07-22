@@ -3657,3 +3657,8 @@
 .ann-row-main b { font-size: .95rem; color: var(--charcoal); }
 .ann-row-main span { font-size: .86rem; color: var(--text-2); }
 .iconbtn.danger { color: #b0402f; }
+
+/* services catalog: empty state + one-tap load recommended price list */
+.svc-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 30px 16px; text-align: center; }
+.svc-empty .muted { margin: 0; }
+.svc-reload { align-self: center; margin-top: 10px; }

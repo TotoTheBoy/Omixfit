@@ -11,6 +11,7 @@ import type {
   User,
 } from "./types";
 import { addDays, fromKey, startOfWeek, toKey } from "./date";
+import { RECOMMENDED_CATALOG } from "./catalog";
 
 const LOCATION_ID = "loc-main";
 
@@ -191,12 +192,11 @@ function buildAudit(): AppData["audit"] {
   ];
 }
 
-// Starter service catalogue - editable in the app. Prices are placeholders (₪).
+// Service catalogue — Omixfit's real price list (group / online / personal),
+// shared with the admin "load recommended price list" action. Two specialty
+// services are offered inactive so Omer can switch them on if she starts them.
 const services: AppData["services"] = [
-  { id: "svc-personal-pack", name: "אימון אישי · חבילה", kind: "personal", billing: "package", price: 1500, units: 10, active: true },
-  { id: "svc-personal-1", name: "אימון אישי בודד", kind: "personal", billing: "session", price: 180, active: true },
-  { id: "svc-group", name: "מנוי אימונים קבוצתי", kind: "group", billing: "subscription", price: 320, active: true },
-  { id: "svc-zoom", name: "אימון בזום", kind: "zoom", billing: "session", price: 120, online: true, active: true },
+  ...RECOMMENDED_CATALOG,
   { id: "svc-therapy", name: "ספורט-תרפיה", kind: "therapy", billing: "session", price: 250, active: false },
   { id: "svc-injury", name: "טיפול ושיקום פציעות", kind: "injury", billing: "package", price: 2000, units: 8, active: false },
 ];

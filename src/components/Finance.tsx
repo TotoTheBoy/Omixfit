@@ -9,6 +9,7 @@ import {
   newServiceId,
 } from "../lib/store";
 import { clientBalances, clientValueScores, revenueSummary } from "../lib/engine";
+import { RECOMMENDED_CATALOG } from "../lib/catalog";
 import { Avatar } from "./common";
 import { Reports } from "./Reports";
 import { Sheet } from "./Sheet";
@@ -193,6 +194,22 @@ function Kpi({ label, value, big }: { label: string; value: string; big?: boolea
 function Services({ onEdit, onNew }: { onEdit: (s: Service) => void; onNew: () => void }) {
   const services = useStore((s) => s.services);
   const sorted = [...services].sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name, "he"));
+  const [loading, setLoading] = useState(false);
+
+  // One-tap: write Omixfit's real price list (group / online / personal). Ids are
+  // fixed (cat-*), so it's additive/idempotent — it never touches other services.
+  async function loadCatalog() {
+    setLoading(true);
+    try {
+      for (const s of RECOMMENDED_CATALOG) await upsertService(s);
+      toast(t.finance.catalogLoaded, "ok");
+    } catch {
+      toast(t.finance.catalogFailed, "err");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div>
       <div className="page-head" style={{ marginBottom: 14 }}>
@@ -200,7 +217,13 @@ function Services({ onEdit, onNew }: { onEdit: (s: Service) => void; onNew: () =
         <button className="btn btn-lime" onClick={onNew}>+ {t.finance.newService}</button>
       </div>
       {sorted.length === 0 ? (
-        <p className="muted">{t.finance.noServices}</p>
+        <div className="svc-empty">
+          <p className="muted">{t.finance.noServices}</p>
+          <button className="btn btn-lime" onClick={loadCatalog} disabled={loading}>
+            {loading ? t.finance.catalogLoading : t.finance.loadCatalog}
+          </button>
+          <small className="muted">{t.finance.loadCatalogHint}</small>
+        </div>
       ) : (
         <div className="svc-list">
           {sorted.map((s) => (
@@ -213,6 +236,9 @@ function Services({ onEdit, onNew }: { onEdit: (s: Service) => void; onNew: () =
               <b className="svc-price">{t.finance.nis(s.price)}</b>
             </button>
           ))}
+          <button className="btn btn-ghost btn-sm svc-reload" onClick={loadCatalog} disabled={loading}>
+            {loading ? t.finance.catalogLoading : t.finance.reloadCatalog}
+          </button>
         </div>
       )}
     </div>
