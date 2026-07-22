@@ -58,7 +58,7 @@ export function AdminOverview() {
       <section className="dash-sec">
         <div className="row gap-2" style={{ justifyContent: "space-between", marginBottom: 10 }}>
           <h3 className="h2">{t.dash.today}</h3>
-          <span className="chip" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>{s.classesToday.length}</span>
+          <span className="chip count-chip">{s.classesToday.length}</span>
         </div>
         {s.classesToday.length === 0 ? (
           <p className="muted">{t.dash.noClassesToday}</p>

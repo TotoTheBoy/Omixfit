@@ -374,7 +374,7 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
           <div style={{ marginBottom: 4 }}>
             <div className="row gap-2" style={{ marginBottom: 8 }}>
               <h3 className="h2">{t.memberTxns}</h3>
-              <span className="chip" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>{txns.length}</span>
+              <span className="chip count-chip">{txns.length}</span>
             </div>
             {txns.length === 0 ? (
               <p className="muted">{t.memberTxnsNone}</p>

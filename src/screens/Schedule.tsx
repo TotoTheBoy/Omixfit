@@ -161,7 +161,7 @@ export function Schedule() {
         <div className="dh">
           <h2>{fmtDayHeading(activeDate)}</h2>
           {isShabbat(activeDate) && (
-            <span className="chip" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>
+            <span className="chip count-chip">
               {t.shabbatNote}
             </span>
           )}

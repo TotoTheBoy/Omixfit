@@ -209,7 +209,7 @@ export function SessionDetail({
         <div>
           <div className="row gap-2" style={{ marginBottom: 8 }}>
             <h3 className="h2">{t.roster}</h3>
-            <span className="chip" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>
+            <span className="chip count-chip">
               {roster.length}/{session.capacity}
             </span>
           </div>

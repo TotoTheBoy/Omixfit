@@ -48,7 +48,7 @@ export function AnnouncementsAdmin() {
     <section className="dash-sec ann-admin">
       <div className="row gap-2" style={{ justifyContent: "space-between", marginBottom: 10 }}>
         <h3 className="h2">{t.ann.adminTitle}</h3>
-        <span className="chip" style={{ background: "var(--surface-2)", color: "var(--text-2)" }}>{list.length}</span>
+        <span className="chip count-chip">{list.length}</span>
       </div>
       <p className="muted" style={{ margin: "0 0 12px" }}>{t.ann.adminSub}</p>
 
