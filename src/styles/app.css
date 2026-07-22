@@ -3685,3 +3685,34 @@
 
 /* small count badge next to a section heading (was an invisible surface-2 chip) */
 .count-chip { background: var(--sage); color: var(--on-ink); min-width: 24px; justify-content: center; font-weight: 800; }
+
+/* ============================================================================
+   Omix Zone — clearer hierarchy: the timer is a hero card, and each part of the
+   workspace is a distinct panel instead of a flat, undifferentiated scroll.
+   ========================================================================== */
+.zone-hero {
+  display: flex; align-items: center; gap: 16px; width: 100%; text-align: start;
+  background: linear-gradient(135deg, var(--champagne), var(--gold-600));
+  color: var(--charcoal); border: none; border-radius: var(--r-lg);
+  padding: 20px 22px; min-height: 88px; margin-top: 4px; cursor: pointer;
+  box-shadow: var(--sh-2); transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease);
+}
+.zone-hero:hover { transform: translateY(-2px); box-shadow: var(--sh-3); }
+.zone-hero:active { transform: translateY(0); }
+.zone-hero-ico { font-size: 2.4rem; flex: none; line-height: 1; }
+.zone-hero-txt { display: flex; flex-direction: column; gap: 3px; margin-inline-end: auto; min-width: 0; }
+.zone-hero-txt b { font-size: 1.35rem; letter-spacing: -0.01em; }
+.zone-hero-txt small { font-size: 0.9rem; color: var(--gold-600); font-weight: 600; }
+.zone-hero-go { font-size: 1.3rem; opacity: 0.6; flex: none; }
+
+/* every workspace section becomes a calm, distinct card */
+.zone-panel, .zone .planner-sec {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--sh-1); padding: 18px; margin-top: 16px;
+}
+.zone .planner { display: flex; flex-direction: column; }
+/* on tablet/desktop, sit attendance + workspace side by side to cut the scroll */
+@media (min-width: 900px) {
+  .zone .planner { flex-direction: row; flex-wrap: wrap; gap: 16px; }
+  .zone .planner-sec { flex: 1 1 340px; margin-top: 16px; }
+}

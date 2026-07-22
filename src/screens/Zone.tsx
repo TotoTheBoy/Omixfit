@@ -67,13 +67,19 @@ export function Zone({
         )}
       </div>
 
-      <button className="btn btn-lime btn-lg btn-block" onClick={() => setTimerOpen(true)}>
-        ⏱ {t.timer.launch}
+      {/* The timer is the workspace's primary tool → a hero card, not a plain button. */}
+      <button className="zone-hero" onClick={() => setTimerOpen(true)}>
+        <span className="zone-hero-ico" aria-hidden="true">⏱</span>
+        <span className="zone-hero-txt">
+          <b>{t.timer.launch}</b>
+          <small>{t.zone.timerSub}</small>
+        </span>
+        <span className="zone-hero-go" aria-hidden="true">▶</span>
       </button>
 
       {/* Today's attendance carries admin numbers — hidden in presentation mode. */}
       {!presenting && (
-        <section className="dash-sec" style={{ marginTop: 24 }}>
+        <section className="zone-panel">
           <h2 className="h2" style={{ marginBottom: 10 }}>{t.zone.attendance}</h2>
           {s.classesToday.length === 0 ? (
             <p className="muted">{t.dash.noClassesToday}</p>
@@ -96,9 +102,7 @@ export function Zone({
       )}
 
       {/* Lesson plans are client-safe; private task reminders are hidden while presenting. */}
-      <section className="dash-sec" style={{ marginTop: 28 }}>
-        <Planner hideReminders={presenting} />
-      </section>
+      <Planner hideReminders={presenting} />
 
       {timerOpen && <IntervalTimer onClose={() => setTimerOpen(false)} />}
       {detail && !presenting && <SessionDetail session={detail} onClose={() => setDetail(null)} />}
