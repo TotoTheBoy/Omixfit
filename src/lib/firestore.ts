@@ -762,7 +762,12 @@ export async function upsertEvent(ev: SpecialEvent): Promise<void> {
   await audit("session_created", `אירוע: ${ev.title}`);
 }
 export async function deleteEvent(id: string): Promise<void> {
-  await deleteDoc(doc(db, "events", id));
+  // Cascade the event's sign-ups so none are left dangling (mirrors deleteSession).
+  const snap = await getDocs(query(col.eventSignups, where("eventId", "==", id)));
+  const batch = writeBatch(db);
+  batch.delete(doc(db, "events", id));
+  for (const d of snap.docs) batch.delete(d.ref);
+  await batch.commit();
 }
 
 /** #12a Broadcast a newly published event to active members (server-side email).
