@@ -514,11 +514,25 @@ exports.deleteMember = fnV1.https.onCall(async (data, context) => {
     }
   }
   await db.doc("calTokens/" + uid).delete().catch(() => {});
+  const email = target.exists ? (target.data().email || "") : "";
   await db.doc("users/" + uid).delete().catch(() => {});
-  // Remove the auth account last so the e-mail can register again.
+  // Remove the auth account so the e-mail frees up for a fresh registration.
+  // Delete by uid AND (belt-and-suspenders) by email — so even if the doc id and
+  // the auth uid ever diverge, the address is always released.
   const { getAuth } = require("firebase-admin/auth");
-  await getAuth().deleteUser(uid).catch((e) => logger.error("auth delete " + uid, e));
-  return { deleted: true };
+  const auth = getAuth();
+  let authDeleted = false;
+  await auth.deleteUser(uid).then(() => { authDeleted = true; }).catch((e) => logger.warn("auth delete by uid", uid, e && e.code));
+  if (email) {
+    try {
+      const rec = await auth.getUserByEmail(email);
+      if (rec) { await auth.deleteUser(rec.uid); authDeleted = true; }
+    } catch (e) {
+      if (e && e.code === "auth/user-not-found") authDeleted = true; // already gone
+      else logger.error("auth delete by email", e);
+    }
+  }
+  return { deleted: true, authDeleted };
 });
 
 exports.notifyApproval = fnV1.https.onCall(async (data, context) => {
