@@ -78,6 +78,7 @@ export function Members() {
                 <Avatar user={u} size={40} />
                 <span className="mr-body">
                   <span className="mr-name">
+                    {u.memberNo != null && <span className="member-no">#{u.memberNo}</span>}
                     {u.name}
                     {hasMedicalFlag(u) && <span className="tag flag">{t.approvals.healthFlag}</span>}
                   </span>
@@ -161,6 +162,7 @@ export function Members() {
                 <Avatar user={u} size={42} />
                 <span className="mr-body">
                   <span className="mr-name">
+                    {u.memberNo != null && <span className="member-no">#{u.memberNo}</span>}
                     {u.name}
                     <span className={`tag role-${u.role}`}>{t.roles[u.role]}</span>
                     {isNewClient(u) && <span className="tag tag-new">{t.approvals.newClient}</span>}

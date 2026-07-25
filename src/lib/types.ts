@@ -50,6 +50,8 @@ export interface Coaching {
 
 export interface User {
   id: string;
+  /** Sequential registry number assigned on first sign-up (members only). */
+  memberNo?: number;
   name: string;
   /** Split name (collected at registration); `name` stays the combined display. */
   firstName?: string;

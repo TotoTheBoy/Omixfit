@@ -3695,6 +3695,9 @@
 /* verify-email screen: both actions are clear buttons (resend was a text link) */
 .verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
+/* registry number badge (#N) next to a member's name */
+.member-no { display: inline-block; font-size: 0.72rem; font-weight: 800; color: var(--gold-600); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; margin-inline-end: 6px; font-variant-numeric: tabular-nums; }
+
 /* approval stage summary — "what's missing before I can approve" at a glance */
 .stage-summary { padding: 11px 15px; border-radius: var(--r-md); font-weight: 700; font-size: 0.92rem; line-height: 1.45; margin-bottom: 12px; }
 .stage-summary.waiting { background: #fff6e2; border: 1px solid #e8c874; border-inline-start: 5px solid #d99a1a; color: #8a5a00; }

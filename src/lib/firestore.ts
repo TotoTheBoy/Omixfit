@@ -311,8 +311,22 @@ export async function resolveAuthUser(
   // New account: an owner is created as an approved admin; everyone else is a
   // plain member pending approval (no app path to instructor/manager/admin).
   const name = chosenName;
+  // Assign the next registry number atomically (members only).
+  let memberNo: number | undefined;
+  if (!owner) {
+    try {
+      memberNo = await runTransaction(db, async (tx) => {
+        const ref = doc(db, "meta", "counters");
+        const snap = await tx.get(ref);
+        const next = ((snap.exists() ? (snap.data().memberSeq as number) : 0) || 0) + 1;
+        tx.set(ref, { memberSeq: next }, { merge: true });
+        return next;
+      });
+    } catch { /* best-effort */ }
+  }
   const user: User = {
     id: uid,
+    ...(memberNo ? { memberNo } : {}),
     name,
     ...(stashedFirst ? { firstName: stashedFirst } : {}),
     ...(stashedLast ? { lastName: stashedLast } : {}),
