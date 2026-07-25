@@ -381,12 +381,10 @@ async function sweepTrials() {
 // off the hourly reminder ping (Israel ~10:00) to stay cheap and well-timed.
 // Auth accounts whose Firestore member record no longer exists (a removed user)
 // are deleted so the e-mail frees up and no orphan can authenticate. A 30-minute
-// grace protects brand-new sign-ups whose doc is still being written. Runs once a
-// day (Israel ~03:00) off the reminder ping.
+// grace protects brand-new sign-ups whose doc is still being written. Runs every
+// reminder ping (hourly) so a removed account is cleared quickly.
 const OWNER_EMAILS = ["office@omixfit.com", "omer@omixfit.com", "omerido20@gmail.com"];
 async function sweepOrphanAuth() {
-  const now = new Date();
-  if (jerusalemHour(now) !== 3) return 0;
   const { getAuth } = require("firebase-admin/auth");
   const auth = getAuth();
   const cutoff = Date.now() - 30 * 60 * 1000;

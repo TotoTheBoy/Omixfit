@@ -77,6 +77,7 @@ export default function App() {
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [slowLoad, setSlowLoad] = useState(false);
+  const [everResolved, setEverResolved] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   // Logged-out flow: marketing landing first, then the email/password sign-in.
   const [authView, setAuthView] = useState<"landing" | "login">("landing");
@@ -129,6 +130,25 @@ export default function App() {
     const id = setTimeout(() => setSlowLoad(true), 6000);
     return () => clearTimeout(id);
   }, [me, authResolved, signedIn]);
+
+  // Track whether the current session ever had a resolved profile. Reset on
+  // sign-out so a fresh login (profile still streaming) isn't mistaken for a
+  // removal.
+  useEffect(() => {
+    if (!signedIn) setEverResolved(false);
+    else if (me) setEverResolved(true);
+  }, [signedIn, me]);
+
+  // Removed while logged in: our profile vanished from the live data (the admin
+  // deleted us) → sign out to the landing immediately, as if we must log in again.
+  useEffect(() => {
+    if (signedIn && everResolved && !me) {
+      void (async () => {
+        try { const { signOutUser } = await import("./lib/firebase"); await signOutUser(); } catch { /* */ }
+        logout();
+      })();
+    }
+  }, [signedIn, everResolved, me]);
 
   // If a staff-only/member-only view doesn't fit the current role, fall back.
   useEffect(() => {
