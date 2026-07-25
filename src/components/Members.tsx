@@ -280,6 +280,11 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
     const step3 = !!hf; // signed health declaration
     const step4 = !!hf?.termsAccepted; // studio terms
     const canApprove = step1 && step3 && step4; // steps 1, 3, 4 gate approval
+    const missing = [
+      !step1 && t.approvals.step1,
+      !step3 && t.approvals.step3,
+      !step4 && t.approvals.step4,
+    ].filter(Boolean) as string[];
     async function resendVerify() {
       try {
         await sendVerificationLink(u.id);
@@ -311,6 +316,11 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
         <span className="tag pending" style={{ marginBottom: 12, display: "inline-block" }}>
           {t.approvals.statusPending}
         </span>
+
+        {/* At-a-glance: exactly what's still missing before Omer can approve. */}
+        <div className={`stage-summary ${canApprove ? "ready" : "waiting"}`} role="status">
+          {canApprove ? t.approvals.readyToApprove : t.approvals.missingForApproval(missing.join(" · "))}
+        </div>
 
         <HealthReview u={u} />
 
@@ -614,7 +624,16 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
 function HealthReview({ u }: { u: User }) {
   const hf = u.healthForm;
   const [busy, setBusy] = useState(false);
-  if (!hf) return null;
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  // No declaration yet → say so clearly (don't show a dead "view PDF" button).
+  if (!hf) {
+    return (
+      <div className="health-review">
+        <div className="health-missing" role="note">📋 {t.approvals.noHealthFormYet}</div>
+      </div>
+    );
+  }
   const note = hf.notes?.trim();
   const flagged = HEALTH_GROUPS.flatMap((g) => g.items)
     .filter((it) => (hf as unknown as Record<string, boolean>)[it.key] === true)
@@ -623,13 +642,21 @@ function HealthReview({ u }: { u: User }) {
   async function viewPdf() {
     setBusy(true);
     try {
-      const { openHealthPdf } = await import("../lib/healthPdf");
-      await openHealthPdf(u, hf!);
+      // Render → blob URL → show in an in-app modal. (window.open after an await
+      // is blocked by iOS Safari's popup blocker, so the old button did nothing.)
+      const { buildHealthPdfDataUrl } = await import("../lib/healthPdf");
+      const dataUrl = await buildHealthPdfDataUrl(u, hf!);
+      const blob = await (await fetch(dataUrl)).blob();
+      setPdfUrl(URL.createObjectURL(blob));
     } catch {
       toast(t.approvals.pdfErr, "err");
     } finally {
       setBusy(false);
     }
+  }
+  function closePdf() {
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    setPdfUrl(null);
   }
 
   return (
@@ -652,6 +679,20 @@ function HealthReview({ u }: { u: User }) {
       <button className="btn btn-ghost btn-block" onClick={viewPdf} disabled={busy} style={{ marginTop: 10 }}>
         📄 {busy ? t.approvals.pdfLoading : t.approvals.viewPdf}
       </button>
+
+      {pdfUrl && (
+        <div className="pdf-viewer" role="dialog" aria-label={t.approvals.healthPdfTitle}>
+          <header className="pdf-viewer-top">
+            <strong>{t.approvals.healthPdfTitle}</strong>
+            <span className="row gap-2">
+              {/* Direct tap → opens on iOS too (where the inline iframe may not render). */}
+              <a className="btn btn-sm btn-lime" href={pdfUrl} target="_blank" rel="noreferrer">{t.approvals.pdfOpen}</a>
+              <button className="iconbtn" onClick={closePdf} aria-label={t.close}><IcClose /></button>
+            </span>
+          </header>
+          <iframe title={t.approvals.healthPdfTitle} src={pdfUrl} className="pdf-viewer-frame" />
+        </div>
+      )}
     </div>
   );
 }

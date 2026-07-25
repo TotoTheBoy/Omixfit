@@ -3695,6 +3695,20 @@
 /* verify-email screen: both actions are clear buttons (resend was a text link) */
 .verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
+/* approval stage summary — "what's missing before I can approve" at a glance */
+.stage-summary { padding: 11px 15px; border-radius: var(--r-md); font-weight: 700; font-size: 0.92rem; line-height: 1.45; margin-bottom: 12px; }
+.stage-summary.waiting { background: #fff6e2; border: 1px solid #e8c874; border-inline-start: 5px solid #d99a1a; color: #8a5a00; }
+.stage-summary.ready { background: #eef5ef; border: 1px solid #b9d6bf; border-inline-start: 5px solid #2f6b3b; color: #245a30; }
+
+/* "no health form yet" note in the member review */
+.health-missing { padding: 12px 15px; border-radius: var(--r-md); background: var(--surface-2); border: 1px dashed var(--line-strong); color: var(--text-2); font-weight: 600; font-size: 0.9rem; }
+
+/* in-app PDF viewer (avoids iOS popup blocking of window.open) */
+.pdf-viewer { position: fixed; inset: 0; z-index: 80; background: #1a1a1a; display: flex; flex-direction: column; }
+.pdf-viewer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.pdf-viewer-top strong { font-size: 1rem; }
+.pdf-viewer-frame { flex: 1; width: 100%; border: none; background: #333; }
+
 /* loyalty journey sheet: the perk note under the ladder */
 .journey-perk { margin: 16px 0 0; padding: 12px 15px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); color: var(--charcoal); font-size: 0.9rem; font-weight: 600; line-height: 1.5; }
 
