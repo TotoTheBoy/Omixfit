@@ -8,6 +8,7 @@ import {
   useStore,
 } from "../lib/store";
 import { loyaltyFor, weeklyStreak, LOYALTY_TIERS } from "../lib/engine";
+import { shareInvite } from "../lib/share";
 import { fmtDayHeading, fmtRelative, fmtTime, fromKey } from "../lib/date";
 import { OmixMark } from "../components/Brand";
 import { IcBookmark, IcCalendar, IcChevR, IcUser } from "../components/icons";
@@ -138,6 +139,16 @@ export function Home({ onGo }: { onGo: (v: View) => void }) {
           </ul>
         )}
       </section>
+
+      {/* invite a friend — native share sheet (WhatsApp / Messages / …) */}
+      <button className="invite-card" onClick={() => shareInvite()}>
+        <span className="invite-ico" aria-hidden="true">💛</span>
+        <span className="invite-txt">
+          <b>{t.invite.title}</b>
+          <span>{t.invite.subtitle}</span>
+        </span>
+        <span className="invite-go" aria-hidden="true">↗</span>
+      </button>
 
       {/* quick actions */}
       <section className="home-actions">

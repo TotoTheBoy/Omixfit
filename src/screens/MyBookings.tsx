@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { t } from "../lib/i18n";
 import type { ClassSession } from "../lib/types";
 import { sessionStartDate, useStore } from "../lib/store";
+import { shareInvite } from "../lib/share";
 import { useNow } from "../lib/useNow";
 import { ClassCard } from "../components/ClassCard";
 import { SessionDetail } from "../components/SessionDetail";
@@ -85,6 +86,14 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
           {list.map((s) => (
             <ClassCard key={s.id} session={s} onOpen={setOpen} />
           ))}
+        </div>
+      )}
+
+      {tab === "upcoming" && list.length > 0 && (
+        <div style={{ textAlign: "center", marginTop: 14 }}>
+          <button className="invite-mini" onClick={() => shareInvite(t.invite.classMsg)}>
+            💌 {t.invite.classCta}
+          </button>
         </div>
       )}
 

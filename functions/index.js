@@ -489,6 +489,38 @@ async function callerRole(context) {
 const ctaButton = (label) =>
   `<p style="margin:22px 0"><a href="${APP_URL}" style="background:#c89b3c;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">${label}</a></p>`;
 
+// Staff permanently deletes a member: removes their bookings, calendar tokens,
+// event signups and the user doc, then the Firebase Auth account so the e-mail
+// frees up for a fresh registration. Admins are never deletable. Also handy for
+// testing (register → delete → register again).
+exports.deleteMember = fnV1.https.onCall(async (data, context) => {
+  const role = await callerRole(context);
+  if (!["admin", "manager"].includes(role)) {
+    throw new fnV1.https.HttpsError("permission-denied", "admin/manager only");
+  }
+  const uid = data && data.uid;
+  if (!uid) throw new fnV1.https.HttpsError("invalid-argument", "uid required");
+  const target = await db.doc("users/" + uid).get();
+  if (target.exists && target.data().role === "admin") {
+    throw new fnV1.https.HttpsError("permission-denied", "admins can't be deleted");
+  }
+  // Delete owned docs (bookings, event signups) + per-user calendar token.
+  for (const c of ["bookings", "eventSignups"]) {
+    const snap = await db.collection(c).where("userId", "==", uid).get();
+    for (let i = 0; i < snap.docs.length; i += 400) {
+      const batch = db.batch();
+      snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+  }
+  await db.doc("calTokens/" + uid).delete().catch(() => {});
+  await db.doc("users/" + uid).delete().catch(() => {});
+  // Remove the auth account last so the e-mail can register again.
+  const { getAuth } = require("firebase-admin/auth");
+  await getAuth().deleteUser(uid).catch((e) => logger.error("auth delete " + uid, e));
+  return { deleted: true };
+});
+
 exports.notifyApproval = fnV1.https.onCall(async (data, context) => {
   const role = await callerRole(context);
   if (!["admin", "manager", "instructor"].includes(role)) {

@@ -167,6 +167,8 @@ export const notifyHealthSubmission = (
 ) => backend().then((b) => b.notifyHealthSubmission(userId, pdfDataUrl, certDataUrl, certName));
 export const sendMyVerificationEmail = () =>
   backend().then((b) => b.sendMyVerificationEmail());
+export const deleteMember = (uid: string) =>
+  backend().then((b) => b.deleteMember(uid));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));

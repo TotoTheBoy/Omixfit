@@ -317,6 +317,13 @@ export async function submitHealthForm(
   });
 }
 
+/** Staff permanently deletes a member (bookings + user doc + auth account, so the
+ *  e-mail can register again). Admin/manager only; admins are never deletable. */
+export async function deleteMember(uid: string): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "deleteMember");
+  await call({ uid });
+}
+
 /** Self-service branded email verification (from office@, with a continueUrl
  *  back to the app). Sent at sign-up and by the "resend" button. */
 export async function sendMyVerificationEmail(): Promise<void> {

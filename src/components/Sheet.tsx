@@ -16,9 +16,14 @@ const FOCUSABLE =
 
 export function Sheet({ title, onClose, children, footer, hero }: SheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
+  // Keep the latest onClose without re-running the focus effect (onClose is a new
+  // closure each render; depending on it re-focused the first control — the ×
+  // button — on every keystroke, kicking the user out of any input).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   // Dialog focus management (WCAG 2.4.3 / dialog pattern): move focus into the
-  // sheet on open, trap Tab inside it, and restore focus to the trigger on
+  // sheet ONCE on open, trap Tab inside it, and restore focus to the trigger on
   // close. Without this, keyboard/SR users stay stuck behind the modal.
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -32,7 +37,7 @@ export function Sheet({ title, onClose, children, footer, hero }: SheetProps) {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !sheet) return;
@@ -64,7 +69,9 @@ export function Sheet({ title, onClose, children, footer, hero }: SheetProps) {
       // Restore focus to whatever opened the sheet.
       previouslyFocused?.focus?.();
     };
-  }, [onClose]);
+    // Run once on open — NOT on every render (see onCloseRef above).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="scrim" onMouseDown={onClose}>

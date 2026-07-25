@@ -60,6 +60,7 @@ export default function App() {
   const [zonePresenting, setZonePresenting] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [slowLoad, setSlowLoad] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
   // Logged-out flow: marketing landing first, then the email/password sign-in.
   const [authView, setAuthView] = useState<"landing" | "login">("landing");
@@ -97,6 +98,15 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
+  // If the session is signed in but the Firestore profile hasn't resolved after a
+  // few seconds (slow network / a transient hiccup during first sign-up), offer a
+  // one-tap reload so the user never has to figure out a manual refresh.
+  useEffect(() => {
+    if (me || !signedIn) { setSlowLoad(false); return; }
+    const id = setTimeout(() => setSlowLoad(true), 7000);
+    return () => clearTimeout(id);
+  }, [me, signedIn]);
+
   // If a staff-only/member-only view doesn't fit the current role, fall back.
   useEffect(() => {
     if (!me) return;
@@ -132,6 +142,12 @@ export default function App() {
       return (
         <div className="app-splash" role="status" aria-label="טוען">
           <OmixMark size={64} />
+          {slowLoad && (
+            <div className="splash-slow">
+              <p>{t.splashSlow}</p>
+              <button className="btn btn-lime" onClick={() => location.reload()}>{t.splashReload}</button>
+            </div>
+          )}
         </div>
       );
     }

@@ -3689,6 +3689,31 @@
 /* verify-email screen: both actions are clear buttons (resend was a text link) */
 .verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
+/* member "danger zone": permanent delete */
+.danger-zone { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+.dz-warn { color: #b0402f; font-size: 0.9rem; font-weight: 600; margin: 0 0 10px; line-height: 1.5; }
+
+/* splash: slow-load fallback so a stuck resolve never needs a manual refresh */
+.splash-slow { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 22px; animation: fade-in 0.3s var(--ease); }
+.splash-slow p { color: var(--text-2); font-size: 0.9rem; margin: 0; text-align: center; max-width: 260px; }
+
+/* member "invite a friend" card — warm, inviting */
+.invite-card {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: start; cursor: pointer;
+  background: linear-gradient(135deg, var(--sage), var(--olive) 60%, var(--gold-600));
+  color: var(--on-ink); border: 1px solid var(--gold); border-radius: var(--r-lg);
+  padding: 16px 18px; box-shadow: var(--sh-2); transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease);
+}
+.invite-card:hover { transform: translateY(-2px); box-shadow: var(--sh-3); }
+.invite-ico { font-size: 2rem; flex: none; }
+.invite-txt { display: flex; flex-direction: column; gap: 2px; margin-inline-end: auto; min-width: 0; }
+.invite-txt b { color: var(--champagne); font-size: 1.1rem; }
+.invite-txt span { color: var(--on-ink); font-size: 0.86rem; }
+.invite-go { font-size: 1.3rem; flex: none; opacity: 0.75; }
+/* smaller inline invite (per-class) */
+.invite-mini { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px dashed var(--gold-600); color: var(--olive-600); border-radius: var(--r-pill); padding: 7px 14px; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+.invite-mini:hover { background: var(--surface-2); }
+
 /* full tofes101 health questionnaire — grouped questions + certificate upload */
 .health-groups { display: flex; flex-direction: column; gap: 8px; }
 .health-group { padding: 10px 0; border-top: 1px solid var(--line); }

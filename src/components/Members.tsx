@@ -5,6 +5,7 @@ import {
   classTypeOf,
   hasMedicalFlag,
   deleteLead,
+  deleteMember,
   memberStats,
   sessionStartDate,
   sendVerificationLink,
@@ -30,6 +31,9 @@ const IcSearch = (p: React.SVGProps<SVGSVGElement>) => (
 );
 
 const ROLE_ORDER: Record<Role, number> = { admin: 0, manager: 1, instructor: 2, member: 3 };
+
+// wa.me link — strip formatting, local 0 → Israel country code.
+const waLink = (phone: string) => `https://wa.me/${(phone || "").replace(/\D/g, "").replace(/^0/, "972")}`;
 
 export function Members() {
   const data = useStore((s) => s);
@@ -198,6 +202,46 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   const isAdmin = u.role === "admin";
   const hf = u.healthForm;
   const [notes, setNotes] = useState(u.trainerNotes ?? "");
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const me = data.users.find((x) => x.id === data.currentUserId);
+  const canManage = me?.role === "admin" || me?.role === "manager";
+
+  async function removeMember() {
+    setDeleting(true);
+    try {
+      await deleteMember(u.id);
+      toast(t.approvals.deletedToast(u.name), "info");
+      onClose();
+    } catch {
+      toast(t.approvals.deleteErr, "err");
+      setDeleting(false);
+    }
+  }
+
+  // Permanent-delete danger zone (admin/manager only; never an admin target).
+  // Shown on both the pending-review and full member cards — also handy for tests.
+  const deleteZone = canManage && !isAdmin ? (
+    <div className="danger-zone">
+      {confirmDel ? (
+        <>
+          <p className="dz-warn">{t.approvals.deleteConfirm(u.name)}</p>
+          <div className="row gap-2">
+            <button className="btn btn-danger grow" onClick={removeMember} disabled={deleting}>
+              {deleting ? t.approvals.deleting : t.approvals.deleteYes}
+            </button>
+            <button className="btn btn-ghost" onClick={() => setConfirmDel(false)} disabled={deleting}>
+              {t.approvals.deleteCancel}
+            </button>
+          </div>
+        </>
+      ) : (
+        <button className="btn btn-danger btn-block" onClick={() => setConfirmDel(true)}>
+          🗑 {t.approvals.deleteMember}
+        </button>
+      )}
+    </div>
+  ) : null;
 
   async function decide(status: "approved" | "rejected") {
     await setApproval(u.id, status);
@@ -302,6 +346,7 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
             <b>{t.health.notesLabel}:</b> {note}
           </p>
         )}
+        {deleteZone}
       </Sheet>
     );
   }
@@ -311,9 +356,14 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
       onClose={onClose}
       hero={hero}
       footer={
-        <a className="btn btn-ink grow" href={`tel:${u.phone.replace(/[-\s]/g, "")}`}>
-          {t.callMember}
-        </a>
+        <>
+          <a className="btn btn-ink" href={`tel:${u.phone.replace(/[-\s]/g, "")}`}>
+            {t.callMember}
+          </a>
+          <a className="btn btn-lime grow" href={waLink(u.phone)} target="_blank" rel="noreferrer">
+            💬 {t.whatsappMember}
+          </a>
+        </>
       }
     >
       <div className="row gap-3 wrap">
@@ -561,6 +611,8 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
           </div>
         )}
       </div>
+
+      {deleteZone}
     </Sheet>
   );
 }

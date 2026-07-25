@@ -42,6 +42,14 @@ export const t = {
     actBookings: "ההזמנות שלי",
     actProfile: "הפרופיל שלי",
   },
+  invite: {
+    title: "הזמינו חבר/ה 💛",
+    subtitle: "אימון ביחד תמיד כיף יותר — שתפו והזמינו לאימון",
+    classCta: "הזמן/י חבר/ה לאימון",
+    classMsg: "בוא/י להתאמן איתי ב-Omix — הסטודיו של עומר 💪 יש לי אימון מעולה, מצטרפ/ת? הרשמה כאן:",
+  },
+  splashSlow: "הטעינה אורכת יותר מהצפוי. נסו לרענן —",
+  splashReload: "רענון",
   ann: {
     feedTitle: "עדכונים מהסטודיו",
     feedEmpty: "אין עדכונים חדשים — נהיה כאן כשיהיה משהו 🌿",
@@ -346,6 +354,7 @@ export const t = {
   attendedShort: "נוכחות",
   upcomingShort: "קרובים",
   callMember: "התקשרות",
+  whatsappMember: "וואטסאפ",
 
   // catalog (ClassType management - plan.md §4.2)
   catalog: "קטלוג שיעורים",
@@ -744,6 +753,13 @@ export const t = {
     hasPassLabel: "כרטיסייה",
     hasPassYes: "פעילה ✓",
     markPass: "סימון רכישת כרטיסייה",
+    deleteMember: "מחיקת מתאמן/ת לצמיתות",
+    deleteConfirm: (name: string) => `למחוק לצמיתות את ${name}? כל הנתונים יימחקו, והמייל יתפנה להרשמה מחדש.`,
+    deleteYes: "כן, מחק/י לצמיתות",
+    deleteCancel: "ביטול",
+    deleting: "מוחק…",
+    deletedToast: (name: string) => `${name} נמחק/ה לצמיתות`,
+    deleteErr: "המחיקה נכשלה — נסו שוב",
     passMarkedToast: (name: string) => `${name} סומן/ה כבעל/ת כרטיסייה`,
     lastLoginLabel: "כניסה אחרונה",
     neverLoggedIn: "טרם התחבר/ה למערכת",
