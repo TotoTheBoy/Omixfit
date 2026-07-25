@@ -7,6 +7,7 @@ import {
   useStore,
 } from "../lib/store";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 import type { Announcement } from "../lib/types";
 
 const TONES: Announcement["tone"][] = ["news", "event", "important"];
@@ -40,8 +41,14 @@ export function AnnouncementsAdmin() {
   }
 
   async function remove(id: string) {
-    await deleteAnnouncement(id);
-    toast(t.ann.removed);
+    const a = list.find((x) => x.id === id);
+    if (!(await confirm({ title: t.ann.remove, body: a ? `למחוק את "${a.title}"?` : undefined, danger: true, confirmLabel: t.remove }))) return;
+    try {
+      await deleteAnnouncement(id);
+      toast(t.ann.removed);
+    } catch {
+      toast("המחיקה נכשלה - נסו שוב", "err");
+    }
   }
 
   return (

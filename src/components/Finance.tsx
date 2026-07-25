@@ -14,6 +14,7 @@ import { Avatar } from "./common";
 import { Reports } from "./Reports";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 
 const KINDS: ServiceKind[] = ["personal", "group", "zoom", "therapy", "injury"];
 const BILLINGS: BillingModel[] = ["package", "subscription", "session"];
@@ -344,9 +345,14 @@ function ServiceEditor({ service, onClose }: { service: Service | null; onClose:
   }
   async function remove() {
     if (!service) return;
-    await deleteService(service.id);
-    toast(t.finance.serviceDeleted, "info");
-    onClose();
+    if (!(await confirm({ title: t.finance.deleteService, body: `למחוק את "${service.name}"?`, danger: true, confirmLabel: t.remove }))) return;
+    try {
+      await deleteService(service.id);
+      toast(t.finance.serviceDeleted, "info");
+      onClose();
+    } catch {
+      toast("מחיקת השירות נכשלה - נסו שוב", "err");
+    }
   }
 
   return (

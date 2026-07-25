@@ -4,6 +4,7 @@ import type { BillingCycle, Subscription } from "../lib/types";
 import { useStore, saveSubscriptions, newSubId } from "../lib/store";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 import { IcClose, IcPlus } from "./icons";
 
 const SYM: Record<string, string> = { EUR: "€", USD: "$", ILS: "₪" };
@@ -47,7 +48,8 @@ export function Billing({ onClose }: { onClose: () => void }) {
     setEdit(null);
     toast(t.finance ? "נשמר" : "נשמר", "ok");
   }
-  function onDelete(id: string) {
+  async function onDelete(id: string) {
+    if (!(await confirm({ title: t.billing.remove, body: "למחוק את המסלול?", danger: true, confirmLabel: t.billing.remove }))) return;
     persist(subs.filter((x) => x.id !== id));
     setEdit(null);
   }

@@ -11,6 +11,7 @@ import {
 import { fmtTime, toKey } from "../lib/date";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 
 interface Props {
   /** Existing session to edit, or null to create. */
@@ -103,18 +104,26 @@ export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) 
     }
   }
 
-  function onCancelSession() {
-    if (session) {
-      cancelSession(session.id);
+  async function onCancelSession() {
+    if (!session) return;
+    if (!(await confirm({ title: t.cancelSession, body: t.cancelSessionConfirm, danger: true, confirmLabel: t.cancelSession }))) return;
+    try {
+      await cancelSession(session.id);
       toast("השיעור בוטל וההודעות נשלחו", "info");
       onClose();
+    } catch {
+      toast("ביטול השיעור נכשל - נסו שוב", "err");
     }
   }
-  function onDelete() {
-    if (session) {
-      deleteSession(session.id);
+  async function onDelete() {
+    if (!session) return;
+    if (!(await confirm({ title: "מחיקת שיעור", body: "למחוק את השיעור לצמיתות? לא ניתן לשחזר.", danger: true, confirmLabel: t.remove }))) return;
+    try {
+      await deleteSession(session.id);
       toast("השיעור נמחק", "info");
       onClose();
+    } catch {
+      toast("מחיקת השיעור נכשלה - נסו שוב", "err");
     }
   }
 

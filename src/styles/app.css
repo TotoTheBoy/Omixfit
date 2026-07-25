@@ -1010,6 +1010,36 @@
   gap: 8px;
   pointer-events: none;
 }
+
+/* Confirm dialog (imperative confirm() bus) */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(20, 16, 10, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: confirm-fade 0.15s ease;
+}
+@keyframes confirm-fade { from { opacity: 0; } to { opacity: 1; } }
+.confirm-box {
+  background: var(--surface, #fff);
+  color: var(--text-1, #241c12);
+  border-radius: 16px;
+  padding: 22px 20px 16px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+  animation: confirm-pop 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes confirm-pop { from { transform: scale(0.94); opacity: 0.6; } to { transform: scale(1); opacity: 1; } }
+.confirm-title { margin: 0 0 8px; font-size: 1.05rem; font-weight: 800; }
+.confirm-body { margin: 0 0 16px; color: var(--text-2); line-height: 1.55; font-size: 0.9rem; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-actions .btn { flex: 1; }
 .toast {
   pointer-events: auto;
   display: flex;

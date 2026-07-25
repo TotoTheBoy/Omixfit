@@ -20,6 +20,7 @@ import { fmtDayHeading, fmtTime } from "../lib/date";
 import { Avatar } from "./common";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 import { IcUsers, IcCheck, IcClose } from "./icons";
 
 // Magnifier icon (local - not in the shared set)
@@ -113,7 +114,7 @@ export function Members() {
                 <span className="row gap-2">
                   <a className="btn btn-sm btn-lime" href={`https://wa.me/${l.phone.replace(/\D/g, "").replace(/^0/, "972")}`} target="_blank" rel="noreferrer" aria-label={t.lead.whatsapp}>💬</a>
                   <button className="btn btn-sm btn-ghost" onClick={() => setLeadHandled(l.id, !l.handled)} aria-label={t.lead.toggleHandled}>{l.handled ? "↩︎" : "✓"}</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => deleteLead(l.id)} aria-label={t.lead.delete}>🗑</button>
+                  <button className="btn btn-sm btn-danger" onClick={async () => { if (await confirm({ title: t.lead.delete, body: l.name ? `למחוק את הליד "${l.name}"?` : undefined, danger: true, confirmLabel: t.remove })) deleteLead(l.id); }} aria-label={t.lead.delete}>🗑</button>
                 </span>
               </div>
             ))}
@@ -249,7 +250,12 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   ) : null;
 
   async function decide(status: "approved" | "rejected") {
-    await setApproval(u.id, status);
+    try {
+      await setApproval(u.id, status);
+    } catch {
+      toast("העדכון נכשל - נסו שוב", "err");
+      return;
+    }
     if (status === "approved") {
       // setApproval now sends the "you're approved" e-mail automatically (server-side).
       toast(t.approvals.approvedToast(u.name), "ok");

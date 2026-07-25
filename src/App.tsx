@@ -18,6 +18,7 @@ import { LegalPage } from "./screens/LegalPage";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { OmixLogo, OmixMark } from "./components/Brand";
 import { Toaster } from "./components/Toast";
+import { ConfirmHost } from "./components/Confirm";
 import { Celebration } from "./components/Celebration";
 import { Avatar } from "./components/common";
 import {
@@ -335,6 +336,7 @@ export default function App() {
 
       {switcher && <UserSwitcher onClose={() => setSwitcher(false)} />}
       <Toaster />
+      <ConfirmHost />
       <Celebration />
     </div>
   );

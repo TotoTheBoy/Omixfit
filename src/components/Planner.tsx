@@ -12,6 +12,7 @@ import {
 } from "../lib/store";
 import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 import { IcPlus, IcTrash, IcCheck } from "./icons";
 
 /** #11 Coach workspace: operational task reminders + a tagged, reusable archive
@@ -91,7 +92,7 @@ export function Planner({ hideReminders = false }: { hideReminders?: boolean }) 
                 <button
                   className="iconbtn rem-del"
                   aria-label={t.planner.delete}
-                  onClick={() => deleteReminder(r.id)}
+                  onClick={async () => { if (await confirm({ title: t.planner.delete, body: r.text ? `למחוק את "${r.text}"?` : undefined, danger: true, confirmLabel: t.remove })) deleteReminder(r.id); }}
                 >
                   <IcTrash width={16} height={16} />
                 </button>
