@@ -28,8 +28,8 @@ function detailRows(user: User): string {
   ];
   return rows
     .map(([k, v], i) => `<tr style="background:${i % 2 ? "#faf7f0" : "#fff"}">
-      <td style="padding:9px 12px;border:1px solid #e6dcc4;color:#6b5d47;width:38%">${esc(k)}</td>
-      <td style="padding:9px 12px;border:1px solid #e6dcc4;color:#241c12;font-weight:600">${esc(v)}</td></tr>`)
+      <td style="padding:5px 11px;border:1px solid #e6dcc4;color:#6b5d47;width:38%">${esc(k)}</td>
+      <td style="padding:5px 11px;border:1px solid #e6dcc4;color:#241c12;font-weight:600">${esc(v)}</td></tr>`)
     .join("");
 }
 
@@ -41,8 +41,8 @@ function medicalRows(form: HealthForm): string {
       const bg = yes ? "#fbe9e7" : i % 2 ? "#faf7f0" : "#fff";
       const col = yes ? "#b0402f" : "#241c12";
       return `<tr style="background:${bg}">
-        <td style="padding:8px 12px;border:1px solid #e6dcc4;color:${col};width:78%">${esc(it.label)}</td>
-        <td style="padding:8px 12px;border:1px solid #e6dcc4;color:${col};font-weight:800;text-align:center">${yes ? "כן" : "לא"}</td></tr>`;
+        <td style="padding:4px 11px;border:1px solid #e6dcc4;color:${col};width:78%">${esc(it.label)}</td>
+        <td style="padding:4px 11px;border:1px solid #e6dcc4;color:${col};font-weight:800;text-align:center">${yes ? "כן" : "לא"}</td></tr>`;
     })
     .join("");
 }
@@ -59,20 +59,20 @@ function summaryBlock(form: HealthForm): string {
     : `סומן ‏"כן"‏ ל: ${flagged.map((f) => f.label).join(" · ")}.<br>לפי תקנות מכוני כושר נדרשת תעודה רפואית מרופא לפני תחילת האימונים. ${
         form.hasMedicalCert ? "צורפה תעודה רפואית (מצורפת למייל)." : "טרם צורפה תעודה — יש לוודא שתומצא."
       }`;
-  return `<div style="margin:6px 0 0;padding:14px 16px;border-radius:10px;background:${bg};border-inline-start:5px solid ${border}">
-    <div style="font-weight:800;color:${border};font-size:15px;margin-bottom:5px">${head}</div>
-    <div style="color:#241c12;font-size:13px;line-height:1.55">${body}</div></div>`;
+  return `<div style="margin:4px 0 0;padding:10px 14px;border-radius:9px;background:${bg};border-inline-start:5px solid ${border}">
+    <div style="font-weight:800;color:${border};font-size:14px;margin-bottom:3px">${head}</div>
+    <div style="color:#241c12;font-size:12.5px;line-height:1.5">${body}</div></div>`;
 }
 
 function buildHtml(user: User, form: HealthForm): string {
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name || "";
   const when = new Date(form.submittedAt || Date.now()).toLocaleDateString("he-IL");
-  const H2 = 'style="color:#a9842f;font-size:16px;font-weight:800;margin:20px 0 8px"';
-  const TBL = 'style="width:100%;border-collapse:collapse;font-size:13px"';
-  return `<div style="font-family:Rubik,Arial,sans-serif;color:#241c12;padding:28px 30px 34px">
-    <div style="background:#1a1a1a;border-radius:12px;padding:16px 20px;margin-bottom:8px">
-      <div style="color:#c5a059;font-size:22px;font-weight:800">הצהרת בריאות · Omix</div>
-      <div style="color:#c2b591;font-size:11px;margin-top:3px">טופס הצהרת בריאות למבקש/ת להתאמן — תקנות מכוני כושר 2015</div>
+  const H2 = 'style="color:#a9842f;font-size:14px;font-weight:800;margin:12px 0 5px"';
+  const TBL = 'style="width:100%;border-collapse:collapse;font-size:12px"';
+  return `<div style="font-family:Rubik,Arial,sans-serif;color:#241c12;padding:16px 22px 18px">
+    <div style="background:#1a1a1a;border-radius:11px;padding:11px 18px;margin-bottom:4px">
+      <div style="color:#c5a059;font-size:19px;font-weight:800">הצהרת בריאות · Omix</div>
+      <div style="color:#c2b591;font-size:10.5px;margin-top:2px">טופס הצהרת בריאות למבקש/ת להתאמן — תקנות מכוני כושר 2015</div>
     </div>
     <div ${H2}>פרטים אישיים</div>
     <table ${TBL}>${detailRows(user)}</table>
@@ -80,8 +80,8 @@ function buildHtml(user: User, form: HealthForm): string {
     <table ${TBL}>${medicalRows(form)}</table>
     <div ${H2}>סיכום</div>
     ${summaryBlock(form)}
-    ${form.notes ? `<div ${H2}>הערות המתאמן/ת</div><div style="font-size:13px;line-height:1.6">${esc(form.notes)}</div>` : ""}
-    <div style="margin-top:24px;padding-top:12px;border-top:1px solid #e6dcc4;color:#6b5d47;font-size:12px">
+    ${form.notes ? `<div ${H2}>הערות המתאמן/ת</div><div style="font-size:12px;line-height:1.5">${esc(form.notes)}</div>` : ""}
+    <div style="margin-top:12px;padding-top:8px;border-top:1px solid #e6dcc4;color:#6b5d47;font-size:11.5px">
       חתימת המתאמן/ת: <b style="color:#241c12">${esc(form.signedName || name)}</b> &nbsp;·&nbsp; תאריך הגשה: ${esc(when)}
     </div>
   </div>`;
