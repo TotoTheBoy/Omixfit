@@ -5,7 +5,7 @@ import type { SpecialEvent } from "../lib/types";
 import { OmixMark } from "../components/Brand";
 import { Toaster, toast } from "../components/Toast";
 
-/** Public (no-login) retreat / special-event registration page — reached at
+/** Public (no-login) retreat / special-event registration page - reached at
  *  #events. Anyone (incl. non-members) can browse published events and sign up. */
 // Pull an individual-event id out of the hash: "#/events/<id>" → "<id>",
 // "#events" / "#/events" → "" (the full list).

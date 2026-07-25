@@ -141,7 +141,7 @@ function startListeners(): void {
   onSnapshot(doc(db, "meta", "facility"), (d) => {
     if (d.exists()) hydrate({ facility: d.data() as Facility });
   });
-  // Owner-only (the rules deny non-owners) — ignore the permission error for
+  // Owner-only (the rules deny non-owners) - ignore the permission error for
   // everyone else so it doesn't surface as a console error.
   onSnapshot(
     doc(db, "meta", "subscriptions"),
@@ -239,7 +239,7 @@ export async function resolveAuthUser(
   const e = email.trim().toLowerCase();
   const owner = OWNER_EMAILS.includes(e); // the two business owners → admins
   const prefix = email.split("@")[0];
-  // The name chosen at sign-up (stashed before the auth listener fired) — kept
+  // The name chosen at sign-up (stashed before the auth listener fired) - kept
   // split (firstName / lastName) so it's never re-asked, plus a combined display.
   let stashed: string | null = null;
   let stashedFirst = "";
@@ -276,7 +276,7 @@ export async function resolveAuthUser(
       patch.initials = initialsOf(chosenName);
     }
     // Fire-and-forget: profile touch-ups (lastLoginAt, verification, healed name)
-    // must NOT block the session from resolving — matters most offline, where an
+    // must NOT block the session from resolving - matters most offline, where an
     // awaited write would stall the app shell.
     if (Object.keys(patch).length) {
       void updateDoc(doc(db, "users", existing.id), patch).catch(() => {});
@@ -333,7 +333,7 @@ export async function sendMyVerificationEmail(): Promise<void> {
 
 /** After a registrant submits their health declaration, ask the backend to
  *  e-mail Omer the PDF + a smart summary (and the certificate, if attached).
- *  Best-effort — the submission is already saved, so a mail hiccup is silent. */
+ *  Best-effort - the submission is already saved, so a mail hiccup is silent. */
 export async function notifyHealthSubmission(
   userId: string,
   pdfDataUrl?: string,

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, User } from "../lib/types";
 import { AvatarSkin } from "./avatars";
+import { Legal } from "./Legal";
 import { fmtWeekRange, HEB_MONTHS } from "../lib/date";
 import { buildTimeLabel, VERSION_LABEL, BUILD_SHA } from "../lib/version";
 import { IcChevL, IcChevR } from "./icons";
@@ -11,11 +13,15 @@ import { IcChevL, IcChevR } from "./icons";
 export function VersionTag({ className = "" }: { className?: string }) {
   const built = buildTimeLabel();
   const detail = `${VERSION_LABEL} · ${BUILD_SHA}${built ? ` · ${built}` : ""}`;
+  const [legal, setLegal] = useState(false);
   return (
     <div className={`version-tag ${className}`.trim()} dir="rtl" title={detail}>
       <span className="ver-meta" dir="ltr">{t.version} {VERSION_LABEL}</span>
       <span className="ver-copy">© {new Date().getFullYear()} OMIXFIT · {t.rightsReserved}</span>
-      <a className="ver-link" href={`${import.meta.env.BASE_URL}legal`}>{t.termsLink}</a>
+      {/* In-app modal (works on any host — a path-based /legal 404'd without an
+          SPA rewrite). */}
+      <button type="button" className="ver-link" onClick={() => setLegal(true)}>{t.termsLink}</button>
+      {legal && <Legal onClose={() => setLegal(false)} />}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { IcPlus } from "./icons";
 
 const BASE = import.meta.env.BASE_URL; // "/" at root, "/<subpath>/" under a subpath
 const PUBLIC_LINK = () => `${location.origin}${BASE}#events`;
-// Deep link that opens ONE event on the public page (fixes #12b — the old link
+// Deep link that opens ONE event on the public page (fixes #12b - the old link
 // only ever opened the generic events list).
 const eventLink = (id: string) => `${location.origin}${BASE}#/events/${id}`;
 

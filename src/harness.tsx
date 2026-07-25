@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Dev-only render harness. The store is firebase-free, so we can hydrate it with
-// seed data and render any logged-in screen directly — no auth, no Firestore, no
+// seed data and render any logged-in screen directly - no auth, no Firestore, no
 // App Check. Lets the QA scripts screenshot admin/member surfaces that App Check
 // otherwise blocks headlessly. Never shipped: only reachable via harness.html in
 // `vite` dev.
@@ -26,7 +26,22 @@ import { Login } from "./screens/Login";
 import { VerifyEmail, Onboarding } from "./screens/Onboarding";
 import type { User } from "./lib/types";
 
-hydrate(buildSeed());
+const seed = buildSeed();
+// demo pending registrant with a note + a flagged answer, to preview the review UI
+seed.users.push({
+  id: "u-pending-demo", name: "ארתור ק.", firstName: "ארתור", lastName: "ק.",
+  phone: "050-7654321", email: "artur@example.com", role: "member",
+  approvalStatus: "pending", emailVerified: true, membershipActive: false,
+  age: 30, idNumber: "039285017", dob: "1995-01-01", address: "דיזנגוף 5, תל אביב-יפו",
+  healthForm: {
+    heartDisease: false, chestPainRest: false, chestPainDaily: false, chestPainExercise: false,
+    dizziness: true, lostConsciousness: false, asthmaMeds: false, asthmaBreath: false,
+    familyHeartDeath: false, familySuddenDeath: false, medicalSupervision: false,
+    chronicIllness: false, pregnant: false, notes: "משתין במיטה", termsAccepted: true,
+    signedName: "ארתור ק.", submittedAt: Date.now(),
+  },
+} as unknown as User);
+hydrate(seed);
 
 const q = new URLSearchParams(location.search);
 const screen = q.get("screen") || "overview";

@@ -74,7 +74,7 @@ export function ClassCard({
             </span>
             <span className="m">
               <IcClock />
-              {fmtTime(session.startMin)}–{fmtTime(session.startMin + session.durationMin)}
+              {fmtTime(session.startMin)}-{fmtTime(session.startMin + session.durationMin)}
             </span>
           </div>
         </div>

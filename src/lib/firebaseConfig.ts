@@ -8,7 +8,7 @@
 // safe to expose / commit (they identify the project; access is enforced by the
 // Firestore security rules + Auth, not by hiding the key). They're baked in as
 // fallbacks so the app works on any host (Vercel, Firebase Hosting, …) even
-// without VITE_FIREBASE_* env vars set — env vars still take precedence.
+// without VITE_FIREBASE_* env vars set - env vars still take precedence.
 // ---------------------------------------------------------------------------
 
 const FALLBACK = {

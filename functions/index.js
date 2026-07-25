@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
-// OMIX Cloud Functions (Blaze) — Google Calendar 2-way sync.
+// OMIX Cloud Functions (Blaze) - Google Calendar 2-way sync.
 //
 // Plain gen-1 HTTPS functions only (no Firestore triggers / eventarc), so the
 // deploy needs no special IAM and isn't tied to the Firestore region.
 //
-//   calConnect  — owner opens this → Google OAuth consent.
-//   calCallback — Google redirects back → store the refresh token (locked doc).
-//   syncCalendar— callable the app invokes after session changes; mirrors all
+//   calConnect  - owner opens this → Google OAuth consent.
+//   calCallback - Google redirects back → store the refresh token (locked doc).
+//   syncCalendar- callable the app invokes after session changes; mirrors all
 //                 upcoming sessions into Omer's Google Calendar.
 // ---------------------------------------------------------------------------
 
@@ -163,7 +163,7 @@ async function syncPersonal(uid) {
 
   // Instructors also mirror the classes they TEACH into their own calendar.
   // There is no booking to hang the per-user event id on, so taught event ids
-  // live in the calTokens doc — keeps the sync idempotent and self-pruning.
+  // live in the calTokens doc - keeps the sync idempotent and self-pruning.
   const taught = (tk.exists && tk.data().taught) || {};
   let taughtChanged = false;
   const ssnap = await db.collection("sessions").where("instructorId", "==", uid).get();
@@ -244,7 +244,7 @@ exports.syncCalendar = fnV1.https.onCall(async (data, context) => {
 });
 
 // ---------------------------------------------------------------------------
-// Email reminders — an external hourly cron pings this; it emails the booked
+// Email reminders - an external hourly cron pings this; it emails the booked
 // clients of any session starting within the next 24h (once each, via Gmail SMTP
 // from office@omixfit.com). Protected by a secret key.
 // ---------------------------------------------------------------------------
@@ -347,7 +347,7 @@ exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
 
 // Trial → pass rule: a member approved > 7 days ago who never bought a pass is
 // disconnected (back to pending, membership off) and e-mailed to buy a pass.
-// Runs off the same hourly reminder ping — no extra cron needed.
+// Runs off the same hourly reminder ping - no extra cron needed.
 const TRIAL_MS = 7 * 24 * 3600 * 1000;
 async function sweepTrials() {
   const cutoff = Date.now() - TRIAL_MS;
@@ -417,7 +417,7 @@ async function sweepRetention() {
     await sendMail(u.email, "מתגעגעים אליך ב-Omix 💛",
       `<h2 style="color:#a9842f">מתגעגעים אליך!</h2>
        <p>היי ${name},</p>
-       <p>עבר קצת זמן מאז האימון האחרון שלך — ואנחנו כאן ומחכים לך. גם אימון אחד השבוע עושה את כל ההבדל, והגוף שלך יודה לך על החזרה לתנועה.</p>
+       <p>עבר קצת זמן מאז האימון האחרון שלך - ואנחנו כאן ומחכים לך. גם אימון אחד השבוע עושה את כל ההבדל, והגוף שלך יודה לך על החזרה לתנועה.</p>
        <p>שריינ/י מקום עכשיו, ונתראה על המזרן 🌿</p>
        ${ctaButton("קביעת אימון")}
        <p>באהבה,<br><b>עומר · Omix</b></p>`).catch((e) => logger.error("retention mail", e));
@@ -474,10 +474,10 @@ async function finalizeAttendance() {
 
 // ---------------------------------------------------------------------------
 // Transactional member e-mails, all via sendMail() (from office@, reply-to help@).
-//   notifyApproval        — staff only: "you're approved, log in".
-//   memberMail            — member action: booking confirmation / waitlist
+//   notifyApproval        - staff only: "you're approved, log in".
+//   memberMail            - member action: booking confirmation / waitlist
 //                           promotion. Guarded so it can't spam arbitrary users.
-//   notifySessionCancelled— staff only: e-mail everyone booked on a cancelled
+//   notifySessionCancelled- staff only: e-mail everyone booked on a cancelled
 //                           session.
 // ---------------------------------------------------------------------------
 async function callerRole(context) {
@@ -566,7 +566,7 @@ exports.sendVerificationLink = fnV1.https.onCall(async (data, context) => {
 });
 
 // Self-service branded verification e-mail: the registrant sends it for their
-// OWN address (from office@, so it lands in the inbox — not Firebase's default
+// OWN address (from office@, so it lands in the inbox - not Firebase's default
 // noreply which hits spam). The link carries a continueUrl back to the app, so
 // clicking it returns them straight to finish registration.
 exports.sendMyVerificationEmail = fnV1.https.onCall(async (data, context) => {
@@ -607,7 +607,7 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
   const sum = buildHealthSummary(form);
   const attachments = [];
   // The declaration PDF is rendered in the browser (perfect Hebrew) and sent here
-  // as a data URL — we just attach it.
+  // as a data URL - we just attach it.
   if (data.pdfDataUrl && typeof data.pdfDataUrl === "string" && data.pdfDataUrl.includes(",")) {
     attachments.push({
       filename: `הצהרת-בריאות-${name}.pdf`,
@@ -630,9 +630,9 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
     <p style="margin:0 0 14px">התקבלה הצהרת בריאות חדשה. יש לאשר את המתאמן/ת דרך המערכת.</p>
     <table style="width:100%;font-size:14px;border-collapse:collapse">
       <tr><td style="padding:3px 0;color:#6b5d47">שם</td><td style="padding:3px 0"><b>${name}</b></td></tr>
-      <tr><td style="padding:3px 0;color:#6b5d47">טלפון</td><td style="padding:3px 0" dir="ltr">${user.phone || "—"}</td></tr>
-      <tr><td style="padding:3px 0;color:#6b5d47">אימייל</td><td style="padding:3px 0" dir="ltr">${user.email || "—"}</td></tr>
-      <tr><td style="padding:3px 0;color:#6b5d47">ת&quot;ז</td><td style="padding:3px 0" dir="ltr">${user.idNumber || "—"}</td></tr>
+      <tr><td style="padding:3px 0;color:#6b5d47">טלפון</td><td style="padding:3px 0" dir="ltr">${user.phone || "-"}</td></tr>
+      <tr><td style="padding:3px 0;color:#6b5d47">אימייל</td><td style="padding:3px 0" dir="ltr">${user.email || "-"}</td></tr>
+      <tr><td style="padding:3px 0;color:#6b5d47">ת&quot;ז</td><td style="padding:3px 0" dir="ltr">${user.idNumber || "-"}</td></tr>
     </table>
     <div style="margin:16px 0;padding:13px 15px;border-radius:10px;background:#fff;border-inline-start:4px solid ${color}">
       <p style="margin:0 0 4px;font-weight:bold;color:${color}">${sum.headline}</p>
@@ -646,7 +646,7 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
     from: `Omix · עומר <${process.env.GMAIL_USER}>`,
     replyTo: REPLY_TO,
     to: HEALTH_RECIPIENTS.join(", "),
-    subject: `בקשת הרשמה חדשה — ${name}${sum.flagged.length ? " ⚠️" : ""}`,
+    subject: `בקשת הרשמה חדשה - ${name}${sum.flagged.length ? " ⚠️" : ""}`,
     html,
     attachments,
   });
@@ -739,7 +739,7 @@ exports.broadcastEvent = fnV1.https.onCall(async (data, context) => {
       `<h2 style="color:#a9842f">אירוע חדש נפתח להרשמה! 🎉</h2>
        <p>היי ${name},</p>
        <p>נפתח אירוע חדש: <b>${ev.title}</b>${whenLine ? `<br>מתי: <b>${whenLine}</b>` : ""}${ev.location ? `<br>היכן: <b>${ev.location}</b>` : ""}</p>
-       <p>המקומות מוגבלים — כדאי להזדרז ולשריין מקום.</p>
+       <p>המקומות מוגבלים - כדאי להזדרז ולשריין מקום.</p>
        <p style="margin:22px 0"><a href="${eventUrl}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">להרשמה לאירוע</a></p>
        <p>נתראה!<br><b>עומר · Omix</b></p>`).catch((e) => logger.error("broadcastEvent mail", e));
     sent++;

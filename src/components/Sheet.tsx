@@ -17,8 +17,8 @@ const FOCUSABLE =
 export function Sheet({ title, onClose, children, footer, hero }: SheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   // Keep the latest onClose without re-running the focus effect (onClose is a new
-  // closure each render; depending on it re-focused the first control — the ×
-  // button — on every keystroke, kicking the user out of any input).
+  // closure each render; depending on it re-focused the first control - the ×
+  // button - on every keystroke, kicking the user out of any input).
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -69,7 +69,7 @@ export function Sheet({ title, onClose, children, footer, hero }: SheetProps) {
       // Restore focus to whatever opened the sheet.
       previouslyFocused?.focus?.();
     };
-    // Run once on open — NOT on every render (see onCloseRef above).
+    // Run once on open - NOT on every render (see onCloseRef above).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

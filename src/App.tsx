@@ -120,7 +120,7 @@ export default function App() {
     }
   }, [me, isStaff, canFinance, view]);
 
-  // Public retreat/event signup page — no login required, so it renders before
+  // Public retreat/event signup page - no login required, so it renders before
   // the auth gate.
   if (publicRoute === "events") return <PublicEvents />;
   // Public, path-based legal documents at real URLs (/legal, /legal/eula, …).
@@ -161,7 +161,7 @@ export default function App() {
 
   // A fresh member (pending approval) must first prove they own the email address
   // (a made-up address never receives the link, so it can't reach the app). Only
-  // the "pending" flow is gated — seeded/legacy members (no approvalStatus) and
+  // the "pending" flow is gated - seeded/legacy members (no approvalStatus) and
   // approved members / staff are grandfathered so we never lock anyone out.
   if (me.role === "member" && me.approvalStatus === "pending" && !emailVerified) {
     return <VerifyEmail email={me.email ?? ""} onVerified={() => setEmailVerified(true)} />;
@@ -180,7 +180,7 @@ export default function App() {
   }
 
   // Omix Zone presentation mode: a contained, client-safe environment. All
-  // navigation is hidden so a handed-off device can't reach admin controls —
+  // navigation is hidden so a handed-off device can't reach admin controls -
   // exiting back to admin requires the passcode (handled inside <Zone />).
   if (isStaff && zonePresenting) {
     return (

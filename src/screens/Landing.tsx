@@ -37,7 +37,7 @@ function useReveal() {
   }, []);
 }
 
-// Luxury, content-rich marketing landing — ivory + gold, elegant editorial
+// Luxury, content-rich marketing landing - ivory + gold, elegant editorial
 // layout, no WebGL. Reveals on scroll.
 export function Landing({ onEnter }: { onEnter: () => void }) {
   const L = t.landing;
@@ -45,7 +45,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
   const [legal, setLegal] = useState(false);
   const [lead, setLead] = useState(false);
   const [certs, setCerts] = useState(false);
-  // Live events slider — reads the same published events as the public page, so
+  // Live events slider - reads the same published events as the public page, so
   // newly created/published events propagate here automatically (#12c).
   const [events, setEvents] = useState<SpecialEvent[] | null>(null);
   useEffect(() => {
@@ -159,7 +159,7 @@ export function Landing({ onEnter }: { onEnter: () => void }) {
         </div>
       </section>
 
-      {/* ---- gallery (image placeholders — filled later) ---- */}
+      {/* ---- gallery (image placeholders - filled later) ---- */}
       <section className="lux-sec lux-gallery">
         <div className="lux-head reveal">
           <span className="lux-eyebrow green">{L.galleryKicker}</span>

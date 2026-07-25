@@ -81,13 +81,13 @@ export function fmtDayHeading(d: Date): string {
   return `${HEB_DAYS_LONG[d.getDay()]} · ${d.getDate()} ב${HEB_MONTHS[d.getMonth()]}`;
 }
 
-/** "28–4 ביולי" style range label for a week. */
+/** "28-4 ביולי" style range label for a week. */
 export function fmtWeekRange(weekStart: Date): string {
   const end = addDays(weekStart, 6);
   if (weekStart.getMonth() === end.getMonth()) {
-    return `${weekStart.getDate()}–${end.getDate()} ב${HEB_MONTHS[end.getMonth()]}`;
+    return `${weekStart.getDate()}-${end.getDate()} ב${HEB_MONTHS[end.getMonth()]}`;
   }
-  return `${weekStart.getDate()} ב${HEB_MONTHS[weekStart.getMonth()]} – ${end.getDate()} ב${HEB_MONTHS[end.getMonth()]}`;
+  return `${weekStart.getDate()} ב${HEB_MONTHS[weekStart.getMonth()]} - ${end.getDate()} ב${HEB_MONTHS[end.getMonth()]}`;
 }
 
 export function nowMinutesInto(dateKey: string, startMin: number): number {

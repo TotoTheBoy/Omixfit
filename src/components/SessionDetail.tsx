@@ -167,7 +167,7 @@ export function SessionDetail({
     >
       <div className="row gap-3 wrap">
         <InfoTile icon={<IcClock />} label={t.timeLabel}
-          value={`${fmtTime(session.startMin)}–${fmtTime(session.startMin + session.durationMin)}`} />
+          value={`${fmtTime(session.startMin)}-${fmtTime(session.startMin + session.durationMin)}`} />
         <InfoTile icon={<IcUser />} label={t.instructorLabel} value={instructor.name} />
         <InfoTile icon={<IcPin />} label={t.roomLabel} value={session.room} />
       </div>

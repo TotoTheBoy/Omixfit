@@ -154,7 +154,7 @@ export function Planner({ hideReminders = false }: { hideReminders?: boolean }) 
   );
 }
 
-/** Large, readable view of a lesson plan — opens when the card is tapped so the
+/** Large, readable view of a lesson plan - opens when the card is tapped so the
  *  coach can read the workout during a session; "edit" is one tap away (#2). */
 function PlanViewer({
   plan,
@@ -172,7 +172,7 @@ function PlanViewer({
       footer={<button className="btn btn-lime grow" onClick={onEdit}>✎ {t.planner.editPlan}</button>}
     >
       {plan.tag && <span className="plan-tag" style={{ display: "inline-block", marginBottom: 14 }}>{plan.tag}</span>}
-      <div className="plan-read">{plan.content || "—"}</div>
+      <div className="plan-read">{plan.content || "-"}</div>
     </Sheet>
   );
 }

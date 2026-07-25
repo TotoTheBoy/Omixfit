@@ -25,7 +25,7 @@ type EditorState =
   | { mode: "create"; date: string }
   | { mode: "edit"; session: ClassSession };
 
-// Trainer management — the schedule grid, class-type catalogue and reports.
+// Trainer management - the schedule grid, class-type catalogue and reports.
 // Clients + Finance are their own top-level sections now.
 export function Manage() {
   const data = useStore((s) => s);

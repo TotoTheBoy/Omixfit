@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // The official Israeli gym pre-activity health questionnaire (הצהרת בריאות,
-// תקנות מכוני כושר 2015 — the "tofes 101" form), recreated natively. Shared by
+// תקנות מכוני כושר 2015 - the "tofes 101" form), recreated natively. Shared by
 // the registration form, the medical-flag logic, and the emailed PDF/summary so
 // there's a single source of truth for the questions.
 // ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ export interface HealthQGroup {
   items: HealthQItem[];
 }
 
-/** Part A — the questionnaire, grouped exactly as the regulatory form. A "yes"
+/** Part A - the questionnaire, grouped exactly as the regulatory form. A "yes"
  *  (true) on any item means the trainee must bring a doctor's certificate. */
 export const HEALTH_GROUPS: HealthQGroup[] = [
   {
@@ -92,7 +92,7 @@ export const HEALTH_GROUPS: HealthQGroup[] = [
 /** Flat list of every question key (for validation / flag logic). */
 export const HEALTH_KEYS: HealthQKey[] = HEALTH_GROUPS.flatMap((g) => g.items.map((i) => i.key));
 
-/** Short Hebrew label per key — used in the emailed summary of flagged answers. */
+/** Short Hebrew label per key - used in the emailed summary of flagged answers. */
 export const HEALTH_LABELS: Record<HealthQKey, string> = Object.fromEntries(
   HEALTH_GROUPS.flatMap((g) => g.items.map((i) => [i.key, i.label])),
 ) as Record<HealthQKey, string>;

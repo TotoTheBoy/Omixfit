@@ -18,12 +18,12 @@ export interface NotifyPrefs {
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
 /** PAR-Q-style pre-exercise health declaration + terms, signed at registration. */
-/** Part A answers — a yes/no per official questionnaire item (see lib/health.ts). */
+/** Part A answers - a yes/no per official questionnaire item (see lib/health.ts). */
 export type HealthAnswers = Record<import("./health").HealthQKey, boolean>;
 
 export interface HealthForm extends HealthAnswers {
   /** A "כן" on any Part A item requires a doctor's certificate. Optional at
-   *  submission — the trainee may upload now or bring it later. */
+   *  submission - the trainee may upload now or bring it later. */
   hasMedicalCert?: boolean;
   medicalCertName?: string; // filename of the uploaded certificate (emailed to Omer)
   notes: string; // free-text health notes
@@ -60,7 +60,7 @@ export interface User {
   /** Collected at registration (onboarding). */
   gender?: Gender;
   age?: number;
-  /** National ID (ת"ז) and date of birth (YYYY-MM-DD) — from the health form. */
+  /** National ID (ת"ז) and date of birth (YYYY-MM-DD) - from the health form. */
   idNumber?: string;
   dob?: string;
   address?: string;
@@ -81,7 +81,7 @@ export interface User {
   /** When staff approved this member (ms). Drives the "new client" flag and the
    *  7-day trial → buy-a-pass window. */
   approvedAt?: number;
-  /** Last time this account signed in (ms) — rollout / re-engagement visibility. */
+  /** Last time this account signed in (ms) - rollout / re-engagement visibility. */
   lastLoginAt?: number;
   /** Set true once Omer records that the member bought a pass (punch-card); the
    *  trial auto-disconnect leaves passholders alone. */
@@ -102,7 +102,7 @@ export interface User {
   initials: string;
   /** Optional fun avatar persona (an emoji or `svg:<id>`) shown instead of initials. */
   avatarSkin?: string;
-  /** Admin-only loyalty tier override — staff aren't gated by attended count and
+  /** Admin-only loyalty tier override - staff aren't gated by attended count and
    *  set their own OMIX tier by tapping the card badge. */
   loyaltyOverride?: "pace" | "endurance" | "elite" | "marathoner";
   /** Highest loyalty-tier index the member has already been shown a celebration
@@ -307,7 +307,7 @@ export interface SpecialEvent {
   createdAt: number;
 }
 
-/** A low-friction lead from the landing page — a prospect who left their details
+/** A low-friction lead from the landing page - a prospect who left their details
  *  without creating an account, for Omer to follow up (docs/business.md §4). */
 export interface Lead {
   id: string;

@@ -197,7 +197,7 @@ function Services({ onEdit, onNew }: { onEdit: (s: Service) => void; onNew: () =
   const [loading, setLoading] = useState(false);
 
   // One-tap: write Omixfit's real price list (group / online / personal). Ids are
-  // fixed (cat-*), so it's additive/idempotent — it never touches other services.
+  // fixed (cat-*), so it's additive/idempotent - it never touches other services.
   async function loadCatalog() {
     setLoading(true);
     try {

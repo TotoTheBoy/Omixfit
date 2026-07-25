@@ -97,7 +97,7 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
         </div>
       )}
 
-      {/* #2 packages & memberships store — relocated into "My Orders" as a
+      {/* #2 packages & memberships store - relocated into "My Orders" as a
           dedicated, premium section that invites purchase / renewal. */}
       <section className="orders-store">
         <span className="orders-store-eyebrow">{t.packages.storeEyebrow}</span>

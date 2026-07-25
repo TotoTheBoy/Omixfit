@@ -10,7 +10,7 @@ import type { HealthForm, User } from "./types";
 const GENDER: Record<string, string> = { female: "אישה", male: "גבר", other: "אחר" };
 
 function esc(s: unknown): string {
-  return String(s == null || s === "" ? "—" : s)
+  return String(s == null || s === "" ? "-" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
@@ -53,11 +53,11 @@ function summaryBlock(form: HealthForm): string {
   const ok = flagged.length === 0;
   const border = ok ? "#2f6b3b" : "#b0402f";
   const bg = ok ? "#eef5ef" : "#fbe9e7";
-  const head = ok ? "✓ תקין לחלוטין — אין דגלים רפואיים" : `⚠️ לתשומת לב — סומן ‏"כן"‏ ל-${flagged.length} סעיפים`;
+  const head = ok ? "✓ תקין לחלוטין - אין דגלים רפואיים" : `⚠️ לתשומת לב - סומן ‏"כן"‏ ל-${flagged.length} סעיפים`;
   const body = ok
     ? "המתאמן/ת ענה/תה ‏\"לא\"‏ על כל שאלות השאלון. אין צורך בתעודה רפואית לפי ההצהרה."
     : `סומן ‏"כן"‏ ל: ${flagged.map((f) => f.label).join(" · ")}.<br>לפי תקנות מכוני כושר נדרשת תעודה רפואית מרופא לפני תחילת האימונים. ${
-        form.hasMedicalCert ? "צורפה תעודה רפואית (מצורפת למייל)." : "טרם צורפה תעודה — יש לוודא שתומצא."
+        form.hasMedicalCert ? "צורפה תעודה רפואית (מצורפת למייל)." : "טרם צורפה תעודה - יש לוודא שתומצא."
       }`;
   return `<div style="margin:4px 0 0;padding:10px 14px;border-radius:9px;background:${bg};border-inline-start:5px solid ${border}">
     <div style="font-weight:800;color:${border};font-size:14px;margin-bottom:3px">${head}</div>
@@ -72,7 +72,7 @@ function buildHtml(user: User, form: HealthForm): string {
   return `<div style="font-family:Rubik,Arial,sans-serif;color:#241c12;padding:16px 22px 18px">
     <div style="background:#1a1a1a;border-radius:11px;padding:11px 18px;margin-bottom:4px">
       <div style="color:#c5a059;font-size:19px;font-weight:800">הצהרת בריאות · Omix</div>
-      <div style="color:#c2b591;font-size:10.5px;margin-top:2px">טופס הצהרת בריאות למבקש/ת להתאמן — תקנות מכוני כושר 2015</div>
+      <div style="color:#c2b591;font-size:10.5px;margin-top:2px">טופס הצהרת בריאות למבקש/ת להתאמן - תקנות מכוני כושר 2015</div>
     </div>
     <div ${H2}>פרטים אישיים</div>
     <table ${TBL}>${detailRows(user)}</table>
@@ -85,6 +85,15 @@ function buildHtml(user: User, form: HealthForm): string {
       חתימת המתאמן/ת: <b style="color:#241c12">${esc(form.signedName || name)}</b> &nbsp;·&nbsp; תאריך הגשה: ${esc(when)}
     </div>
   </div>`;
+}
+
+/** Render the declaration and open it in a new tab (for staff to view any time). */
+export async function openHealthPdf(user: User, form: HealthForm): Promise<void> {
+  const dataUrl = await buildHealthPdfDataUrl(user, form);
+  const blob = await (await fetch(dataUrl)).blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank", "noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 /** Render the declaration to a PDF and return a "data:application/pdf;base64,…" URL. */

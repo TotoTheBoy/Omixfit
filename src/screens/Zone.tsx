@@ -11,7 +11,7 @@ import { toast } from "../components/Toast";
 
 const PIN_KEY = "omix:zonePin";
 
-/** Omix Zone — the live-workout workspace: an interval timer, the tagged
+/** Omix Zone - the live-workout workspace: an interval timer, the tagged
  *  lesson-plan archive, and today's attendance. A passcode-protected
  *  "presentation mode" hides all admin numbers so a trainer can safely hand the
  *  device to a client; exiting back to admin requires the code (#1). */
@@ -77,7 +77,7 @@ export function Zone({
         <span className="zone-hero-go" aria-hidden="true">▶</span>
       </button>
 
-      {/* Today's attendance carries admin numbers — hidden in presentation mode. */}
+      {/* Today's attendance carries admin numbers - hidden in presentation mode. */}
       {!presenting && (
         <section className="zone-panel">
           <h2 className="h2" style={{ marginBottom: 10 }}>{t.zone.attendance}</h2>

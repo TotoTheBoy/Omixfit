@@ -8,7 +8,7 @@ import { OmixLogo } from "../components/Brand";
 
 // Immersive bright "Spine of Movement": camera scrolls down an anatomical gold
 // spine wrapped in living muscle fibers (custom shader), with spinning B.Sc /
-// Marathon / Mom-approved badges, glass package cards and kinetic copy — luxury
+// Marathon / Mom-approved badges, glass package cards and kinetic copy - luxury
 // ivory + gold + olive. Lazy-loaded; App falls back to the static landing.
 
 const GOLD = "#c8a24a";
@@ -33,14 +33,14 @@ const MOODS: [string, string][] = [
 // per-section spine morph: [fiber spread, pulse speed]
 const MORPH: [number, number][] = [
   [1.0, 1.0],   // hero
-  [1.7, 1.9],   // running  — stretch & energy
-  [0.65, 0.85], // 1:1      — tight, precise
-  [1.45, 1.5],  // group    — synced energy
-  [0.8, 0.6],   // rehab    — gentle realign
-  [1.15, 0.55], // prenatal — soft cradle
-  [1.55, 1.35], // online   — dispersed
+  [1.7, 1.9],   // running  - stretch & energy
+  [0.65, 0.85], // 1:1      - tight, precise
+  [1.45, 1.5],  // group    - synced energy
+  [0.8, 0.6],   // rehab    - gentle realign
+  [1.15, 0.55], // prenatal - soft cradle
+  [1.55, 1.35], // online   - dispersed
   [1.0, 1.1],   // packages
-  [1.25, 1.5],  // final    — bloom
+  [1.25, 1.5],  // final    - bloom
 ];
 
 function spineCurve() {

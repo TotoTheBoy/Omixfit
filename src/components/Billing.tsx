@@ -14,7 +14,7 @@ const STATUSES = ["active", "trial", "cancelled"] as const;
 const money = (a: number, c: string) =>
   a === 0 ? t.billing.free : `${SYM[c] ?? ""}${a.toLocaleString("he-IL", { maximumFractionDigits: 2 })}`;
 
-// The subscriptions we set up together — offered as a one-tap starter set.
+// The subscriptions we set up together - offered as a one-tap starter set.
 const DEFAULTS: Subscription[] = [
   { id: "sub-gws", name: "Google Workspace", vendor: "Google", purpose: "אימייל עסקי (office@omixfit.com), יומן ו-Meet", amount: 8.1, currency: "EUR", cycle: "monthly", status: "trial", note: "מסלול Starter · משתמש 1 · החל בתקופת ניסיון 14 יום", url: "https://admin.google.com" },
   { id: "sub-domain", name: "דומיין omixfit.com", vendor: "Wix", purpose: "כתובת האתר והאימייל", amount: 0, currency: "ILS", cycle: "yearly", status: "active", note: "חיוב שנתי - עדכן/י את הסכום והתאריך מתוך Wix", url: "https://manage.wix.com/account/domains" },

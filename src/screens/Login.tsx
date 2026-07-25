@@ -30,7 +30,7 @@ export function Login({ onBack }: { onBack?: () => void }) {
     const { signIn, signUp, authErrorMessage } = await import("../lib/firebase");
     try {
       if (isReset) {
-        // Branded reset email from office@ (Cloud Function) — not Firebase's
+        // Branded reset email from office@ (Cloud Function) - not Firebase's
         // default noreply, which lands in spam. Always show the generic message
         // (never reveal whether an address is registered).
         const { sendPasswordReset } = await import("../lib/store");
@@ -42,14 +42,14 @@ export function Login({ onBack }: { onBack?: () => void }) {
       }
       if (isSignup) {
         // Stash the split name so the user record is created with firstName /
-        // lastName (never re-asked later — one source of truth).
+        // lastName (never re-asked later - one source of truth).
         try {
           sessionStorage.setItem("omix:signupFirst", firstName.trim());
           sessionStorage.setItem("omix:signupLast", lastName.trim());
         } catch { /* no sessionStorage */ }
         await signUp(email, password, `${firstName.trim()} ${lastName.trim()}`.trim());
         // Branded verification e-mail from office@ (not Firebase's spam-prone
-        // default). Best-effort — the account exists regardless.
+        // default). Best-effort - the account exists regardless.
         const { sendMyVerificationEmail } = await import("../lib/store");
         void sendMyVerificationEmail().catch(() => {});
       } else await signIn(email, password);

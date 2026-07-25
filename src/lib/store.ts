@@ -174,7 +174,7 @@ export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));
 export const markEventSignupPaid = (id: string, paid: boolean) =>
   backend().then((b) => b.markEventSignupPaid(id, paid));
-// public (no login) — imported directly by the public page, but re-exported here:
+// public (no login) - imported directly by the public page, but re-exported here:
 export const fetchPublishedEvents = () => backend().then((b) => b.fetchPublishedEvents());
 export const submitEventSignup = (
   eventId: string,

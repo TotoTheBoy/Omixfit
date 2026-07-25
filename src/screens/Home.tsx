@@ -16,7 +16,7 @@ import type { ClassSession } from "../lib/types";
 
 type View = "schedule" | "bookings" | "profile";
 
-/** Trainee home — the app's landing surface once signed in. A dashboard that
+/** Trainee home - the app's landing surface once signed in. A dashboard that
  *  summarises the member (loyalty tier + progress, next class, quick stats, the
  *  studio feed) and routes them onward via quick actions, à la Arbox. */
 export function Home({ onGo }: { onGo: (v: View) => void }) {
@@ -66,7 +66,7 @@ export function Home({ onGo }: { onGo: (v: View) => void }) {
         </div>
       )}
 
-      {/* loyalty ladder — several ranks, current highlighted, progress to next */}
+      {/* loyalty ladder - several ranks, current highlighted, progress to next */}
       <section className="home-loyalty">
         <div className="hl-head">
           <div>
@@ -140,7 +140,7 @@ export function Home({ onGo }: { onGo: (v: View) => void }) {
         )}
       </section>
 
-      {/* invite a friend — native share sheet (WhatsApp / Messages / …) */}
+      {/* invite a friend - native share sheet (WhatsApp / Messages / …) */}
       <button className="invite-card" onClick={() => shareInvite()}>
         <span className="invite-ico" aria-hidden="true">💛</span>
         <span className="invite-txt">

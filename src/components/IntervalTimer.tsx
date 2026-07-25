@@ -281,7 +281,7 @@ function NumField({ label, v, on, min, max, step = 1 }: {
     <div className="timer-num">
       <label>{label}</label>
       <div className="timer-stepper">
-        <button type="button" onClick={() => on(clamp(v - step))} aria-label="−">−</button>
+        <button type="button" onClick={() => on(clamp(v - step))} aria-label="-">-</button>
         <input
           type="number"
           value={v}

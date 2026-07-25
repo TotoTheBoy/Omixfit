@@ -22,7 +22,7 @@ const DAY_MS = 86_400_000;
 export const NEW_CLIENT_DAYS = 21;
 export const TRIAL_DAYS = 7; // buy a pass within this window or get disconnected
 
-/** A freshly-approved client (needs extra attention) — within NEW_CLIENT_DAYS. */
+/** A freshly-approved client (needs extra attention) - within NEW_CLIENT_DAYS. */
 export function isNewClient(u: Pick<User, "approvedAt">, nowMs = Date.now()): boolean {
   return !!u.approvedAt && nowMs - u.approvedAt < NEW_CLIENT_DAYS * DAY_MS;
 }
@@ -286,7 +286,7 @@ export function memberStats(userId: string, s: AppData) {
   ).length;
   const tally = new Map<string, number>();
   for (const b of mine) {
-    // Favourite reflects classes actually ATTENDED, not just booked — so a brand
+    // Favourite reflects classes actually ATTENDED, not just booked - so a brand
     // new member with a single booking (and 0 attendance) has no favourite yet.
     if (b.state !== "attended") continue;
     const sess = s.sessions.find((x) => x.id === b.sessionId);
@@ -404,7 +404,7 @@ export function revenueSummary(s: AppData) {
 }
 
 /**
- * Combined value score per member (0–100): 60% normalized revenue + 40%
+ * Combined value score per member (0-100): 60% normalized revenue + 40%
  * normalized engagement (sessions attended). Sorted high→low.
  */
 export function clientValueScores(s: AppData) {
@@ -455,7 +455,7 @@ export interface ClientBalance {
   user: User;
   purchased: number; // total package sessions bought
   used: number; // attended sessions (consumed)
-  remaining: number; // purchased − used (may go ≤ 0 → needs a top-up)
+  remaining: number; // purchased - used (may go ≤ 0 → needs a top-up)
 }
 
 /**

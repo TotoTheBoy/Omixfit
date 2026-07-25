@@ -91,7 +91,7 @@ function Rejected() {
 }
 
 // Shown to a fresh, not-yet-approved member until they click the verification
-// link Firebase e-mailed them — so a made-up address can't reach the app.
+// link Firebase e-mailed them - so a made-up address can't reach the app.
 export function VerifyEmail({ email, onVerified }: { email: string; onVerified: () => void }) {
   const [busy, setBusy] = useState(false);
   async function check() {
@@ -142,7 +142,7 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
 
 function HealthDeclaration({ user }: { user: User }) {
   const H = t.health;
-  // Prefill everything already known (fill-once) — address is stored "street, city".
+  // Prefill everything already known (fill-once) - address is stored "street, city".
   const savedAddr = user.address ?? "";
   const savedCity = savedAddr.includes(",") ? savedAddr.split(",").pop()!.trim() : "";
   const savedStreet = savedAddr.includes(",") ? savedAddr.slice(0, savedAddr.lastIndexOf(",")).trim() : savedAddr;
@@ -274,7 +274,7 @@ function HealthDeclaration({ user }: { user: User }) {
             </div>
             <div className="field" style={{ minWidth: 90, maxWidth: 120 }}>
               <label htmlFor="rg-age">{H.ageLabel}</label>
-              <input id="rg-age" className="input" value={age !== undefined ? String(age) : ""} readOnly disabled placeholder="—" />
+              <input id="rg-age" className="input" value={age !== undefined ? String(age) : ""} readOnly disabled placeholder="-" />
             </div>
           </div>
           <div className="field">

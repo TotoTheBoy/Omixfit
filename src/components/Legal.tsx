@@ -4,7 +4,7 @@ import { IcClose } from "./icons";
 
 // Terms / Privacy / EULA / Waiver overlay (template content; see disclaimer).
 // The same documents are also served as standalone pages at /legal/<slug>
-// (see screens/LegalPage.tsx) — this modal is the in-app quick view.
+// (see screens/LegalPage.tsx) - this modal is the in-app quick view.
 export function Legal({ onClose }: { onClose: () => void }) {
   const L = t.legal;
   const [active, setActive] = useState(L.docs[0].slug);

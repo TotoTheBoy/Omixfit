@@ -6,7 +6,7 @@ export const CITY_SET = new Set(SETTLEMENTS);
 export const isValidCity = (v: string) => CITY_SET.has(v);
 
 /** Searchable combobox over the bundled settlement dictionary. No free text and
- *  no "אחר" — `onChange("")` fires until a real settlement is picked. */
+ *  no "אחר" - `onChange("")` fires until a real settlement is picked. */
 export function CityPicker({
   value, onChange, id,
 }: { value: string; onChange: (v: string) => void; id?: string }) {

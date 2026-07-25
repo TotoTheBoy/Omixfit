@@ -87,7 +87,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const fav = stats.favorite as ClassCategory | null;
   const loyalty = loyaltyFor(stats.attended);
   const streak = weeklyStreak(me.id, data);
-  // Staff aren't gated by attendance — they default to the top tier and can set
+  // Staff aren't gated by attendance - they default to the top tier and can set
   // their own by tapping the badge (admin-only).
   const overrideId = me.loyaltyOverride ?? (isAdmin ? "marathoner" : null);
   const currentTier = overrideId
@@ -285,7 +285,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
 
       {/* Personal calendar sync into the user's OWN Google calendar. Shown to
           members (their booked classes) and instructors (the classes they
-          teach) — NOT to admin/manager, who run the studio calendar below and
+          teach) - NOT to admin/manager, who run the studio calendar below and
           don't need a personal connection. */}
       {(me.role === "member" || me.role === "instructor") && (
         <div className="cal-card">

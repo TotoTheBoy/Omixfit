@@ -15,6 +15,7 @@ import {
   useStore,
 } from "../lib/store";
 import { clientActivityLight, isNewClient, trialDaysLeft } from "../lib/engine";
+import { HEALTH_GROUPS } from "../lib/health";
 import { fmtDayHeading, fmtTime } from "../lib/date";
 import { Avatar } from "./common";
 import { Sheet } from "./Sheet";
@@ -32,7 +33,7 @@ const IcSearch = (p: React.SVGProps<SVGSVGElement>) => (
 
 const ROLE_ORDER: Record<Role, number> = { admin: 0, manager: 1, instructor: 2, member: 3 };
 
-// wa.me link — strip formatting, local 0 → Israel country code.
+// wa.me link - strip formatting, local 0 → Israel country code.
 const waLink = (phone: string) => `https://wa.me/${(phone || "").replace(/\D/g, "").replace(/^0/, "972")}`;
 
 export function Members() {
@@ -220,7 +221,7 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   }
 
   // Permanent-delete danger zone (admin/manager only; never an admin target).
-  // Shown on both the pending-review and full member cards — also handy for tests.
+  // Shown on both the pending-review and full member cards - also handy for tests.
   const deleteZone = canManage && !isAdmin ? (
     <div className="danger-zone">
       {confirmDel ? (
@@ -274,8 +275,6 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
   // Pending registrant → a stripped-down REVIEW card: just what Omer needs to
   // approve/decline (she already knows her clients). No stats/role/activity.
   if (u.approvalStatus === "pending") {
-    const medical = hasMedicalFlag(u);
-    const note = hf?.notes?.trim();
     const step1 = !!u.emailVerified; // account authentication (MFA)
     const step2 = !!(u.name && u.age && u.address); // profile completion
     const step3 = !!hf; // signed health declaration
@@ -313,19 +312,14 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
           {t.approvals.statusPending}
         </span>
 
+        <HealthReview u={u} />
+
         <ul className="member-details">
           <li><span>{t.approvals.whereFrom}</span><b>{u.address || "-"}</b></li>
           <li><span>{t.phone}</span><b dir="ltr">{u.phone || "-"}</b></li>
           <li><span>{t.emailLabel}</span><b dir="ltr">{u.email || "-"}</b></li>
           {u.age ? <li><span>{t.health.ageLabel}</span><b>{u.age}</b></li> : null}
         </ul>
-
-        {medical && (
-          <div className="lead-medical-flag">
-            <b>🩺 {t.approvals.medicalYes}</b>
-            {note && <p>{note}</p>}
-          </div>
-        )}
 
         <div className="lead-stepper">
           <StepRow ok={step1} n={1} title={t.approvals.step1}
@@ -340,11 +334,6 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
 
         {!canApprove && (
           <p className="muted" style={{ marginTop: 10, fontSize: ".82rem" }}>{t.approvals.approveBlocked}</p>
-        )}
-        {note && !medical && (
-          <p className="health-summary-notes" style={{ marginTop: 10 }}>
-            <b>{t.health.notesLabel}:</b> {note}
-          </p>
         )}
         {deleteZone}
       </Sheet>
@@ -371,6 +360,8 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
         <MiniStat v={st.upcoming} k={t.upcomingShort} />
         <MiniStat v={st.total} k={t.totalCount} />
       </div>
+
+      <HealthReview u={u} />
 
       {/* full registration / contact details */}
       <ul className="member-details">
@@ -414,7 +405,7 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
         )}
       </ul>
 
-      {/* #8 live transaction records for this member — derived from the payments
+      {/* #8 live transaction records for this member - derived from the payments
           collection, read-only (no manual override of these metrics). */}
       {u.role === "member" && (() => {
         const txns = data.payments
@@ -614,6 +605,54 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
 
       {deleteZone}
     </Sheet>
+  );
+}
+
+/** Prominent health review for a member: the trainee's own notes (highlighted so
+ *  Omer sees them at a glance), the flagged medical answers, and a one-tap view of
+ *  the health-declaration PDF they filled. */
+function HealthReview({ u }: { u: User }) {
+  const hf = u.healthForm;
+  const [busy, setBusy] = useState(false);
+  if (!hf) return null;
+  const note = hf.notes?.trim();
+  const flagged = HEALTH_GROUPS.flatMap((g) => g.items)
+    .filter((it) => (hf as unknown as Record<string, boolean>)[it.key] === true)
+    .map((it) => it.label);
+
+  async function viewPdf() {
+    setBusy(true);
+    try {
+      const { openHealthPdf } = await import("../lib/healthPdf");
+      await openHealthPdf(u, hf!);
+    } catch {
+      toast(t.approvals.pdfErr, "err");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="health-review">
+      {note && (
+        <div className="health-note-alert" role="note">
+          <span className="hna-ico" aria-hidden="true">📝</span>
+          <div className="hna-body">
+            <b>{t.approvals.trainerNote}</b>
+            <p>{note}</p>
+          </div>
+        </div>
+      )}
+      {flagged.length > 0 && (
+        <div className="health-flag-list">
+          <b>🩺 {t.approvals.medicalFlagged(flagged.length)}</b>
+          <span>{flagged.join(" · ")}</span>
+        </div>
+      )}
+      <button className="btn btn-ghost btn-block" onClick={viewPdf} disabled={busy} style={{ marginTop: 10 }}>
+        📄 {busy ? t.approvals.pdfLoading : t.approvals.viewPdf}
+      </button>
+    </div>
   );
 }
 

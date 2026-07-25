@@ -92,7 +92,7 @@ export async function signUp(
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
   if (display) await updateProfile(cred.user, { displayName: display });
   // The verification link is sent by a Cloud Function from office@ (branded, not
-  // Firebase's default noreply which lands in spam) — the caller triggers it once
+  // Firebase's default noreply which lands in spam) - the caller triggers it once
   // the user is signed in. We deliberately do NOT call sendEmailVerification here.
 }
 

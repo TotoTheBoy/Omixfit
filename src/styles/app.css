@@ -364,7 +364,7 @@
   box-shadow: var(--sh-3);
   border-color: var(--line-strong);
 }
-/* vivid per-category top band (refactor batch-2 D3 — bold colour blocking) */
+/* vivid per-category top band (refactor batch-2 D3 - bold colour blocking) */
 .class-card .cat-rail {
   position: absolute;
   inset-inline: 0;
@@ -566,7 +566,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--lime-600);
+  color: var(--gold-600);
   font-weight: 700;
   font-size: 0.82rem;
 }
@@ -744,7 +744,7 @@
   gap: 4px;
   color: #c7bda3;
   text-decoration: none;
-  font-size: 0.68rem; /* was 0.6rem — readable for non-technical users */
+  font-size: 0.68rem; /* was 0.6rem - readable for non-technical users */
   font-weight: 700;
   position: relative;
   padding: 8px 2px;
@@ -2043,6 +2043,12 @@
   text-decoration: underline;
   text-underline-offset: 2px;
   font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
 }
 .version-tag .ver-link:hover { color: var(--charcoal); }
 .profile-version {
@@ -2926,7 +2932,7 @@
 .cal-hint { display: block; margin-top: 10px; color: var(--text-3); font-size: .76rem; line-height: 1.4; }
 
 /* =========================================================================
-   Luxury marketing landing (.lux) — ivory + gold, editorial, no WebGL
+   Luxury marketing landing (.lux) - ivory + gold, editorial, no WebGL
    ========================================================================= */
 .lux { background: #f7f1e6; color: #241c12; overflow-x: hidden; }
 .lux .reveal { opacity: 0; transform: translateY(26px); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1); }
@@ -2991,7 +2997,7 @@
 .lux-h2.light { color: #fbf4e6; }
 .lux-sub { font-size: clamp(1rem,2.2vw,1.2rem); color: #6b6049; margin-top: 14px; }
 
-/* about + final — dark luxury bands */
+/* about + final - dark luxury bands */
 .lux-about, .lux-final {
   background: radial-gradient(120% 130% at 50% 0%, #241a0e, #14100a 70%);
   color: #ece3d2; text-align: center;
@@ -3032,7 +3038,7 @@
 .lux-pack-unit { display: block; font-size: .9rem; font-weight: 600; color: #6b6049; margin-top: 4px; }
 .lux-pack-d { display: block; margin-top: 12px; font-size: .82rem; font-weight: 800; color: #7a5c17; letter-spacing: .03em; }
 
-/* live events rail — horizontal editorial slider, synced to published events (#12c) */
+/* live events rail - horizontal editorial slider, synced to published events (#12c) */
 .lux-events-rail { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 4px 14px; margin-top: 22px; -webkit-overflow-scrolling: touch; }
 .lux-event-card { scroll-snap-align: start; flex: 0 0 min(280px, 78vw); display: flex; flex-direction: column; gap: 8px; padding: 20px; background: #fffdf8; border: 1px solid #e7dcc4; border-radius: 18px; text-decoration: none; color: #241c12; transition: box-shadow .15s, transform .15s, border-color .15s; }
 .lux-event-card:hover { box-shadow: 0 16px 40px rgba(184,144,47,.18); transform: translateY(-4px); border-color: #d8b766; }
@@ -3392,7 +3398,7 @@
 .credit-nudge { display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; margin-bottom: 14px; border-radius: var(--r-md); background: rgba(138, 106, 31, 0.1); border: 1px solid rgba(138, 106, 31, 0.3); }
 .credit-nudge b { color: var(--gold-600); }
 .credit-nudge span { font-size: .85rem; color: var(--text-2); }
-/* trainee profile — "your next class" (green + gold) */
+/* trainee profile - "your next class" (green + gold) */
 .next-class { background: linear-gradient(135deg, var(--sage), var(--olive)); color: var(--on-ink); border-radius: var(--r-lg); padding: 16px 20px; margin-bottom: 22px; box-shadow: var(--sh-1); }
 .next-class .nc-label { display: block; font-size: .74rem; font-weight: 800; letter-spacing: .08em; margin-bottom: 8px; color: var(--on-ink); }
 .nc-body { display: flex; align-items: center; gap: 14px; }
@@ -3402,14 +3408,14 @@
 .nc-info span { font-size: .95rem; color: var(--on-ink); }
 .nc-info small { font-size: .8rem; color: var(--on-ink); }
 .nc-empty { display: inline-block; color: var(--on-ink); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
-/* staggered entrance cascade — each card enters a beat after the previous */
+/* staggered entrance cascade - each card enters a beat after the previous */
 .class-card:nth-child(2), .cat-card:nth-child(2), .plan-card:nth-child(2), .pkg-card:nth-child(2), .stat:nth-child(2), .ov-card:nth-child(2) { animation-delay: .05s; }
 .class-card:nth-child(3), .cat-card:nth-child(3), .plan-card:nth-child(3), .pkg-card:nth-child(3), .stat:nth-child(3), .ov-card:nth-child(3) { animation-delay: .10s; }
 .class-card:nth-child(4), .cat-card:nth-child(4), .plan-card:nth-child(4), .pkg-card:nth-child(4), .stat:nth-child(4), .ov-card:nth-child(4) { animation-delay: .15s; }
 .class-card:nth-child(5), .cat-card:nth-child(5), .plan-card:nth-child(5), .pkg-card:nth-child(5), .stat:nth-child(5), .ov-card:nth-child(5) { animation-delay: .20s; }
 .class-card:nth-child(n+6), .cat-card:nth-child(n+6), .plan-card:nth-child(n+6), .pkg-card:nth-child(n+6), .stat:nth-child(n+6), .ov-card:nth-child(n+6) { animation-delay: .25s; }
 
-/* owner dashboard — KPI cards, today list, attendance trend chart */
+/* owner dashboard - KPI cards, today list, attendance trend chart */
 .dash { display: flex; flex-direction: column; gap: 26px; }
 .dash-greet .h1 { margin: 0; }
 .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -3467,7 +3473,7 @@
 .skin-svg { display: inline-grid; place-items: center; width: 30px; height: 30px; }
 .skin-svg svg { width: 100%; height: 100%; }
 
-/* #3 trainee dashboard — a continuous premium colour story across the 4 metric
+/* #3 trainee dashboard - a continuous premium colour story across the 4 metric
    tiles: Deep Charcoal → Rich Muted Olive → Champagne Gold → Warm Cream. Each
    tone keeps its label/value at WCAG AA (>=4.5:1) on its own background. */
 .profile-grid .stat { border: 1px solid var(--line); }
@@ -3568,7 +3574,7 @@
 .lead-step-warn { color: var(--warn-ink) !important; font-weight: 600; }
 
 /* ============================================================================
-   Trainee home dashboard — the signed-in landing surface (gold + green)
+   Trainee home dashboard - the signed-in landing surface (gold + green)
    ========================================================================== */
 .home { display: flex; flex-direction: column; gap: 22px; }
 .home-greet .h1 { margin: 0 0 2px; }
@@ -3583,7 +3589,7 @@
 .rankup-txt b { color: var(--champagne); font-size: 1.06rem; }
 .rankup-txt span { color: var(--on-ink); font-size: .9rem; }
 
-/* loyalty ladder — several ranks, current highlighted */
+/* loyalty ladder - several ranks, current highlighted */
 .home-loyalty { background: var(--charcoal); color: var(--on-ink); border-radius: var(--r-lg);
   padding: 18px 20px; box-shadow: var(--sh-1); border: 1px solid var(--gold-600); }
 .hl-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
@@ -3592,18 +3598,18 @@
 .hl-attended { font-size: .82rem; font-weight: 700; color: var(--on-ink-2); white-space: nowrap; }
 .hl-ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; list-style: none; padding: 0; margin: 0; }
 .hl-step { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center;
-  padding: 10px 4px; border-radius: var(--r-md); background: rgba(255,255,255,.04); opacity: .6; transition: all .25s var(--ease); }
-.hl-step.done { opacity: .9; }
+  padding: 10px 4px; border-radius: var(--r-md); background: rgba(255,255,255,.04); opacity: .8; transition: all .25s var(--ease); }
+.hl-step.done { opacity: .92; }
 .hl-step.cur { opacity: 1; background: linear-gradient(160deg, var(--sage), var(--olive)); box-shadow: 0 0 0 1px var(--gold) inset; }
 .hl-dot { font-size: 1.15rem; color: var(--champagne); line-height: 1; }
 .hl-name { font-size: .8rem; font-weight: 800; color: var(--on-ink); }
-.hl-step small { font-size: .68rem; color: var(--on-ink-2); font-variant-numeric: tabular-nums; }
+.hl-step small { font-size: .68rem; color: var(--on-ink); font-variant-numeric: tabular-nums; }
 .hl-progress-wrap { margin-top: 14px; }
 .hl-progress { height: 8px; border-radius: 99px; background: rgba(255,255,255,.12); overflow: hidden; }
 .hl-progress span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--olive), var(--champagne)); }
 .hl-progress-wrap small { display: block; margin-top: 6px; font-size: .78rem; color: var(--on-ink-2); }
 
-/* next-class card in home context — make it a full-width button */
+/* next-class card in home context - make it a full-width button */
 .home-next { margin-bottom: 0; }
 .nc-btn { width: 100%; text-align: start; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; }
 
@@ -3645,7 +3651,7 @@
 .ann-tones { display: flex; gap: 6px; }
 .ann-tone { padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface);
   font-size: .8rem; font-weight: 700; color: var(--text-2); cursor: pointer; transition: all .18s var(--ease); }
-.ann-tone.on { color: var(--on-ink); border-color: transparent; }
+.ann-tone.on { color: #fff; border-color: transparent; }
 .ann-tone-news.on { background: var(--gold-600); }
 .ann-tone-event.on { background: var(--olive); }
 .ann-tone-important.on { background: #b0402f; }
@@ -3665,7 +3671,7 @@
 .svc-reload { align-self: center; margin-top: 10px; }
 
 /* ============================================================================
-   UX pass 2 — "today's classes" (overview) and Zone attendance as a scannable
+   UX pass 2 - "today's classes" (overview) and Zone attendance as a scannable
    card grid instead of full-width stretched rows. On iPad/desktop the old rows
    left a big empty gap between the time and the fill-count; carding + a 2-up
    grid uses the width and is far easier to scan for non-technical users.
@@ -3689,6 +3695,23 @@
 /* verify-email screen: both actions are clear buttons (resend was a text link) */
 .verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
+/* member health review - trainee notes highlighted so Omer sees them instantly */
+.health-review { margin: 14px 0 6px; }
+.health-note-alert {
+  display: flex; gap: 11px; align-items: flex-start; padding: 13px 15px; border-radius: var(--r-md);
+  background: #fff6e2; border: 1px solid #e8c874; border-inline-start: 5px solid #d99a1a; margin-bottom: 10px;
+}
+.hna-ico { font-size: 1.3rem; flex: none; line-height: 1.2; }
+.hna-body { min-width: 0; }
+.hna-body b { display: block; color: #8a5a00; font-size: 0.82rem; font-weight: 800; margin-bottom: 3px; }
+.hna-body p { margin: 0; color: #241c12; font-size: 1.02rem; font-weight: 700; line-height: 1.45; white-space: pre-wrap; }
+.health-flag-list {
+  display: flex; flex-direction: column; gap: 3px; padding: 11px 14px; border-radius: var(--r-md);
+  background: #fbe9e7; border: 1px solid #eab3ab; border-inline-start: 5px solid #b0402f; margin-bottom: 10px;
+}
+.health-flag-list b { color: #b0402f; font-size: 0.85rem; }
+.health-flag-list span { color: #241c12; font-size: 0.92rem; font-weight: 600; }
+
 /* member "danger zone": permanent delete */
 .danger-zone { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
 .dz-warn { color: #b0402f; font-size: 0.9rem; font-weight: 600; margin: 0 0 10px; line-height: 1.5; }
@@ -3697,7 +3720,7 @@
 .splash-slow { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 22px; animation: fade-in 0.3s var(--ease); }
 .splash-slow p { color: var(--text-2); font-size: 0.9rem; margin: 0; text-align: center; max-width: 260px; }
 
-/* member "invite a friend" card — warm, inviting */
+/* member "invite a friend" card - warm, inviting */
 .invite-card {
   display: flex; align-items: center; gap: 14px; width: 100%; text-align: start; cursor: pointer;
   background: linear-gradient(135deg, var(--sage), var(--olive) 60%, var(--gold-600));
@@ -3714,7 +3737,7 @@
 .invite-mini { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px dashed var(--gold-600); color: var(--olive-600); border-radius: var(--r-pill); padding: 7px 14px; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
 .invite-mini:hover { background: var(--surface-2); }
 
-/* full tofes101 health questionnaire — grouped questions + certificate upload */
+/* full tofes101 health questionnaire - grouped questions + certificate upload */
 .health-groups { display: flex; flex-direction: column; gap: 8px; }
 .health-group { padding: 10px 0; border-top: 1px solid var(--line); }
 .health-group:first-child { border-top: none; padding-top: 2px; }
@@ -3730,7 +3753,7 @@
 .cert-later { display: block; margin-top: 8px; color: var(--text-3); font-size: 0.78rem; }
 
 /* ============================================================================
-   Omix Zone — clearer hierarchy: the timer is a hero card, and each part of the
+   Omix Zone - clearer hierarchy: the timer is a hero card, and each part of the
    workspace is a distinct panel instead of a flat, undifferentiated scroll.
    ========================================================================== */
 .zone-hero {
@@ -3745,7 +3768,7 @@
 .zone-hero-ico { font-size: 2.4rem; flex: none; line-height: 1; }
 .zone-hero-txt { display: flex; flex-direction: column; gap: 3px; margin-inline-end: auto; min-width: 0; }
 .zone-hero-txt b { font-size: 1.35rem; letter-spacing: -0.01em; }
-.zone-hero-txt small { font-size: 0.9rem; color: var(--gold-600); font-weight: 600; }
+.zone-hero-txt small { font-size: 0.9rem; color: rgba(26, 26, 26, 0.74); font-weight: 600; }
 .zone-hero-go { font-size: 1.3rem; opacity: 0.6; flex: none; }
 
 /* every workspace section becomes a calm, distinct card */

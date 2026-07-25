@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { t } from "../lib/i18n";
 
-// The real OMIX emblem (the studio's logo — gold spine + olive leaf), cropped
+// The real OMIX emblem (the studio's logo - gold spine + olive leaf), cropped
 // from the artwork in /public. Square dark tile that sits well on both the dark
 // chrome and the light cards.
 export function OmixMark({ size = 30 }: { size?: number }) {

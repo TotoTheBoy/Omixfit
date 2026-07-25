@@ -2,7 +2,7 @@
 // classes, etc.) drop in without touching UI. Prices in ₪.
 export interface PackageTier {
   id: string;
-  /** Track this tier belongs to — lets us group/extend later. */
+  /** Track this tier belongs to - lets us group/extend later. */
   track: "personal" | "group";
   title: string;
   sessions: number;

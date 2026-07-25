@@ -192,7 +192,7 @@ function buildAudit(): AppData["audit"] {
   ];
 }
 
-// Service catalogue — Omixfit's real price list (group / online / personal),
+// Service catalogue - Omixfit's real price list (group / online / personal),
 // shared with the admin "load recommended price list" action. Two specialty
 // services are offered inactive so Omer can switch them on if she starts them.
 const services: AppData["services"] = [

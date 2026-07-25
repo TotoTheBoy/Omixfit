@@ -5,7 +5,7 @@ import { Sheet } from "./Sheet";
 import { toast } from "./Toast";
 import { CityPicker } from "./CityPicker";
 
-/** Low-friction "leave your details" modal for the landing — creates a lead
+/** Low-friction "leave your details" modal for the landing - creates a lead
  *  without an account so Omer can follow up (docs/refactor-spec.md §2). */
 export function LeadForm({ onClose }: { onClose: () => void }) {
   const [first, setFirst] = useState("");

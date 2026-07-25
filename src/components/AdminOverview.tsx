@@ -32,7 +32,7 @@ export function AdminOverview() {
         <h2 className="h1">{greeting}</h2>
       </div>
 
-      {/* KPI cards — the brand colour story: gold · charcoal · olive · cream */}
+      {/* KPI cards - the brand colour story: gold · charcoal · olive · cream */}
       <div className="kpi-grid">
         <div className="kpi kpi-gold">
           <span className="kpi-k">{t.dash.revenueMonth}</span>

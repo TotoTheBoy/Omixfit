@@ -94,7 +94,7 @@ export const AVATAR_LIST: { id: string; label: string }[] = [
   { id: "pulse", label: "מקצב" },
 ];
 
-/** Render an avatar skin token — `svg:<id>` → the motif, otherwise the emoji. */
+/** Render an avatar skin token - `svg:<id>` → the motif, otherwise the emoji. */
 export function AvatarSkin({ skin }: { skin: string }) {
   if (skin.startsWith("svg:")) return AVATAR_SVGS[skin.slice(4)] ?? <>{skin}</>;
   return <>{skin}</>;
