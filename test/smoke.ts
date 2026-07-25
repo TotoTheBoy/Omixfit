@@ -183,10 +183,10 @@ ok("value score is 0–100", vs.every((x) => x.score >= 0 && x.score <= 100));
 
 // ---- hasMedicalFlag (#13) ----
 ok("hasMedicalFlag: no form → false", engine.hasMedicalFlag({ healthForm: undefined }) === false);
-ok("hasMedicalFlag: a 'yes' answer → true", engine.hasMedicalFlag({ healthForm: { q3: true } } as never) === true);
+ok("hasMedicalFlag: a 'yes' answer → true", engine.hasMedicalFlag({ healthForm: { chestPainRest: true } } as never) === true);
 ok(
   "hasMedicalFlag: all-no form → false",
-  engine.hasMedicalFlag({ healthForm: { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false } } as never) === false,
+  engine.hasMedicalFlag({ healthForm: { heartDisease: false, pregnant: false } } as never) === false,
 );
 
 // ---- adminOverview: inactivity + low-occupancy (#1) ----

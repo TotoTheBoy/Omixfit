@@ -18,15 +18,14 @@ export interface NotifyPrefs {
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
 /** PAR-Q-style pre-exercise health declaration + terms, signed at registration. */
-export interface HealthForm {
-  /** Each is a yes/no answer to a standard pre-activity screening question. */
-  q1: boolean; // heart condition - activity only on doctor's advice
-  q2: boolean; // chest pain during physical activity
-  q3: boolean; // chest pain at rest in the last month
-  q4: boolean; // loses balance from dizziness / loses consciousness
-  q5: boolean; // bone/joint problem worsened by activity
-  q6: boolean; // medication for blood pressure / heart
-  q7: boolean; // any other reason not to do physical activity
+/** Part A answers — a yes/no per official questionnaire item (see lib/health.ts). */
+export type HealthAnswers = Record<import("./health").HealthQKey, boolean>;
+
+export interface HealthForm extends HealthAnswers {
+  /** A "כן" on any Part A item requires a doctor's certificate. Optional at
+   *  submission — the trainee may upload now or bring it later. */
+  hasMedicalCert?: boolean;
+  medicalCertName?: string; // filename of the uploaded certificate (emailed to Omer)
   notes: string; // free-text health notes
   termsAccepted: boolean;
   signedName: string; // typed signature
@@ -61,6 +60,9 @@ export interface User {
   /** Collected at registration (onboarding). */
   gender?: Gender;
   age?: number;
+  /** National ID (ת"ז) and date of birth (YYYY-MM-DD) — from the health form. */
+  idNumber?: string;
+  dob?: string;
   address?: string;
   /** Whether the Firebase email was verified (mirrored from auth so staff can
    *  see it on the approval card). */

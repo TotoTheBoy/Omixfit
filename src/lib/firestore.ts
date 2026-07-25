@@ -317,6 +317,18 @@ export async function submitHealthForm(
   });
 }
 
+/** After a registrant submits their health declaration, ask the backend to
+ *  e-mail Omer the PDF + a smart summary (and the certificate, if attached).
+ *  Best-effort — the submission is already saved, so a mail hiccup is silent. */
+export async function notifyHealthSubmission(
+  userId: string,
+  certDataUrl?: string,
+  certName?: string,
+): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "notifyHealthSubmission");
+  await call({ userId, certDataUrl, certName });
+}
+
 /** Staff approves/rejects a registrant. Admin accounts are never editable. */
 export async function setApproval(
   userId: string,

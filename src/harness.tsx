@@ -22,7 +22,8 @@ import { Profile } from "./screens/Profile";
 import { Schedule } from "./screens/Schedule";
 import { MyBookings } from "./screens/MyBookings";
 import { Login } from "./screens/Login";
-import { VerifyEmail } from "./screens/Onboarding";
+import { VerifyEmail, Onboarding } from "./screens/Onboarding";
+import type { User } from "./lib/types";
 
 hydrate(buildSeed());
 
@@ -48,6 +49,15 @@ const MAP: Record<string, JSX.Element> = {
   profile: <Profile onSwitchUser={noop} />,
   login: <Login onBack={noop} />,
   verify: <VerifyEmail email="name@example.com" onVerified={noop} />,
+  onboard: (
+    <Onboarding
+      user={{
+        id: "u-mock", name: "דנה כהן", firstName: "דנה", lastName: "כהן",
+        phone: "050-1234567", email: "dana@example.com", role: "member",
+        approvalStatus: "pending", membershipActive: false,
+      } as User}
+    />
+  ),
 };
 
 const body = MAP[screen] ?? <div style={{ padding: 40 }}>unknown screen: {screen}</div>;

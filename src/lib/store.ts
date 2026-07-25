@@ -159,6 +159,8 @@ export const notifyScheduleChange = (sessionId: string) =>
   backend().then((b) => b.notifyScheduleChange(sessionId));
 export const sendPasswordReset = (email: string) =>
   backend().then((b) => b.sendPasswordReset(email));
+export const notifyHealthSubmission = (userId: string, certDataUrl?: string, certName?: string) =>
+  backend().then((b) => b.notifyHealthSubmission(userId, certDataUrl, certName));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));

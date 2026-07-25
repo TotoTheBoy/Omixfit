@@ -3689,6 +3689,21 @@
 /* verify-email screen: both actions are clear buttons (resend was a text link) */
 .verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
+/* full tofes101 health questionnaire — grouped questions + certificate upload */
+.health-groups { display: flex; flex-direction: column; gap: 8px; }
+.health-group { padding: 10px 0; border-top: 1px solid var(--line); }
+.health-group:first-child { border-top: none; padding-top: 2px; }
+.hg-heading { font-weight: 800; color: var(--charcoal); font-size: 0.92rem; margin: 2px 0 8px; line-height: 1.4; }
+.health-group .health-q { padding: 5px 0; }
+.hq-hint { display: block; font-size: 0.72rem; color: var(--text-3); margin-top: 3px; font-weight: 400; }
+.cert-upload {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer;
+  padding: 10px 16px; border: 1px dashed var(--gold-600); border-radius: var(--r-md);
+  background: var(--surface); color: var(--charcoal); font-weight: 700; font-size: 0.86rem;
+}
+.cert-upload:hover { background: var(--surface-2); }
+.cert-later { display: block; margin-top: 8px; color: var(--text-3); font-size: 0.78rem; }
+
 /* ============================================================================
    Omix Zone — clearer hierarchy: the timer is a hero card, and each part of the
    workspace is a distinct panel instead of a flat, undifferentiated scroll.

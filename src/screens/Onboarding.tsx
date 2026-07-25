@@ -1,21 +1,41 @@
 import { useState } from "react";
 import { t } from "../lib/i18n";
 import { updateUser } from "../lib/store";
-import { isValidILPhone } from "../lib/validate";
+import { isValidILPhone, isValidIsraeliID } from "../lib/validate";
 import { CityPicker, isValidCity } from "../components/CityPicker";
 import { VersionTag } from "../components/common";
 import { OmixMark } from "../components/Brand";
 import { Toaster, toast } from "../components/Toast";
 import { IcCheck } from "../components/icons";
-import type { Gender, HealthForm as HF, User } from "../lib/types";
+import { HEALTH_GROUPS, HEALTH_KEYS, type HealthQKey } from "../lib/health";
+import type { Gender, HealthAnswers, HealthForm as HF, User } from "../lib/types";
 
 function initialsOf(name: string): string {
   const p = name.trim().split(/\s+/);
   return ((p[0]?.[0] ?? "") + (p[1]?.[0] ?? "")).toUpperCase() || "?";
 }
 
-const QS = ["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const;
-type QKey = (typeof QS)[number];
+/** Read a File to a base64 data URL (to hand a certificate to the email fn). */
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+/** Age in whole years from a YYYY-MM-DD date of birth. */
+function ageFromDob(dob: string): number | undefined {
+  if (!dob) return undefined;
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return undefined;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+  return a >= 0 && a < 120 ? a : undefined;
+}
 
 async function signOut() {
   const { signOutUser } = await import("../lib/firebase");
@@ -121,56 +141,74 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
 
 function HealthDeclaration({ user }: { user: User }) {
   const H = t.health;
+  // Prefill everything already known (fill-once) — address is stored "street, city".
+  const savedAddr = user.address ?? "";
+  const savedCity = savedAddr.includes(",") ? savedAddr.split(",").pop()!.trim() : "";
+  const savedStreet = savedAddr.includes(",") ? savedAddr.slice(0, savedAddr.lastIndexOf(",")).trim() : savedAddr;
   const [firstName, setFirstName] = useState(user.firstName ?? "");
   const [lastName, setLastName] = useState(user.lastName ?? "");
   const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-  const [gender, setGender] = useState<Gender | "">("");
-  const [age, setAge] = useState("");
+  const [idNumber, setIdNumber] = useState(user.idNumber ?? "");
+  const [gender, setGender] = useState<Gender | "">(user.gender ?? "");
+  const [dob, setDob] = useState(user.dob ?? "");
+  const age = ageFromDob(dob);
   const [phone, setPhone] = useState(user.phone || "");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
-  const [ans, setAns] = useState<Partial<Record<QKey, boolean>>>({});
+  const [city, setCity] = useState(savedCity);
+  const [street, setStreet] = useState(savedStreet);
+  const [houseNum, setHouseNum] = useState("");
+  const [ans, setAns] = useState<Partial<Record<HealthQKey, boolean>>>({});
   const [notes, setNotes] = useState("");
+  const [certFile, setCertFile] = useState<File | null>(null);
   const [terms, setTerms] = useState(false);
   const [signed, setSigned] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const flagged = QS.some((q) => ans[q] === true);
-  const allAnswered = QS.every((q) => ans[q] !== undefined);
+  const flagged = HEALTH_KEYS.some((k) => ans[k] === true);
+  const allAnswered = HEALTH_KEYS.every((k) => ans[k] !== undefined);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
-    if (!firstName.trim() || !lastName.trim() || !gender || !age || !phone.trim() || !city || !address.trim())
+    if (!firstName.trim() || !lastName.trim() || !idNumber.trim() || !gender || !dob || !phone.trim() || !city || !street.trim())
       return toast(H.needDetails, "err");
+    if (!isValidIsraeliID(idNumber)) return toast(H.invalidId, "err");
     if (!isValidILPhone(phone)) return toast(H.invalidPhone, "err");
     if (!isValidCity(city)) return toast(H.invalidCity, "err");
     if (!allAnswered) return toast(H.qIntro, "err");
     if (!terms) return toast(H.needTerms, "err");
     if (!signed) return toast(H.needSign, "err");
     setBusy(true);
+    const answers = Object.fromEntries(HEALTH_KEYS.map((k) => [k, !!ans[k]])) as HealthAnswers;
     const form: HF = {
-      q1: !!ans.q1, q2: !!ans.q2, q3: !!ans.q3, q4: !!ans.q4,
-      q5: !!ans.q5, q6: !!ans.q6, q7: !!ans.q7,
+      ...answers,
       notes: notes.trim(),
       termsAccepted: true,
       signedName: fullName,
       submittedAt: Date.now(),
+      ...(certFile ? { hasMedicalCert: true, medicalCertName: certFile.name } : {}),
     };
+    const address = `${street.trim()}${houseNum.trim() ? ` ${houseNum.trim()}` : ""}, ${city}`;
     try {
       // Save the full registration in one write; healthForm present →
       // <App /> re-renders this to <Pending /> (awaiting approval).
-      await updateUser(user.id, {
+      const patch: Partial<User> = {
         name: fullName,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         initials: initialsOf(fullName),
+        idNumber: idNumber.trim(),
         phone: phone.trim(),
         gender: gender as Gender,
-        age: Number(age) || undefined,
-        address: `${address.trim()}, ${city}`,
+        dob,
+        address,
         healthForm: form,
-      });
+      };
+      if (age !== undefined) patch.age = age;
+      await updateUser(user.id, patch);
+      // Notify Omer with the PDF + smart summary (and the certificate if attached).
+      const { notifyHealthSubmission } = await import("../lib/store");
+      const certData = certFile ? await fileToDataUrl(certFile) : undefined;
+      void notifyHealthSubmission(user.id, certData, certFile?.name).catch(() => {});
       toast(H.sentToast, "ok");
     } catch {
       setBusy(false);
@@ -200,6 +238,15 @@ function HealthDeclaration({ user }: { user: User }) {
           </div>
           <div className="row gap-3 wrap">
             <div className="field grow" style={{ minWidth: 130 }}>
+              <label htmlFor="rg-id">{H.idLabel}</label>
+              <input id="rg-id" className="input" inputMode="numeric" dir="ltr" maxLength={9} value={idNumber}
+                onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ""))}
+                aria-invalid={idNumber.length > 0 && !isValidIsraeliID(idNumber)} required />
+              {idNumber.length > 0 && !isValidIsraeliID(idNumber) && (
+                <small className="field-err">{H.invalidId}</small>
+              )}
+            </div>
+            <div className="field grow" style={{ minWidth: 130 }}>
               <label htmlFor="rg-gender">{H.genderLabel}</label>
               <select id="rg-gender" className="select" value={gender} onChange={(e) => setGender(e.target.value as Gender)}>
                 <option value="">{H.selectGender}</option>
@@ -208,9 +255,15 @@ function HealthDeclaration({ user }: { user: User }) {
                 <option value="other">{H.genders.other}</option>
               </select>
             </div>
-            <div className="field grow" style={{ minWidth: 90 }}>
+          </div>
+          <div className="row gap-3 wrap">
+            <div className="field grow" style={{ minWidth: 150 }}>
+              <label htmlFor="rg-dob">{H.dobLabel}</label>
+              <input id="rg-dob" className="input" type="date" dir="ltr" value={dob} onChange={(e) => setDob(e.target.value)} required />
+            </div>
+            <div className="field" style={{ minWidth: 90, maxWidth: 120 }}>
               <label htmlFor="rg-age">{H.ageLabel}</label>
-              <input id="rg-age" className="input" type="number" min={1} max={120} value={age} onChange={(e) => setAge(e.target.value)} />
+              <input id="rg-age" className="input" value={age !== undefined ? String(age) : ""} readOnly disabled placeholder="—" />
             </div>
           </div>
           <div className="field">
@@ -224,44 +277,74 @@ function HealthDeclaration({ user }: { user: User }) {
             )}
           </div>
           <div className="row gap-3 wrap">
-            <div className="field grow" style={{ minWidth: 140 }}>
+            <div className="field grow" style={{ minWidth: 130 }}>
               <label htmlFor="rg-city">{H.cityLabel}</label>
               <CityPicker id="rg-city" value={city} onChange={setCity} />
             </div>
-            <div className="field grow" style={{ minWidth: 140 }}>
-              <label htmlFor="rg-address">{H.streetLabel}</label>
-              <input id="rg-address" className="input" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="street-address" placeholder="רחוב ומספר" />
+            <div className="field grow" style={{ minWidth: 120 }}>
+              <label htmlFor="rg-street">{H.streetLabel}</label>
+              <input id="rg-street" className="input" value={street} onChange={(e) => setStreet(e.target.value)} autoComplete="street-address" />
+            </div>
+            <div className="field" style={{ minWidth: 78, maxWidth: 100 }}>
+              <label htmlFor="rg-house">{H.houseLabel}</label>
+              <input id="rg-house" className="input" inputMode="numeric" value={houseNum} onChange={(e) => setHouseNum(e.target.value)} />
             </div>
           </div>
 
           <h2 className="onboard-h2">{H.sectionQ}</h2>
           <p className="onboard-qintro">{H.qIntro}</p>
-          <div className="health-qs">
-            {QS.map((q) => (
-              <div className="health-q" key={q}>
-                <span className="hq-text">{H[q]}</span>
-                <div className="hq-toggle" role="group">
-                  <button
-                    type="button"
-                    className={ans[q] === true ? "on yes" : ""}
-                    aria-pressed={ans[q] === true}
-                    onClick={() => setAns((a) => ({ ...a, [q]: true }))}
-                  >
-                    {H.yes}
-                  </button>
-                  <button
-                    type="button"
-                    className={ans[q] === false ? "on no" : ""}
-                    aria-pressed={ans[q] === false}
-                    onClick={() => setAns((a) => ({ ...a, [q]: false }))}
-                  >
-                    {H.no}
-                  </button>
+          <div className="health-groups">
+            {HEALTH_GROUPS.map((g) => {
+              const single = g.items.length === 1;
+              return (
+                <div className="health-group" key={g.heading}>
+                  {!single && <p className="hg-heading">{g.heading}</p>}
+                  {g.items.map((it) => (
+                    <div className="health-q" key={it.key}>
+                      <span className="hq-text">
+                        {single ? g.heading : it.label}
+                        {it.hint && <small className="hq-hint">{it.hint}</small>}
+                      </span>
+                      <div className="hq-toggle" role="group" aria-label={single ? g.heading : it.label}>
+                        <button
+                          type="button"
+                          className={ans[it.key] === true ? "on yes" : ""}
+                          aria-pressed={ans[it.key] === true}
+                          onClick={() => setAns((a) => ({ ...a, [it.key]: true }))}
+                        >
+                          {H.yes}
+                        </button>
+                        <button
+                          type="button"
+                          className={ans[it.key] === false ? "on no" : ""}
+                          aria-pressed={ans[it.key] === false}
+                          onClick={() => setAns((a) => ({ ...a, [it.key]: false }))}
+                        >
+                          {H.no}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          {flagged && <p className="health-flag" role="alert">{H.flagged}</p>}
+          {flagged && (
+            <div className="health-flag" role="alert">
+              <p>{H.flagged}</p>
+              <label htmlFor="rg-cert" className="cert-upload">
+                <span>📎 {certFile ? certFile.name : H.certUpload}</span>
+                <input
+                  id="rg-cert"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  hidden
+                  onChange={(e) => setCertFile(e.target.files?.[0] ?? null)}
+                />
+              </label>
+              <small className="cert-later">{H.certLater}</small>
+            </div>
+          )}
 
           <div className="field">
             <label htmlFor="hf-notes">{H.notesLabel}</label>

@@ -14,6 +14,20 @@ export function isValidILPhone(p: string): boolean {
   return /^(\+?972|0)5\d{8}$/.test(normalizePhone(p));
 }
 
+/** Valid Israeli national ID (ת"ז) — 5-9 digits, padded to 9, Luhn-style check. */
+export function isValidIsraeliID(id: string): boolean {
+  const s = (id || "").replace(/\D/g, "");
+  if (s.length < 5 || s.length > 9) return false;
+  const p = s.padStart(9, "0");
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let d = Number(p[i]) * ((i % 2) + 1);
+    if (d > 9) d -= 9;
+    sum += d;
+  }
+  return sum % 10 === 0;
+}
+
 /** Normalize to the local 05X-XXXXXXX display form. */
 export function formatILPhone(p: string): string {
   const n = normalizePhone(p).replace(/^\+?972/, "0");
