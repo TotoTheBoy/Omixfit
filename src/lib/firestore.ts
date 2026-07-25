@@ -262,10 +262,15 @@ export async function resolveAuthUser(
 
   // Existing account (mirror first, then a query). Promote an owner to admin
   // if they aren't already (idempotent).
-  const existing =
+  // Match the record for THIS auth uid (the user doc id === uid). A record found
+  // only by e-mail but with a DIFFERENT id is a stale/offline-cached doc of a
+  // removed account (the e-mail was re-used with a new auth uid) - it must NOT
+  // admit the user. This closes the "deleted user still gets in from cache" hole.
+  const found =
     getState().users.find((u) => u.email?.toLowerCase() === e) ??
     (await getDocs(query(col.users, where("email", "==", email.trim())))).docs
       .map((d) => d.data() as User)[0];
+  const existing = found && found.id === uid ? found : undefined;
   if (existing) {
     const patch: Record<string, unknown> = {};
     if (owner && existing.role !== "admin") {

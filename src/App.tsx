@@ -202,18 +202,14 @@ export default function App() {
     );
   }
 
-  // A fresh member (pending approval) must first prove they own the email address
-  // (a made-up address never receives the link, so it can't reach the app). Only
-  // the "pending" flow is gated - seeded/legacy members (no approvalStatus) and
-  // approved members / staff are grandfathered so we never lock anyone out.
-  if (me.role === "member" && me.approvalStatus === "pending" && !emailVerified) {
-    return <VerifyEmail email={me.email ?? ""} onVerified={() => setEmailVerified(true)} />;
-  }
-
-  // Only members go through approval (health form → "awaiting approval"). Staff
-  // (instructor/manager/admin) are provisioned by trusted parties, so they skip
-  // it. Approval flips a member into the app live via the Firestore listener.
-  if (me.role === "member" && me.approvalStatus && me.approvalStatus !== "approved") {
+  // STRICT gate: a member reaches the app ONLY when explicitly approved by staff.
+  // Anyone else - pending, rejected, or with a missing status - is held in the
+  // verify-email / onboarding flow. No grandfathering: an incomplete or removed
+  // account can never slip into the app. (Staff, role !== member, skip this.)
+  if (me.role === "member" && me.approvalStatus !== "approved") {
+    if (!emailVerified) {
+      return <VerifyEmail email={me.email ?? ""} onVerified={() => setEmailVerified(true)} />;
+    }
     return <Onboarding user={me} />;
   }
 

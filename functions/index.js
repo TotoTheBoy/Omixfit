@@ -628,6 +628,31 @@ exports.resetUsers = fnV1.https.onRequest(async (req, res) => {
   return res.json({ ok: true, removedDocs, removedAuth, keptAdmins });
 });
 
+// Diagnostic: inspect an account's real server state (auth + Firestore docs).
+exports.debugUser = fnV1.https.onRequest(async (req, res) => {
+  if (req.query.key !== process.env.REMINDER_KEY) return res.status(403).send("forbidden");
+  const email = String(req.query.email || "");
+  const { getAuth } = require("firebase-admin/auth");
+  let authRec = null;
+  try {
+    const r = await getAuth().getUserByEmail(email);
+    authRec = { uid: r.uid, emailVerified: r.emailVerified, disabled: r.disabled, created: r.metadata.creationTime };
+  } catch (e) {
+    authRec = { error: e && e.code };
+  }
+  const byEmail = await db.collection("users").where("email", "==", email).get();
+  const docs = byEmail.docs.map((d) => ({
+    id: d.id,
+    approvalStatus: d.data().approvalStatus,
+    role: d.data().role,
+    emailVerified: d.data().emailVerified,
+    memberNo: d.data().memberNo,
+    name: d.data().name,
+    healthForm: !!d.data().healthForm,
+  }));
+  return res.json({ email, auth: authRec, docCount: docs.length, docs });
+});
+
 exports.notifyApproval = fnV1.https.onCall(async (data, context) => {
   const role = await callerRole(context);
   if (!["admin", "manager", "instructor"].includes(role)) {
