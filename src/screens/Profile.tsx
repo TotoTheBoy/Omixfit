@@ -36,6 +36,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
   const [paybox, setPaybox] = useState(fac.payboxLink ?? "");
   const isAdmin = me.role === "admin";
   const [skinOpen, setSkinOpen] = useState(false);
+  const [journey, setJourney] = useState(false);
 
   function savePay() {
     savePaymentLinks({ bitLink: bit.trim(), payboxLink: paybox.trim() });
@@ -126,7 +127,9 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
               {currentTier.name} ⇅
             </button>
           ) : (
-            <span className="mc-tier">{currentTier.name}</span>
+            <button className="mc-tier mc-tier-btn" onClick={() => setJourney(true)} title={t.loyalty.journeyHint}>
+              {currentTier.name} →
+            </button>
           )}
         </div>
         <div className="mc-id">
@@ -410,7 +413,44 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       )}
       {editing && <ProfileEditor onClose={() => setEditing(false)} />}
       {billingOpen && <Billing onClose={() => setBillingOpen(false)} />}
+      {journey && <LoyaltyJourney attended={stats.attended} onClose={() => setJourney(false)} />}
     </div>
+  );
+}
+
+/** The member's loyalty journey — all OMIX stages, current highlighted, progress
+ *  to the next, and the perk waiting at the top. Opens from the membership badge. */
+function LoyaltyJourney({ attended, onClose }: { attended: number; onClose: () => void }) {
+  const loyalty = loyaltyFor(attended);
+  return (
+    <Sheet title={t.loyalty.journeyTitle} onClose={onClose}>
+      <p className="muted" style={{ margin: "0 0 14px" }}>{t.loyalty.journeySub}</p>
+      <div className="home-loyalty">
+        <div className="hl-head">
+          <div>
+            <span className="hl-kicker">{t.loyalty.journeyKicker}</span>
+            <b className="hl-tier">{loyalty.current.name}</b>
+          </div>
+          <span className="hl-attended">{t.home.attendedN(attended)}</span>
+        </div>
+        <ol className="hl-ladder" aria-label={t.loyalty.journeyTitle}>
+          {LOYALTY_TIERS.map((tier, i) => (
+            <li key={tier.id} className={`hl-step ${i < loyalty.index ? "done" : ""} ${i === loyalty.index ? "cur" : ""}`}>
+              <span className="hl-dot" aria-hidden="true">{i <= loyalty.index ? "★" : "☆"}</span>
+              <span className="hl-name">{tier.name.replace("OMIX ", "")}</span>
+              <small>{tier.min}+</small>
+            </li>
+          ))}
+        </ol>
+        {loyalty.next && (
+          <div className="hl-progress-wrap">
+            <div className="hl-progress"><span style={{ width: `${loyalty.progress * 100}%` }} /></div>
+            <small>{t.loyalty.toNext(loyalty.toNext, loyalty.next.name)}</small>
+          </div>
+        )}
+      </div>
+      <p className="journey-perk">{t.loyalty.journeyPerk}</p>
+    </Sheet>
   );
 }
 

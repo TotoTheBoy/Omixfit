@@ -262,6 +262,11 @@ export const t = {
     toNext: (n: number, tier: string) => `עוד ${n} אימונים למעמד ${tier}`,
     tierSet: (tier: string) => `המעמד עודכן ל-${tier}`,
     tierAdminHint: "לחץ/י כדי לשנות מעמד (מנהל/ת)",
+    journeyHint: "המסע שלך - לחצו לצפייה בדרגות",
+    journeyTitle: "מסע ה-OMIX שלך 🏅",
+    journeyKicker: "המעמד הנוכחי שלך",
+    journeySub: "כל אימון מקרב אותך לדרגה הבאה. הנה כל השלבים והמקום שלך במסלול:",
+    journeyPerk: "🎁 בדרגת OMIX Marathoner נפתחת הזמנת שיעורים מוקדמת - שעה לפני כולם.",
   },
   packages: {
     title: "כרטיסיות ומנויים",
