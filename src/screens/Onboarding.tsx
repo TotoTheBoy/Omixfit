@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "../lib/i18n";
 import { updateUser } from "../lib/store";
 import { isValidILPhone, isValidIsraeliID } from "../lib/validate";
@@ -94,20 +94,50 @@ function Rejected() {
 // link Firebase e-mailed them - so a made-up address can't reach the app.
 export function VerifyEmail({ email, onVerified }: { email: string; onVerified: () => void }) {
   const [busy, setBusy] = useState(false);
-  async function check() {
-    setBusy(true);
+  const doneRef = useRef(false);
+
+  // Reload the auth token and, if the address is now verified, advance. `silent`
+  // is used by the auto-checks (mount / window-focus / poll) so they don't spam
+  // "not yet" toasts or the button spinner - only the explicit button does.
+  async function check(silent = false) {
+    if (doneRef.current) return true;
+    if (!silent) setBusy(true);
     try {
       const { refreshEmailVerified } = await import("../lib/firebase");
       if (await refreshEmailVerified()) {
+        doneRef.current = true;
         toast(t.verify.done, "ok");
         onVerified();
-      } else {
-        toast(t.verify.notYet, "info");
+        return true;
       }
+      if (!silent) toast(t.verify.notYet, "info");
+      return false;
+    } catch {
+      if (!silent) toast(t.verify.notYet, "info");
+      return false;
     } finally {
-      setBusy(false);
+      if (!silent) setBusy(false);
     }
   }
+
+  // Clicking the link in the e-mail verifies server-side and redirects back to
+  // the app, but the session's cached token still says unverified. So we detect
+  // it ourselves: once on mount, whenever the tab regains focus (they return
+  // from their mail app), and a light poll as a fallback. Any of these advances
+  // the flow automatically - no manual tap needed.
+  useEffect(() => {
+    check(true);
+    const onFocus = () => check(true);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    const id = window.setInterval(() => check(true), 3000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   async function resend() {
     try {
       // Branded resend from office@ (not Firebase's default noreply → spam).
@@ -123,9 +153,10 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
       <span className="onboard-badge">{t.verify.badge}</span>
       <h1>{t.verify.title}</h1>
       <p className="login-sub">{t.verify.body(email)}</p>
+      <p className="login-note verify-waiting">{t.verify.waiting}</p>
       <p className="login-note">{t.verify.hint}</p>
       <div className="verify-actions">
-        <button className="btn btn-lime btn-lg btn-block" onClick={check} disabled={busy}>
+        <button className="btn btn-lime btn-lg btn-block" onClick={() => check(false)} disabled={busy}>
           {busy ? t.verify.checking : t.verify.cta}
         </button>
         <button className="btn btn-ghost btn-block" onClick={resend} disabled={busy}>

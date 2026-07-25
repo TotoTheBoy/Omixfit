@@ -686,13 +686,17 @@ exports.sendVerificationLink = fnV1.https.onCall(async (data, context) => {
   const email = u.exists && u.data().email;
   if (!email) return { sent: false };
   const { getAuth } = require("firebase-admin/auth");
-  const link = await getAuth().generateEmailVerificationLink(email);
+  const link = await getAuth().generateEmailVerificationLink(email, {
+    url: APP_URL,
+    handleCodeInApp: false,
+  });
   const name = (u.data().name || "").split(" ")[0];
   await sendMail(email, "אימות המייל שלך ל-Omix 📧",
     `<h2 style="color:#a9842f">רק צעד אחד אחרון 📧</h2>
      <p>היי ${name},</p>
-     <p>כדי להשלים את ההרשמה ל-Omix יש לאמת את כתובת המייל שלך:</p>
-     <p style="margin:22px 0"><a href="${link}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">אימות מייל</a></p>
+     <p>כדי להשלים את ההרשמה ל-Omix יש לאמת את כתובת המייל. לאחר האימות תוחזר/י אוטומטית לאפליקציה:</p>
+     <p style="margin:22px 0"><a href="${link}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">אימות מייל והמשך</a></p>
+     <p style="font-size:13px;color:#6b5d47">אם קיבלת כמה מיילים - השתמש/י בקישור מהמייל האחרון בלבד.</p>
      <p>נתראה באימון!<br><b>עומר · Omix</b></p>`);
   return { sent: true };
 });
@@ -716,7 +720,7 @@ exports.sendMyVerificationEmail = fnV1.https.onCall(async (data, context) => {
      <p>היי ${name},</p>
      <p>כדי להשלים את ההרשמה ל-Omix יש לאמת את כתובת המייל. לאחר האימות תוחזר/י אוטומטית להשלמת הרישום:</p>
      <p style="margin:22px 0"><a href="${link}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">אימות מייל והמשך</a></p>
-     <p style="font-size:13px;color:#6b5d47">לא נרשמת ל-Omix? אפשר להתעלם מהמייל.</p>
+     <p style="font-size:13px;color:#6b5d47">אם קיבלת כמה מיילים - השתמש/י בקישור מהמייל האחרון בלבד (הקודמים כבר לא בתוקף).<br>לא נרשמת ל-Omix? אפשר להתעלם מהמייל.</p>
      <p>נתראה באימון!<br><b>עומר · Omix</b></p>`);
   return { sent: true };
 });

@@ -3693,6 +3693,22 @@
 .count-chip { background: var(--sage); color: var(--on-ink); min-width: 24px; justify-content: center; font-weight: 800; }
 
 /* verify-email screen: both actions are clear buttons (resend was a text link) */
+.verify-waiting {
+  color: var(--brand-ink, #a9842f);
+  font-weight: 600;
+}
+.verify-waiting::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-inline-end: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: verify-pulse 1.4s ease-in-out infinite;
+  vertical-align: middle;
+}
+@keyframes verify-pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 .verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
 /* registry number badge (#N) next to a member's name */
