@@ -63,6 +63,9 @@ export function Schedule() {
   }
 
   const activeCategoryFilter = (s: ClassSession) => {
+    // Members never see a cancelled class - it simply disappears (only the admin
+    // calendar keeps the cancelled marker).
+    if (s.cancelled) return false;
     // Guard: a session whose class type was removed must not crash the whole day.
     const ct = data.classTypes.find((c) => c.id === s.classTypeId);
     if (!ct) return false;

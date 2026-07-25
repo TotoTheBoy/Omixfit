@@ -43,7 +43,7 @@ export function Home({ onGo }: { onGo: (v: View) => void }) {
   const next = data.bookings
     .filter((b) => b.userId === me.id && b.state === "confirmed")
     .map((b) => data.sessions.find((se) => se.id === b.sessionId))
-    .filter((se): se is ClassSession => !!se && sessionStartDate(se).getTime() > now)
+    .filter((se): se is ClassSession => !!se && !se.cancelled && sessionStartDate(se).getTime() > now)
     .sort((a, b) => sessionStartDate(a).getTime() - sessionStartDate(b).getTime())[0];
 
   const feed = [...data.announcements].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);

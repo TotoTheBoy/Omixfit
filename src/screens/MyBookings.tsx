@@ -33,11 +33,13 @@ export function MyBookings({ onGoSchedule }: { onGoSchedule: () => void }) {
         .map((b) => b.sessionId),
     );
     const sessions = data.sessions
-      .filter((s) => mineIds.has(s.id))
+      // A class the admin cancelled simply disappears for the member (they're
+      // notified separately + credit refunded); no "cancelled" ghost in bookings.
+      .filter((s) => mineIds.has(s.id) && !s.cancelled)
       .sort((a, b) => sessionStartDate(a).getTime() - sessionStartDate(b).getTime());
     return {
-      upcoming: sessions.filter((s) => sessionStartDate(s).getTime() >= now && !s.cancelled),
-      past: sessions.filter((s) => sessionStartDate(s).getTime() < now || s.cancelled).reverse(),
+      upcoming: sessions.filter((s) => sessionStartDate(s).getTime() >= now),
+      past: sessions.filter((s) => sessionStartDate(s).getTime() < now).reverse(),
     };
   }, [data, nowTick]);
 

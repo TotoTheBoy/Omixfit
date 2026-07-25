@@ -38,6 +38,22 @@ const IcCoins = (p: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+// Recover from a stuck load: unregister the service worker + drop its caches, then
+// reload — so a stale SW that serves dead chunks can't trap the user on the splash.
+async function hardReload() {
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch { /* best-effort */ }
+  location.reload();
+}
+
 type View = "overview" | "calendar" | "trainees" | "finance" | "zone" | "home" | "schedule" | "bookings" | "profile";
 const VIEWS = ["overview", "calendar", "trainees", "finance", "zone", "home", "schedule", "bookings", "profile"];
 
@@ -82,6 +98,11 @@ export default function App() {
         if (identity) onAuthIdentity(identity.uid, identity.email, identity.displayName, identity.emailVerified);
         else logout();
       });
+    }).catch(() => {
+      // The firebase chunk failed to load (e.g. a stale SW serving a dead hash).
+      // Resolve the gate so we show the landing/login instead of hanging on the
+      // splash — the slow-load recovery button can then hard-reload.
+      if (!cancelled) setAuthResolved(true);
     });
     return () => {
       cancelled = true;
@@ -98,14 +119,16 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // If the session is signed in but the Firestore profile hasn't resolved after a
-  // few seconds (slow network / a transient hiccup during first sign-up), offer a
-  // one-tap reload so the user never has to figure out a manual refresh.
+  // The splash shows while auth resolves OR while signed-in data streams in. If it
+  // lingers (slow net, a first-signup hiccup, or a stale service worker serving
+  // dead chunks so a dynamic import never lands), offer a one-tap recovery — a
+  // HARD reload that clears the SW + caches — so it never hangs forever.
   useEffect(() => {
-    if (me || !signedIn) { setSlowLoad(false); return; }
-    const id = setTimeout(() => setSlowLoad(true), 7000);
+    const splashShowing = !me && (!authResolved || signedIn);
+    if (!splashShowing) { setSlowLoad(false); return; }
+    const id = setTimeout(() => setSlowLoad(true), 6000);
     return () => clearTimeout(id);
-  }, [me, signedIn]);
+  }, [me, authResolved, signedIn]);
 
   // If a staff-only/member-only view doesn't fit the current role, fall back.
   useEffect(() => {
@@ -145,7 +168,7 @@ export default function App() {
           {slowLoad && (
             <div className="splash-slow">
               <p>{t.splashSlow}</p>
-              <button className="btn btn-lime" onClick={() => location.reload()}>{t.splashReload}</button>
+              <button className="btn btn-lime" onClick={hardReload}>{t.splashReload}</button>
             </div>
           )}
         </div>

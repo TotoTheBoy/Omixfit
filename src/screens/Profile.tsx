@@ -176,7 +176,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
         const next = data.bookings
           .filter((b) => b.userId === me.id && b.state === "confirmed")
           .map((b) => data.sessions.find((se) => se.id === b.sessionId))
-          .filter((se): se is ClassSession => !!se && sessionStartDate(se).getTime() > now)
+          .filter((se): se is ClassSession => !!se && !se.cancelled && sessionStartDate(se).getTime() > now)
           .sort((a, b) => sessionStartDate(a).getTime() - sessionStartDate(b).getTime())[0];
         return (
           <div className="next-class">
