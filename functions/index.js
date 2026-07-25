@@ -577,7 +577,12 @@ exports.deleteMember = fnV1.https.onCall(async (data, context) => {
 // (Firestore doc + auth) and wipe test transactions/schedule, keeping only the
 // business admins. Protected by the reminder key. GET ...?key=...
 exports.resetUsers = fnV1.https.onRequest(async (req, res) => {
-  if (req.query.key !== process.env.REMINDER_KEY) return res.status(403).send("forbidden");
+  // Destructive (wipes all non-admin users + data) - gated by its OWN secret,
+  // separate from REMINDER_KEY (which rides along in the reminder cron URL), and
+  // requires an explicit confirm token so a leaked key alone can't nuke the DB.
+  const RESET_KEY = process.env.RESET_KEY;
+  if (!RESET_KEY || req.query.key !== RESET_KEY) return res.status(403).send("forbidden");
+  if (req.query.confirm !== "RESET") return res.status(400).send("missing confirm=RESET");
   const { getAuth } = require("firebase-admin/auth");
   const auth = getAuth();
   const isAdmin = (email) => OWNER_EMAILS.includes(String(email || "").toLowerCase());
@@ -629,30 +634,6 @@ exports.resetUsers = fnV1.https.onRequest(async (req, res) => {
 });
 
 // Diagnostic: inspect an account's real server state (auth + Firestore docs).
-exports.debugUser = fnV1.https.onRequest(async (req, res) => {
-  if (req.query.key !== process.env.REMINDER_KEY) return res.status(403).send("forbidden");
-  const email = String(req.query.email || "");
-  const { getAuth } = require("firebase-admin/auth");
-  let authRec = null;
-  try {
-    const r = await getAuth().getUserByEmail(email);
-    authRec = { uid: r.uid, emailVerified: r.emailVerified, disabled: r.disabled, created: r.metadata.creationTime };
-  } catch (e) {
-    authRec = { error: e && e.code };
-  }
-  const byEmail = await db.collection("users").where("email", "==", email).get();
-  const docs = byEmail.docs.map((d) => ({
-    id: d.id,
-    approvalStatus: d.data().approvalStatus,
-    role: d.data().role,
-    emailVerified: d.data().emailVerified,
-    memberNo: d.data().memberNo,
-    name: d.data().name,
-    healthForm: !!d.data().healthForm,
-  }));
-  return res.json({ email, auth: authRec, docCount: docs.length, docs });
-});
-
 exports.notifyApproval = fnV1.https.onCall(async (data, context) => {
   const role = await callerRole(context);
   if (!["admin", "manager", "instructor"].includes(role)) {
@@ -733,6 +714,13 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
   if (!context.auth) throw new fnV1.https.HttpsError("unauthenticated", "sign in");
   const userId = data && data.userId;
   if (!userId) return { sent: false };
+  // Only the registrant themselves (or staff) may trigger their health e-mail -
+  // otherwise any signed-in member could spam Omer with fabricated submissions.
+  const role = await callerRole(context);
+  const isStaff = ["admin", "manager", "instructor"].includes(role);
+  if (context.auth.uid !== userId && !isStaff) {
+    throw new fnV1.https.HttpsError("permission-denied", "not your submission");
+  }
   const snap = await db.doc("users/" + userId).get();
   if (!snap.exists) return { sent: false };
   const user = snap.data();
