@@ -13,7 +13,8 @@ type Mode = "signin" | "signup" | "reset";
 // listener in <App /> resolves the session and swaps in the app shell.
 export function Login({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<Mode>("signin");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -39,8 +40,15 @@ export function Login({ onBack }: { onBack?: () => void }) {
         setBusy(false);
         return;
       }
-      if (isSignup) await signUp(email, password, name);
-      else await signIn(email, password);
+      if (isSignup) {
+        // Stash the split name so the user record is created with firstName /
+        // lastName (never re-asked later — one source of truth).
+        try {
+          sessionStorage.setItem("omix:signupFirst", firstName.trim());
+          sessionStorage.setItem("omix:signupLast", lastName.trim());
+        } catch { /* no sessionStorage */ }
+        await signUp(email, password, `${firstName.trim()} ${lastName.trim()}`.trim());
+      } else await signIn(email, password);
       // Success → <App />'s auth listener takes it from here.
     } catch (err) {
       toast(authErrorMessage(err), "err");
@@ -94,17 +102,31 @@ export function Login({ onBack }: { onBack?: () => void }) {
 
         <form className="auth-form" onSubmit={onSubmit}>
           {isSignup && (
-            <div className="field">
-              <label htmlFor="auth-name">{t.nameLabel}</label>
-              <input
-                id="auth-name"
-                className="input"
-                type="text"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+            <div className="row gap-3 wrap">
+              <div className="field grow">
+                <label htmlFor="auth-first">{t.health.firstNameLabel}</label>
+                <input
+                  id="auth-first"
+                  className="input"
+                  type="text"
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="field grow">
+                <label htmlFor="auth-last">{t.health.lastNameLabel}</label>
+                <input
+                  id="auth-last"
+                  className="input"
+                  type="text"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
           )}
           <div className="field">

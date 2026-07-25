@@ -21,6 +21,8 @@ import { Home } from "./screens/Home";
 import { Profile } from "./screens/Profile";
 import { Schedule } from "./screens/Schedule";
 import { MyBookings } from "./screens/MyBookings";
+import { Login } from "./screens/Login";
+import { VerifyEmail } from "./screens/Onboarding";
 
 hydrate(buildSeed());
 
@@ -44,6 +46,8 @@ const MAP: Record<string, JSX.Element> = {
   schedule: <Schedule />,
   bookings: <MyBookings onGoSchedule={noop} />,
   profile: <Profile onSwitchUser={noop} />,
+  login: <Login onBack={noop} />,
+  verify: <VerifyEmail email="name@example.com" onVerified={noop} />,
 };
 
 const body = MAP[screen] ?? <div style={{ padding: 40 }}>unknown screen: {screen}</div>;

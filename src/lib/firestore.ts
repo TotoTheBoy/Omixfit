@@ -239,11 +239,18 @@ export async function resolveAuthUser(
   const e = email.trim().toLowerCase();
   const owner = OWNER_EMAILS.includes(e); // the two business owners → admins
   const prefix = email.split("@")[0];
-  // The name chosen at sign-up (stashed before the auth listener fired).
+  // The name chosen at sign-up (stashed before the auth listener fired) — kept
+  // split (firstName / lastName) so it's never re-asked, plus a combined display.
   let stashed: string | null = null;
+  let stashedFirst = "";
+  let stashedLast = "";
   try {
     stashed = sessionStorage.getItem("omix:signupName");
+    stashedFirst = (sessionStorage.getItem("omix:signupFirst") ?? "").trim();
+    stashedLast = (sessionStorage.getItem("omix:signupLast") ?? "").trim();
     sessionStorage.removeItem("omix:signupName");
+    sessionStorage.removeItem("omix:signupFirst");
+    sessionStorage.removeItem("omix:signupLast");
   } catch { /* no sessionStorage */ }
   const chosenName = stashed?.trim() || displayName?.trim() || prefix || email;
 
@@ -283,6 +290,8 @@ export async function resolveAuthUser(
   const user: User = {
     id: uid,
     name,
+    ...(stashedFirst ? { firstName: stashedFirst } : {}),
+    ...(stashedLast ? { lastName: stashedLast } : {}),
     phone: "",
     email: email.trim(),
     role: owner ? "admin" : "member",

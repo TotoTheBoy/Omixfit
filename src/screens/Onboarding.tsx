@@ -103,13 +103,15 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
       <h1>{t.verify.title}</h1>
       <p className="login-sub">{t.verify.body(email)}</p>
       <p className="login-note">{t.verify.hint}</p>
-      <button className="btn btn-lime" style={{ marginTop: 16, width: "100%" }} onClick={check} disabled={busy}>
-        {busy ? t.verify.checking : t.verify.cta}
-      </button>
-      <button className="link-btn" style={{ marginTop: 10 }} onClick={resend}>
-        {t.verify.resend}
-      </button>
-      <p className="login-note" style={{ marginTop: 14 }}>
+      <div className="verify-actions">
+        <button className="btn btn-lime btn-lg btn-block" onClick={check} disabled={busy}>
+          {busy ? t.verify.checking : t.verify.cta}
+        </button>
+        <button className="btn btn-ghost btn-block" onClick={resend} disabled={busy}>
+          ✉️ {t.verify.resend}
+        </button>
+      </div>
+      <p className="login-note" style={{ marginTop: 16 }}>
         {t.support.prompt}{" "}
         <a href={`mailto:${t.support.email}`}>{t.support.email}</a>
       </p>

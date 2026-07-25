@@ -3686,6 +3686,9 @@
 /* small count badge next to a section heading (was an invisible surface-2 chip) */
 .count-chip { background: var(--sage); color: var(--on-ink); min-width: 24px; justify-content: center; font-weight: 800; }
 
+/* verify-email screen: both actions are clear buttons (resend was a text link) */
+.verify-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+
 /* ============================================================================
    Omix Zone — clearer hierarchy: the timer is a hero card, and each part of the
    workspace is a distinct panel instead of a flat, undifferentiated scroll.
