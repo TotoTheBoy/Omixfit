@@ -383,7 +383,13 @@ async function sweepTrials() {
 // are deleted so the e-mail frees up and no orphan can authenticate. A 30-minute
 // grace protects brand-new sign-ups whose doc is still being written. Runs every
 // reminder ping (hourly) so a removed account is cleared quickly.
-const OWNER_EMAILS = ["office@omixfit.com", "omer@omixfit.com", "omerido20@gmail.com"];
+const OWNER_EMAILS = [
+  "office@omixfit.com",
+  "omer@omixfit.com",
+  "omerido20@gmail.com",
+  "guy.lifshitz98@gmail.com",
+  "help@omixfit.com",
+];
 async function sweepOrphanAuth() {
   const { getAuth } = require("firebase-admin/auth");
   const auth = getAuth();
@@ -565,6 +571,61 @@ exports.deleteMember = fnV1.https.onCall(async (data, context) => {
     }
   }
   return { deleted: true, authDeleted };
+});
+
+// On-demand reset to a clean, live system: remove EVERY non-admin account
+// (Firestore doc + auth) and wipe test transactions/schedule, keeping only the
+// business admins. Protected by the reminder key. GET ...?key=...
+exports.resetUsers = fnV1.https.onRequest(async (req, res) => {
+  if (req.query.key !== process.env.REMINDER_KEY) return res.status(403).send("forbidden");
+  const { getAuth } = require("firebase-admin/auth");
+  const auth = getAuth();
+  const isAdmin = (email) => OWNER_EMAILS.includes(String(email || "").toLowerCase());
+  let removedDocs = 0;
+  let removedAuth = 0;
+  let keptAdmins = 0;
+
+  // 1) Firestore member docs: keep admins (force admin role), delete the rest + auth.
+  const users = await db.collection("users").get();
+  for (const d of users.docs) {
+    const u = d.data();
+    if (isAdmin(u.email)) {
+      keptAdmins++;
+      await d.ref.set({ role: "admin", approvalStatus: "approved", membershipActive: true }, { merge: true }).catch(() => {});
+      continue;
+    }
+    await d.ref.delete().catch(() => {});
+    removedDocs++;
+    await auth.deleteUser(d.id).catch(() => {});
+  }
+
+  // 2) Any remaining auth account that isn't an admin (orphans) - delete it.
+  let pageToken;
+  do {
+    const list = await auth.listUsers(1000, pageToken);
+    pageToken = list.pageToken;
+    for (const u of list.users) {
+      if (isAdmin(u.email)) continue;
+      await auth.deleteUser(u.uid).catch(() => {});
+      removedAuth++;
+    }
+  } while (pageToken);
+
+  // 3) Wipe test transactions + schedule for a clean live start (keep the
+  //    catalog: services, classTypes, locations, facility, subscriptions).
+  for (const c of ["bookings", "eventSignups", "payments", "calTokens", "leads", "sessions", "taskReminders", "audit"]) {
+    const snap = await db.collection(c).get();
+    for (let i = 0; i < snap.docs.length; i += 400) {
+      const batch = db.batch();
+      snap.docs.slice(i, i + 400).forEach((x) => batch.delete(x.ref));
+      await batch.commit();
+    }
+  }
+
+  // 4) Reset the member-number counter.
+  await db.doc("meta/counters").set({ memberSeq: 0 }, { merge: true }).catch(() => {});
+
+  return res.json({ ok: true, removedDocs, removedAuth, keptAdmins });
 });
 
 exports.notifyApproval = fnV1.https.onCall(async (data, context) => {

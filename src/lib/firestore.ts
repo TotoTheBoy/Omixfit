@@ -210,7 +210,13 @@ const AVATAR_COLORS = [
 // sign-in. Kept in sync with firestore.rules `isOwnerEmail()`.
 // omer@omixfit.com (business) and omerido20@gmail.com (personal) are the same
 // person; both are full owners.
-const OWNER_EMAILS = ["office@omixfit.com", "omer@omixfit.com", "omerido20@gmail.com"];
+const OWNER_EMAILS = [
+  "office@omixfit.com",
+  "omer@omixfit.com",
+  "omerido20@gmail.com",
+  "guy.lifshitz98@gmail.com",
+  "help@omixfit.com",
+];
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/);
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
