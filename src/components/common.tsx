@@ -29,7 +29,7 @@ export function VersionTag({ className = "" }: { className?: string }) {
 // Pick dark or white initials by whichever has the higher WCAG contrast against
 // the avatar background - keeps initials legible (AA) on any palette color.
 function readableInk(hex: string): string {
-  const h = hex.replace("#", "");
+  const h = (hex || "#3b4436").replace("#", "");
   const ch = (i: number) => {
     const c = parseInt(h.slice(i, i + 2), 16) / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -55,7 +55,7 @@ export function Avatar({
 }) {
   const skin = user.avatarSkin;
   const isSvg = !!skin && skin.startsWith("svg:");
-  const bg = tone ?? user.avatarColor;
+  const bg = tone ?? user.avatarColor ?? "#3b4436"; // fallback so a color-less user never crashes
   return (
     <span
       className="avatar"
