@@ -62,11 +62,6 @@ export function loyaltyFor(attended: number) {
   return { current, next, toNext, progress, index: idx };
 }
 
-/** OMIX Marathoner (150+ attended) may book 1h before general release. */
-export function loyaltyEarlyBookingMin(attended: number): number {
-  return attended >= 150 ? 60 : 0;
-}
-
 function weekStamp(d: Date): number {
   const x = new Date(d);
   x.setHours(0, 0, 0, 0);

@@ -522,6 +522,8 @@ exports.deleteMember = fnV1.https.onCall(async (data, context) => {
   const { getAuth } = require("firebase-admin/auth");
   const auth = getAuth();
   let authDeleted = false;
+  // Kill any live session immediately (existing tokens stop working), then delete.
+  await auth.revokeRefreshTokens(uid).catch(() => {});
   await auth.deleteUser(uid).then(() => { authDeleted = true; }).catch((e) => logger.warn("auth delete by uid", uid, e && e.code));
   if (email) {
     try {
