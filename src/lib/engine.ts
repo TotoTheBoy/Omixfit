@@ -515,7 +515,9 @@ export function adminOverview(data: AppData, now: number = Date.now()): AdminOve
   }
 
   const inactive = members
-    .filter((u) => u.membershipActive && u.approvalStatus !== "pending")
+    // Only genuinely approved members - an undefined/rejected status must not be
+    // grandfathered into the retention list (same class as the App gate bug).
+    .filter((u) => u.membershipActive && u.approvalStatus === "approved")
     .map((u) => ({ user: u, lastAttendedMs: lastAttended.get(u.id) ?? null }))
     .filter(({ user, lastAttendedMs }) =>
       lastAttendedMs !== null

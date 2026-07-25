@@ -265,13 +265,15 @@ function RecordPaymentSheet({ onClose }: { onClose: () => void }) {
     if (!userId || !serviceId) return toast(t.finance.needClientService, "err");
     const svc = data.services.find((x) => x.id === serviceId);
     if (!svc) return toast(t.finance.needClientService, "err");
+    const amt = Number(amount);
+    if (!Number.isFinite(amt) || amt <= 0) return toast(t.finance.invalidAmount, "err");
     setBusy(true);
     const p: Omit<Payment, "id" | "actorId"> = {
       userId,
       serviceId,
       serviceName: svc.name,
       kind: svc.kind,
-      amount: Number(amount) || 0,
+      amount: amt,
       units: svc.billing === "package" ? svc.units : undefined,
       date: Date.now(),
       note: note.trim() || undefined,

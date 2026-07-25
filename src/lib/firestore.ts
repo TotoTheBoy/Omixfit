@@ -268,7 +268,7 @@ export async function resolveAuthUser(
   // admit the user. This closes the "deleted user still gets in from cache" hole.
   const found =
     getState().users.find((u) => u.email?.toLowerCase() === e) ??
-    (await getDocs(query(col.users, where("email", "==", email.trim())))).docs
+    (await getDocs(query(col.users, where("email", "==", e)))).docs
       .map((d) => d.data() as User)[0];
   const existing = found && found.id === uid ? found : undefined;
   if (existing) {
@@ -336,7 +336,7 @@ export async function resolveAuthUser(
     ...(stashedFirst ? { firstName: stashedFirst } : {}),
     ...(stashedLast ? { lastName: stashedLast } : {}),
     phone: "",
-    email: email.trim(),
+    email: e, // normalized (trimmed + lowercased) so lookups always match
     role: owner ? "admin" : "member",
     approvalStatus: owner ? "approved" : "pending",
     membershipActive: owner,

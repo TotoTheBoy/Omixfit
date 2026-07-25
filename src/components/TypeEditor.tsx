@@ -30,8 +30,18 @@ export function TypeEditor({
     : 0;
 
   function save() {
-    if (!name.trim()) {
+    const nm = name.trim();
+    if (!nm) {
       toast("יש להזין שם שיעור", "err");
+      return;
+    }
+    // Reject a duplicate name (case-insensitive), excluding the one being edited,
+    // so the schedule can't show two indistinguishable class types.
+    const dup = data.classTypes.some(
+      (c) => c.id !== type?.id && c.name.trim().toLowerCase() === nm.toLowerCase(),
+    );
+    if (dup) {
+      toast("כבר קיים סוג שיעור בשם הזה", "err");
       return;
     }
     upsertClassType({

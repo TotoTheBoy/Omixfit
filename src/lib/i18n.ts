@@ -1044,6 +1044,7 @@ export const t = {
     onlineLabel: "אונליין - חדר וידאו (Jitsi)",
     deleteService: "מחיקת שירות",
     needClientService: "יש לבחור מתאמן/ת ושירות",
+    invalidAmount: "יש להזין סכום חיובי תקין",
     kinds: {
       personal: "אימון אישי",
       group: "אימון קבוצתי",
