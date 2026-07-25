@@ -1,5 +1,5 @@
 import { CATEGORY_META, t } from "../lib/i18n";
-import type { ClassSession } from "../lib/types";
+import type { Booking, ClassSession, User } from "../lib/types";
 import {
   actionFor,
   book,
@@ -28,30 +28,38 @@ export function SessionDetail({
   onEdit?: (s: ClassSession) => void;
 }) {
   const data = useStore((s) => s);
-  const me = data.users.find((u) => u.id === data.currentUserId)!;
+  const me = data.users.find((u) => u.id === data.currentUserId);
   const type = classTypeOf(session, data);
   const meta = CATEGORY_META[type.category];
-  const instructor = data.users.find((u) => u.id === session.instructorId)!;
+  // Instructor may have been removed - show a generic label instead of crashing.
+  const instructor = data.users.find((u) => u.id === session.instructorId);
   const booked = confirmedCount(session.id, data);
-  const action = actionFor(session, me.id, data);
+  if (!me) return null;
+  const meId = me.id; // stable ref so the async handlers below stay type-safe
+  const action = actionFor(session, meId, data);
   const mine = action.kind === "booked";
   const onWaitlist = action.kind === "waitlisted";
   const isStaff = me.role !== "member";
 
+  // Drop rows whose user was deleted so a dangling booking can't crash the list.
+  const withUser = (b: Booking) => ({ b, user: data.users.find((u) => u.id === b.userId) });
+  const hasUser = (r: { b: Booking; user?: User }): r is { b: Booking; user: User } => !!r.user;
   const roster = data.bookings
     .filter(
       (b) =>
         b.sessionId === session.id &&
         (b.state === "confirmed" || b.state === "attended" || b.state === "no_show"),
     )
-    .map((b) => ({ b, user: data.users.find((u) => u.id === b.userId)! }));
+    .map(withUser)
+    .filter(hasUser);
   const waitlist = data.bookings
     .filter((b) => b.sessionId === session.id && b.state === "waitlisted")
     .sort((a, b) => a.createdAt - b.createdAt)
-    .map((b) => ({ b, user: data.users.find((u) => u.id === b.userId)! }));
+    .map(withUser)
+    .filter(hasUser);
 
   async function doBook() {
-    const r = await book(session.id, me.id);
+    const r = await book(session.id, meId);
     if (r === "ok") {
       toast(t.bookedToast, "ok");
       celebrate();
@@ -62,7 +70,7 @@ export function SessionDetail({
     else if (r === "closed") toast(t.closedToast, "err");
   }
   async function doCancel() {
-    const { promotedUserId } = await cancelBooking(session.id, me.id);
+    const { promotedUserId } = await cancelBooking(session.id, meId);
     toast(t.cancelledToast, "info");
     if (promotedUserId) {
       const promoted = data.users.find((u) => u.id === promotedUserId);
@@ -70,13 +78,13 @@ export function SessionDetail({
     }
   }
   async function doJoinWaitlist() {
-    const r = await joinWaitlist(session.id, me.id);
+    const r = await joinWaitlist(session.id, meId);
     if (r === "ok") toast(t.waitlistJoinedToast, "ok");
     else if (r === "membership") toast(t.membershipBlocked, "err");
     else if (r === "closed") toast(t.closedToast, "err");
   }
   function doLeaveWaitlist() {
-    cancelBooking(session.id, me.id);
+    cancelBooking(session.id, meId);
     toast(t.waitlistLeftToast, "info");
   }
 
@@ -168,7 +176,7 @@ export function SessionDetail({
       <div className="row gap-3 wrap">
         <InfoTile icon={<IcClock />} label={t.timeLabel}
           value={`${fmtTime(session.startMin)}-${fmtTime(session.startMin + session.durationMin)}`} />
-        <InfoTile icon={<IcUser />} label={t.instructorLabel} value={instructor.name} />
+        <InfoTile icon={<IcUser />} label={t.instructorLabel} value={instructor?.name ?? "מדריך/ה"} />
         <InfoTile icon={<IcPin />} label={t.roomLabel} value={session.room} />
       </div>
 

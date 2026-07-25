@@ -20,10 +20,13 @@ export function ClassCard({
   const data = useStore((s) => s);
   const type = classTypeOf(session, data);
   const meta = CATEGORY_META[type.category];
-  const instructor = data.users.find((u) => u.id === session.instructorId)!;
+  // Instructor may have been removed - fall back to a generic label rather than
+  // crashing the whole schedule.
+  const instructor = data.users.find((u) => u.id === session.instructorId);
   const booked = confirmedCount(session.id, data);
   const left = session.capacity - booked;
-  const me = data.users.find((u) => u.id === data.currentUserId)!;
+  const me = data.users.find((u) => u.id === data.currentUserId);
+  if (!me) return null;
   const action = actionFor(session, me.id, data);
   const mine = action.kind === "booked";
   const onWaitlist = action.kind === "waitlisted";
@@ -66,7 +69,7 @@ export function ClassCard({
           <div className="cc-meta">
             <span className="m">
               <IcUser />
-              {t.withInstructor} {instructor.name}
+              {t.withInstructor} {instructor?.name ?? "מדריך/ה"}
             </span>
             <span className="m">
               <IcPin />

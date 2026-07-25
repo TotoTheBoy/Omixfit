@@ -30,14 +30,14 @@ export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) 
   );
 
   const firstType = data.classTypes[0];
-  const [typeId, setTypeId] = useState(session?.classTypeId ?? firstType.id);
+  const [typeId, setTypeId] = useState(session?.classTypeId ?? firstType?.id ?? "");
   const [date, setDate] = useState(session?.date ?? presetDate ?? toKey(new Date()));
   const [time, setTime] = useState(fmtTime(session?.startMin ?? 18 * 60));
-  const selType = data.classTypes.find((c) => c.id === typeId)!;
-  const [duration, setDuration] = useState(session?.durationMin ?? selType.defaultDurationMin);
-  const [capacity, setCapacity] = useState(session?.capacity ?? selType.defaultCapacity);
+  const selType = data.classTypes.find((c) => c.id === typeId) ?? firstType;
+  const [duration, setDuration] = useState(session?.durationMin ?? selType?.defaultDurationMin ?? 60);
+  const [capacity, setCapacity] = useState(session?.capacity ?? selType?.defaultCapacity ?? 12);
   const [instructorId, setInstructorId] = useState(
-    session?.instructorId ?? instructors[0].id,
+    session?.instructorId ?? instructors[0]?.id ?? "",
   );
   const [room, setRoom] = useState(session?.room ?? "סטודיו A");
   const [online, setOnline] = useState(session?.online ?? false);
@@ -45,8 +45,8 @@ export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) 
 
   function onTypeChange(id: string) {
     setTypeId(id);
-    const ty = data.classTypes.find((c) => c.id === id)!;
-    if (!editing) {
+    const ty = data.classTypes.find((c) => c.id === id);
+    if (!editing && ty) {
       setDuration(ty.defaultDurationMin);
       setCapacity(ty.defaultCapacity);
     }
@@ -89,7 +89,7 @@ export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) 
             instructorId,
             room,
             online: online || undefined,
-            locationId: data.locations[0].id,
+            locationId: data.locations[0]?.id ?? "",
           },
           weeks,
         );
@@ -116,6 +116,21 @@ export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) 
       toast("השיעור נמחק", "info");
       onClose();
     }
+  }
+
+  // Can't build a session without at least one class type and one instructor.
+  // Guard here (after all hooks) so a fresh/reset studio shows a hint instead of
+  // crashing on classTypes[0]/instructors[0].
+  if (!data.classTypes.length || !instructors.length) {
+    return (
+      <Sheet title={editing ? t.editSession : t.newSession} onClose={onClose}>
+        <p style={{ padding: "8px 4px", color: "var(--text-2)", lineHeight: 1.6 }}>
+          {!data.classTypes.length
+            ? "כדי ליצור שיעור צריך קודם להגדיר סוג שיעור אחד לפחות (בהגדרות סוגי שיעור)."
+            : "כדי ליצור שיעור צריך קודם מדריך/ה אחד לפחות (הגדירו משתמש כמדריך/ה או מנהל/ת)."}
+        </p>
+      </Sheet>
+    );
   }
 
   return (

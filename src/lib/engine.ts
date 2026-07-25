@@ -142,8 +142,19 @@ export function waitlistPosition(
   return idx < 0 ? 0 : idx + 1;
 }
 
+// Fallback used when a session references a class type that has since been
+// deleted - keeps every card/schedule/report render alive instead of throwing.
+const UNKNOWN_CLASS_TYPE: ClassType = {
+  id: "",
+  name: "שיעור",
+  description: "",
+  category: "strength",
+  defaultCapacity: 0,
+  defaultDurationMin: 60,
+};
+
 export function classTypeOf(session: ClassSession, s: AppData): ClassType {
-  return s.classTypes.find((c) => c.id === session.classTypeId)!;
+  return s.classTypes.find((c) => c.id === session.classTypeId) ?? UNKNOWN_CLASS_TYPE;
 }
 
 export type BookOutcome =
@@ -165,7 +176,7 @@ export function bookability(
   reason: Exclude<BookOutcome, "ok" | "already"> | null;
   alreadyBooked: boolean;
 } {
-  const user = s.users.find((u) => u.id === userId)!;
+  const user = s.users.find((u) => u.id === userId);
   const already = !!userBooking(session.id, userId, s);
   if (session.cancelled)
     return { canBook: false, reason: "cancelled", alreadyBooked: already };
@@ -176,7 +187,7 @@ export function bookability(
   if (minsToStart < s.facility.bookingClosesBeforeMin)
     return { canBook: false, reason: "closed", alreadyBooked: false };
 
-  if (!user.membershipActive)
+  if (!user || !user.membershipActive)
     return { canBook: false, reason: "membership", alreadyBooked: false };
 
   const active = activeBookingCount(userId, s);
@@ -190,13 +201,11 @@ export function bookability(
 }
 
 function activeBookingCount(userId: string, s: AppData): number {
-  return s.bookings.filter(
-    (b) =>
-      b.userId === userId &&
-      b.state === "confirmed" &&
-      sessionStartDate(s.sessions.find((x) => x.id === b.sessionId)!).getTime() >
-        Date.now(),
-  ).length;
+  return s.bookings.filter((b) => {
+    if (b.userId !== userId || b.state !== "confirmed") return false;
+    const sess = s.sessions.find((x) => x.id === b.sessionId);
+    return !!sess && sessionStartDate(sess).getTime() > Date.now();
+  }).length;
 }
 
 // What action a member can take on a session - drives the booking UI.
@@ -223,8 +232,8 @@ export function actionFor(
   const minsToStart = (sessionStartDate(session).getTime() - Date.now()) / 60000;
   if (minsToStart < s.facility.bookingClosesBeforeMin) return { kind: "closed" };
 
-  const user = s.users.find((u) => u.id === userId)!;
-  if (!user.membershipActive) return { kind: "blocked", reason: "membership" };
+  const user = s.users.find((u) => u.id === userId);
+  if (!user || !user.membershipActive) return { kind: "blocked", reason: "membership" };
 
   // Full → offer the waitlist (joining doesn't consume a confirmed slot).
   if (confirmedCount(session.id, s) >= session.capacity)
@@ -273,12 +282,11 @@ export type WaitlistOutcome =
 export function memberStats(userId: string, s: AppData) {
   const mine = s.bookings.filter((b) => b.userId === userId);
   const attended = mine.filter((b) => b.state === "attended").length;
-  const upcoming = mine.filter(
-    (b) =>
-      b.state === "confirmed" &&
-      sessionStartDate(s.sessions.find((x) => x.id === b.sessionId)!).getTime() >
-        Date.now(),
-  ).length;
+  const upcoming = mine.filter((b) => {
+    if (b.state !== "confirmed") return false;
+    const sess = s.sessions.find((x) => x.id === b.sessionId);
+    return !!sess && sessionStartDate(sess).getTime() > Date.now();
+  }).length;
   const tally = new Map<string, number>();
   for (const b of mine) {
     // Favourite reflects classes actually ATTENDED, not just booked - so a brand
@@ -286,7 +294,7 @@ export function memberStats(userId: string, s: AppData) {
     if (b.state !== "attended") continue;
     const sess = s.sessions.find((x) => x.id === b.sessionId);
     if (!sess) continue;
-    const cat = s.classTypes.find((c) => c.id === sess.classTypeId)!.category;
+    const cat = classTypeOf(sess, s).category;
     tally.set(cat, (tally.get(cat) ?? 0) + 1);
   }
   let favorite: string | null = null;
@@ -340,8 +348,8 @@ export function applyJoinWaitlist(
   const minsToStart = (sessionStartDate(session).getTime() - Date.now()) / 60000;
   if (minsToStart < s.facility.bookingClosesBeforeMin)
     return { bookings: s.bookings, outcome: "closed" };
-  const user = s.users.find((u) => u.id === userId)!;
-  if (!user.membershipActive)
+  const user = s.users.find((u) => u.id === userId);
+  if (!user || !user.membershipActive)
     return { bookings: s.bookings, outcome: "membership" };
   if (confirmedCount(sessionId, s) < session.capacity)
     return { bookings: s.bookings, outcome: "notfull" };

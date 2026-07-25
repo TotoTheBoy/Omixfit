@@ -263,7 +263,8 @@ function RecordPaymentSheet({ onClose }: { onClose: () => void }) {
 
   async function save() {
     if (!userId || !serviceId) return toast(t.finance.needClientService, "err");
-    const svc = data.services.find((x) => x.id === serviceId)!;
+    const svc = data.services.find((x) => x.id === serviceId);
+    if (!svc) return toast(t.finance.needClientService, "err");
     setBusy(true);
     const p: Omit<Payment, "id" | "actorId"> = {
       userId,

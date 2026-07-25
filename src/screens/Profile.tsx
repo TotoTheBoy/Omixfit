@@ -98,7 +98,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
     const ids = LOYALTY_TIERS.map((x) => x.id);
     const next = ids[(ids.indexOf(currentTier.id) + 1) % ids.length];
     updateUser(me.id, { loyaltyOverride: next });
-    toast(t.loyalty.tierSet(LOYALTY_TIERS.find((x) => x.id === next)!.name), "ok");
+    toast(t.loyalty.tierSet(LOYALTY_TIERS.find((x) => x.id === next)?.name ?? ""), "ok");
   }
 
   return (
@@ -106,7 +106,7 @@ export function Profile({ onSwitchUser }: { onSwitchUser: () => void }) {
       <div className="page-head">
         <div>
           <h1 className="h1">{t.profileTitle}</h1>
-          <div className="sub">{t.roles[me.role]} · {data.locations[0].name}</div>
+          <div className="sub">{t.roles[me.role]} · {data.locations[0]?.name}</div>
         </div>
         <button className="btn btn-ghost" onClick={() => setEditing(true)}>
           {t.editProfile}

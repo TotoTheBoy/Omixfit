@@ -94,7 +94,7 @@ export function Manage() {
       <div className="page-head">
         <div>
           <h1 className="h1">{t.nav.calendar}</h1>
-          <div className="sub">{data.locations[0].name}</div>
+          <div className="sub">{data.locations[0]?.name}</div>
         </div>
         {tab === "schedule" && (
           <button className="btn btn-lime" onClick={() => setEditor({ mode: "create", date: toKey(days[0]) })}>

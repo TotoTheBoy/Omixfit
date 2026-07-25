@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { ClassType, User } from "../lib/types";
 import { CATEGORY_META, t } from "../lib/i18n";
 import { useStore } from "../lib/store";
 import { fromKey, HEB_DAYS_SHORT } from "../lib/date";
@@ -41,11 +42,13 @@ export function Reports() {
     const byType = new Map<string, number>();
     for (const b of pastBookings) {
       if (b.state !== "attended") continue;
-      const s = data.sessions.find((x) => x.id === b.sessionId)!;
+      const s = data.sessions.find((x) => x.id === b.sessionId);
+      if (!s) continue;
       byType.set(s.classTypeId, (byType.get(s.classTypeId) ?? 0) + 1);
     }
     const popular = [...byType.entries()]
-      .map(([id, n]) => ({ type: data.classTypes.find((c) => c.id === id)!, n }))
+      .map(([id, n]) => ({ type: data.classTypes.find((c) => c.id === id), n }))
+      .filter((p): p is { type: ClassType; n: number } => !!p.type)
       .sort((a, b) => b.n - a.n)
       .slice(0, 6);
     const popMax = Math.max(1, ...popular.map((p) => p.n));
@@ -59,7 +62,8 @@ export function Reports() {
     }
     for (const b of pastBookings) {
       if (b.state !== "attended") continue;
-      const s = data.sessions.find((x) => x.id === b.sessionId)!;
+      const s = data.sessions.find((x) => x.id === b.sessionId);
+      if (!s) continue;
       byDay[fromKey(s.date).getDay()]++;
     }
     const dayFill = byDay.map((v, i) =>
@@ -74,7 +78,8 @@ export function Reports() {
       byMember.set(b.userId, (byMember.get(b.userId) ?? 0) + 1);
     }
     const topMembers = [...byMember.entries()]
-      .map(([id, n]) => ({ user: data.users.find((u) => u.id === id)!, n }))
+      .map(([id, n]) => ({ user: data.users.find((u) => u.id === id), n }))
+      .filter((m): m is { user: User; n: number } => !!m.user)
       .sort((a, b) => b.n - a.n)
       .slice(0, 6);
     const memMax = Math.max(1, ...topMembers.map((m) => m.n));

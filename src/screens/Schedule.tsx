@@ -98,7 +98,7 @@ export function Schedule() {
       <div className="page-head">
         <div>
           <h1 className="h1">{t.nav.schedule}</h1>
-          <div className="sub">{data.locations[0].name}</div>
+          <div className="sub">{data.locations[0]?.name}</div>
         </div>
         <WeekNav
           weekStart={weekStart}
