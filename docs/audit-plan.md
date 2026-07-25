@@ -15,7 +15,15 @@ and **Fix (what to upgrade)**. Ordered by severity: **P0 critical → P3 polish.
 - ✅ **P2.5 + P2.1 confirmations + await/toast** — shipped (reusable confirm() modal on all destructive actions; write failures surface).
 - ✅ **P2.2 cascade** — shipped (event→signups; the rest already cascaded/blocked).
 - ✅ **P0.1/P0.3/P0.4 rules + staff custom claim (WRITES)** — shipped + deployed. **Self-approval is now impossible**; management collections are staff-write only; owners are staff-by-identity (no lockout).
-- ⏳ **P0.2 read-scoping (health-data READ privacy)** — NOT yet shipped. This is the one item that requires a client data-loading refactor and can't be verified headlessly; deploying it wrong would break member data loading on the live app. Pending a decision on approach + rollout.
+- ✅ **P0.2 read-scoping (health-data READ privacy)** — shipped + deployed. Health forms + ID numbers moved to a per-user `private` subcollection readable only by the owner + staff; migration moved existing data (moved:1, empty:4). Members can no longer read another member's health declaration.
+
+**All 7 batches deployed.** Post-deploy checks to run once (live): (1) Rules
+Playground — a member setting `approvalStatus:"approved"` on any user is Denied;
+(2) staff (Omer) can still open a member and see their health form; (3) a member
+who submitted health sees the "pending approval" screen (their own health merges
+back). Follow-ups noted below: trainer notes / coaching are still on the main doc
+(staff-notes visible to members) and could move to a staff-only subdoc; bookings
+are still signed-in-writable (full lockdown needs server-side booking functions).
 
 ---
 
