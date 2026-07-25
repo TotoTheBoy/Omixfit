@@ -317,6 +317,13 @@ export async function submitHealthForm(
   });
 }
 
+/** Self-service branded email verification (from office@, with a continueUrl
+ *  back to the app). Sent at sign-up and by the "resend" button. */
+export async function sendMyVerificationEmail(): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "sendMyVerificationEmail");
+  await call({});
+}
+
 /** After a registrant submits their health declaration, ask the backend to
  *  e-mail Omer the PDF + a smart summary (and the certificate, if attached).
  *  Best-effort — the submission is already saved, so a mail hiccup is silent. */

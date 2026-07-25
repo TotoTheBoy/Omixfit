@@ -110,8 +110,9 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
   }
   async function resend() {
     try {
-      const { resendVerification } = await import("../lib/firebase");
-      await resendVerification();
+      // Branded resend from office@ (not Firebase's default noreply → spam).
+      const { sendMyVerificationEmail } = await import("../lib/store");
+      await sendMyVerificationEmail();
       toast(t.verify.resent, "ok");
     } catch {
       toast(t.verify.resendErr, "err");

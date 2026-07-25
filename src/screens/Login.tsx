@@ -48,6 +48,10 @@ export function Login({ onBack }: { onBack?: () => void }) {
           sessionStorage.setItem("omix:signupLast", lastName.trim());
         } catch { /* no sessionStorage */ }
         await signUp(email, password, `${firstName.trim()} ${lastName.trim()}`.trim());
+        // Branded verification e-mail from office@ (not Firebase's spam-prone
+        // default). Best-effort — the account exists regardless.
+        const { sendMyVerificationEmail } = await import("../lib/store");
+        void sendMyVerificationEmail().catch(() => {});
       } else await signIn(email, password);
       // Success → <App />'s auth listener takes it from here.
     } catch (err) {

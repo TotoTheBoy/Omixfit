@@ -533,6 +533,90 @@ exports.sendVerificationLink = fnV1.https.onCall(async (data, context) => {
   return { sent: true };
 });
 
+// Self-service branded verification e-mail: the registrant sends it for their
+// OWN address (from office@, so it lands in the inbox — not Firebase's default
+// noreply which hits spam). The link carries a continueUrl back to the app, so
+// clicking it returns them straight to finish registration.
+exports.sendMyVerificationEmail = fnV1.https.onCall(async (data, context) => {
+  if (!context.auth) throw new fnV1.https.HttpsError("unauthenticated", "sign in");
+  const email = context.auth.token.email;
+  if (!email) return { sent: false };
+  const { getAuth } = require("firebase-admin/auth");
+  const link = await getAuth().generateEmailVerificationLink(email, {
+    url: APP_URL,
+    handleCodeInApp: false,
+  });
+  const name = String(context.auth.token.name || email.split("@")[0] || "").split(" ")[0];
+  await sendMail(email, "אימות המייל שלך ל-Omix 📧",
+    `<h2 style="color:#a9842f">רק צעד אחד אחרון 📧</h2>
+     <p>היי ${name},</p>
+     <p>כדי להשלים את ההרשמה ל-Omix יש לאמת את כתובת המייל. לאחר האימות תוחזר/י אוטומטית להשלמת הרישום:</p>
+     <p style="margin:22px 0"><a href="${link}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">אימות מייל והמשך</a></p>
+     <p style="font-size:13px;color:#6b5d47">לא נרשמת ל-Omix? אפשר להתעלם מהמייל.</p>
+     <p>נתראה באימון!<br><b>עומר · Omix</b></p>`);
+  return { sent: true };
+});
+
+// A registrant submitted their health declaration → e-mail Omer (office@ + omer@)
+// the PDF + a smart, rule-based summary in the body (and the doctor's certificate
+// if attached). From office@ so it lands in the inbox, not spam.
+const HEALTH_RECIPIENTS = ["office@omixfit.com", "omer@omixfit.com"];
+exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
+  if (!context.auth) throw new fnV1.https.HttpsError("unauthenticated", "sign in");
+  const userId = data && data.userId;
+  if (!userId) return { sent: false };
+  const snap = await db.doc("users/" + userId).get();
+  if (!snap.exists) return { sent: false };
+  const user = snap.data();
+  const form = user.healthForm;
+  if (!form) return { sent: false };
+  const { buildHealthPdf, buildHealthSummary } = require("./healthDoc");
+  const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name || "מתאמן/ת";
+  const sum = buildHealthSummary(form);
+  const attachments = [];
+  try {
+    attachments.push({ filename: `הצהרת-בריאות-${name}.pdf`, content: await buildHealthPdf(user, form) });
+  } catch (e) {
+    logger.error("health pdf", e);
+  }
+  if (data.certDataUrl && typeof data.certDataUrl === "string" && data.certDataUrl.includes(",")) {
+    const [meta, b64] = data.certDataUrl.split(",");
+    const m = /data:([^;]+)/.exec(meta);
+    attachments.push({
+      filename: data.certName || "תעודה-רפואית",
+      content: Buffer.from(b64, "base64"),
+      contentType: (m && m[1]) || undefined,
+    });
+  }
+  const color = sum.flagged.length ? "#b0402f" : "#2f6b3b";
+  const html = `<div dir="rtl" style="font-family:Arial,sans-serif;color:#241c12;background:#f6efe0;padding:24px;border-radius:14px;max-width:560px">
+    <h2 style="color:#a9842f;margin:0 0 6px">מתאמן/ת חדש/ה הגיש/ה בקשה 📝</h2>
+    <p style="margin:0 0 14px">התקבלה הצהרת בריאות חדשה. יש לאשר את המתאמן/ת דרך המערכת.</p>
+    <table style="width:100%;font-size:14px;border-collapse:collapse">
+      <tr><td style="padding:3px 0;color:#6b5d47">שם</td><td style="padding:3px 0"><b>${name}</b></td></tr>
+      <tr><td style="padding:3px 0;color:#6b5d47">טלפון</td><td style="padding:3px 0" dir="ltr">${user.phone || "—"}</td></tr>
+      <tr><td style="padding:3px 0;color:#6b5d47">אימייל</td><td style="padding:3px 0" dir="ltr">${user.email || "—"}</td></tr>
+      <tr><td style="padding:3px 0;color:#6b5d47">ת&quot;ז</td><td style="padding:3px 0" dir="ltr">${user.idNumber || "—"}</td></tr>
+    </table>
+    <div style="margin:16px 0;padding:13px 15px;border-radius:10px;background:#fff;border-inline-start:4px solid ${color}">
+      <p style="margin:0 0 4px;font-weight:bold;color:${color}">${sum.headline}</p>
+      <p style="margin:0;white-space:pre-line;font-size:13px">${sum.body}</p>
+    </div>
+    ${ctaButton("אישור המתאמן/ת במערכת")}
+    <p style="margin:14px 0 0;font-size:13px">ההצהרה המלאה מצורפת כקובץ PDF.</p>
+    <p style="margin:6px 0 0"><b>Omix</b></p>
+  </div>`;
+  await mailer().sendMail({
+    from: `Omix · עומר <${process.env.GMAIL_USER}>`,
+    replyTo: REPLY_TO,
+    to: HEALTH_RECIPIENTS.join(", "),
+    subject: `בקשת הרשמה חדשה — ${name}${sum.flagged.length ? " ⚠️" : ""}`,
+    html,
+    attachments,
+  });
+  return { sent: true };
+});
+
 exports.memberMail = fnV1.https.onCall(async (data, context) => {
   if (!context.auth) throw new fnV1.https.HttpsError("unauthenticated", "sign in");
   const { kind, uid, sessionId } = data || {};

@@ -91,8 +91,9 @@ export async function signUp(
   if (display) try { sessionStorage.setItem("omix:signupName", display); } catch { /**/ }
   const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
   if (display) await updateProfile(cred.user, { displayName: display });
-  // Send a "confirm your email" link so the address is verified (free on Spark).
-  try { await sendEmailVerification(cred.user); } catch { /* non-fatal */ }
+  // The verification link is sent by a Cloud Function from office@ (branded, not
+  // Firebase's default noreply which lands in spam) — the caller triggers it once
+  // the user is signed in. We deliberately do NOT call sendEmailVerification here.
 }
 
 export async function signOutUser(): Promise<void> {
