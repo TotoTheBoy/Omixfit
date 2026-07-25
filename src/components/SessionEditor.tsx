@@ -55,24 +55,15 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
     return h * 60 + m;
   }
 
-  function save() {
+  const [saving, setSaving] = useState(false);
+  async function save() {
+    if (saving) return;
     const startMin = startMinFromTime();
-    if (editing && session) {
-      upsertSession({
-        ...session,
-        classTypeId: typeId,
-        date,
-        startMin,
-        durationMin: duration,
-        capacity,
-        instructorId,
-        room,
-        online: online || undefined,
-      });
-      toast("השיעור עודכן", "ok");
-    } else {
-      createSessions(
-        {
+    setSaving(true);
+    try {
+      if (editing && session) {
+        await upsertSession({
+          ...session,
           classTypeId: typeId,
           date,
           startMin,
@@ -81,13 +72,32 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
           instructorId,
           room,
           online: online || undefined,
-          locationId: data.locations[0].id,
-        },
-        weeks,
-      );
-      toast(weeks > 1 ? `נוצרו ${weeks} שיעורים בסדרה` : "השיעור פורסם", "ok");
+        });
+        toast("השיעור עודכן", "ok");
+      } else {
+        // Await the write so a failure surfaces (was fire-and-forget: a rejected
+        // write showed a false "published" and the class never persisted).
+        await createSessions(
+          {
+            classTypeId: typeId,
+            date,
+            startMin,
+            durationMin: duration,
+            capacity,
+            instructorId,
+            room,
+            online: online || undefined,
+            locationId: data.locations[0].id,
+          },
+          weeks,
+        );
+        toast(weeks > 1 ? `נוצרו ${weeks} שיעורים בסדרה` : "השיעור פורסם לכולם ✓", "ok");
+      }
+      onClose();
+    } catch {
+      toast("שמירת השיעור נכשלה - נסו שוב", "err");
+      setSaving(false);
     }
-    onClose();
   }
 
   function onCancelSession() {
@@ -116,8 +126,8 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
               {t.cancelSession}
             </button>
           )}
-          <button className="btn btn-lime grow" onClick={save}>
-            {editing ? t.save : t.saveAndPublish}
+          <button className="btn btn-lime grow" onClick={save} disabled={saving}>
+            {saving ? "שומר…" : editing ? t.save : t.saveAndPublish}
           </button>
         </>
       }

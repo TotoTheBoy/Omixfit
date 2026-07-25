@@ -62,8 +62,12 @@ export function Schedule() {
     return (byDay.get(key) ?? []).filter((s) => !s.cancelled).length;
   }
 
-  const activeCategoryFilter = (s: ClassSession) =>
-    cats.size === 0 || cats.has(data.classTypes.find((c) => c.id === s.classTypeId)!.category);
+  const activeCategoryFilter = (s: ClassSession) => {
+    // Guard: a session whose class type was removed must not crash the whole day.
+    const ct = data.classTypes.find((c) => c.id === s.classTypeId);
+    if (!ct) return false;
+    return cats.size === 0 || cats.has(ct.category);
+  };
 
   const activeSessions = (byDay.get(activeKey) ?? []).filter(activeCategoryFilter);
   const activeDate = days.find((d) => toKey(d) === activeKey) ?? days[0];
