@@ -179,7 +179,9 @@ export function Members() {
         </div>
       )}
 
-      {open && <MemberDetail userId={open.id} onClose={() => setOpen(null)} />}
+      {open && data.users.some((x) => x.id === open.id) && (
+        <MemberDetail userId={open.id} onClose={() => setOpen(null)} />
+      )}
     </div>
   );
 }
