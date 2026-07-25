@@ -342,6 +342,8 @@ exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
   const trialsDisconnected = await sweepTrials().catch((e) => { logger.error("sweepTrials", e); return 0; });
   const sessionsFinalized = await finalizeAttendance().catch((e) => { logger.error("finalizeAttendance", e); return 0; });
   const membersNudged = await sweepRetention().catch((e) => { logger.error("sweepRetention", e); return 0; });
+  const orphansCleaned = await sweepOrphanAuth().catch((e) => { logger.error("sweepOrphanAuth", e); return 0; });
+  void orphansCleaned;
   res.json({ sent, trialsDisconnected, sessionsFinalized, membersNudged });
 });
 
@@ -377,6 +379,36 @@ async function sweepTrials() {
 // Skipped: e-mail opt-outs, members who never actually attended (still
 // onboarding, not lapsed), and anyone with an upcoming class. Runs once a day
 // off the hourly reminder ping (Israel ~10:00) to stay cheap and well-timed.
+// Auth accounts whose Firestore member record no longer exists (a removed user)
+// are deleted so the e-mail frees up and no orphan can authenticate. A 30-minute
+// grace protects brand-new sign-ups whose doc is still being written. Runs once a
+// day (Israel ~03:00) off the reminder ping.
+const OWNER_EMAILS = ["office@omixfit.com", "omer@omixfit.com", "omerido20@gmail.com"];
+async function sweepOrphanAuth() {
+  const now = new Date();
+  if (jerusalemHour(now) !== 3) return 0;
+  const { getAuth } = require("firebase-admin/auth");
+  const auth = getAuth();
+  const cutoff = Date.now() - 30 * 60 * 1000;
+  let cleaned = 0;
+  let pageToken;
+  do {
+    const res = await auth.listUsers(1000, pageToken);
+    pageToken = res.pageToken;
+    for (const u of res.users) {
+      if (OWNER_EMAILS.includes((u.email || "").toLowerCase())) continue;
+      const created = new Date(u.metadata.creationTime).getTime();
+      if (created > cutoff) continue; // grace for fresh sign-ups
+      const snap = await db.doc("users/" + u.uid).get();
+      if (!snap.exists) {
+        await auth.deleteUser(u.uid).catch(() => {});
+        cleaned++;
+      }
+    }
+  } while (pageToken);
+  return cleaned;
+}
+
 const RETENTION_LAPSE_DAYS = 21;
 const RETENTION_COOLDOWN_MS = 30 * 24 * 3600 * 1000;
 function jerusalemHour(now) {

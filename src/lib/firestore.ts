@@ -32,7 +32,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { firebaseConfig } from "./firebaseConfig";
-import { getState, hydrate, setCurrentUser } from "./store";
+import { getState, hydrate, logout, setCurrentUser } from "./store";
 import * as engine from "./engine";
 import { buildSeed } from "./seed";
 import { fmtTime, fromKey } from "./date";
@@ -282,6 +282,24 @@ export async function resolveAuthUser(
       void updateDoc(doc(db, "users", existing.id), patch).catch(() => {});
     }
     return setCurrentUser(existing.id);
+  }
+
+  // SECURITY: no member record for this account. Distinguish a genuine fresh
+  // sign-up (the sign-up form just stashed a name) from a LOGIN whose record no
+  // longer exists - i.e. a user the admin REMOVED. A removed user must never be
+  // silently re-created and re-admitted; sign them out and keep them out.
+  const isFreshSignup = owner || !!(stashed || stashedFirst || stashedLast);
+  if (!isFreshSignup) {
+    try {
+      const [{ signOutUser }, { toast }] = await Promise.all([
+        import("./firebase"),
+        import("../components/Toast"),
+      ]);
+      toast("החשבון אינו פעיל במערכת. לפרטים פנה/י לצוות.", "err");
+      await signOutUser().catch(() => {});
+    } catch { /* best-effort */ }
+    logout();
+    return;
   }
 
   // New account: an owner is created as an approved admin; everyone else is a
