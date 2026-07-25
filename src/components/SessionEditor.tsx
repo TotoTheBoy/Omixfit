@@ -18,9 +18,11 @@ interface Props {
   /** Pre-fill date/time when creating from a grid cell. */
   presetDate?: string;
   onClose: () => void;
+  /** Called with the saved session's date so the calendar can jump to its week. */
+  onSaved?: (date: string) => void;
 }
 
-export function SessionEditor({ session, presetDate, onClose }: Props) {
+export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) {
   const data = useStore((s) => s);
   const editing = !!session;
   const instructors = data.users.filter(
@@ -93,6 +95,7 @@ export function SessionEditor({ session, presetDate, onClose }: Props) {
         );
         toast(weeks > 1 ? `נוצרו ${weeks} שיעורים בסדרה` : "השיעור פורסם לכולם ✓", "ok");
       }
+      onSaved?.(date); // let the calendar jump to this session's week so it's visible
       onClose();
     } catch {
       toast("שמירת השיעור נכשלה - נסו שוב", "err");

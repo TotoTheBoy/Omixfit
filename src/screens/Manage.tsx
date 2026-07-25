@@ -7,6 +7,7 @@ import { toast } from "../components/Toast";
 import {
   addDays,
   fmtTime,
+  fromKey,
   HEB_DAYS_LONG,
   isToday,
   startOfWeek,
@@ -244,6 +245,7 @@ export function Manage() {
           session={editor.mode === "edit" ? editor.session : null}
           presetDate={editor.mode === "create" ? editor.date : undefined}
           onClose={() => setEditor({ mode: "closed" })}
+          onSaved={(d) => setWeekStart(startOfWeek(fromKey(d)))}
         />
       )}
       {typeEditor.mode !== "closed" && (
