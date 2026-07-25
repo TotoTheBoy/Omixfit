@@ -206,11 +206,21 @@ function HealthDeclaration({ user }: { user: User }) {
       };
       if (age !== undefined) patch.age = age;
       await updateUser(user.id, patch);
-      // Notify Omer with the PDF + smart summary (and the certificate if attached).
-      const { notifyHealthSubmission } = await import("../lib/store");
-      const certData = certFile ? await fileToDataUrl(certFile) : undefined;
-      void notifyHealthSubmission(user.id, certData, certFile?.name).catch(() => {});
       toast(H.sentToast, "ok");
+      // Background, best-effort: render the declaration PDF in the browser (perfect
+      // Hebrew) and e-mail Omer the PDF + smart summary (+ certificate if attached).
+      void (async () => {
+        try {
+          const merged = { ...user, ...patch } as User;
+          const [{ buildHealthPdfDataUrl }, { notifyHealthSubmission }] = await Promise.all([
+            import("../lib/healthPdf"),
+            import("../lib/store"),
+          ]);
+          const pdfDataUrl = await buildHealthPdfDataUrl(merged, form).catch(() => undefined);
+          const certData = certFile ? await fileToDataUrl(certFile) : undefined;
+          await notifyHealthSubmission(user.id, pdfDataUrl, certData, certFile?.name);
+        } catch { /* best-effort */ }
+      })();
     } catch {
       setBusy(false);
     }

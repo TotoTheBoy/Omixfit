@@ -329,11 +329,12 @@ export async function sendMyVerificationEmail(): Promise<void> {
  *  Best-effort — the submission is already saved, so a mail hiccup is silent. */
 export async function notifyHealthSubmission(
   userId: string,
+  pdfDataUrl?: string,
   certDataUrl?: string,
   certName?: string,
 ): Promise<void> {
   const call = httpsCallable(getFunctions(app, "us-central1"), "notifyHealthSubmission");
-  await call({ userId, certDataUrl, certName });
+  await call({ userId, pdfDataUrl, certDataUrl, certName });
 }
 
 /** Staff approves/rejects a registrant. Admin accounts are never editable. */

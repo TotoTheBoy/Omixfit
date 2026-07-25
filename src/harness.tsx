@@ -6,6 +6,7 @@
 // `vite` dev.
 // ---------------------------------------------------------------------------
 import { createRoot } from "react-dom/client";
+import { useEffect, useState } from "react";
 import "./styles/fonts.css";
 import "./styles/theme.css";
 import "./styles/app.css";
@@ -34,6 +35,30 @@ setCurrentUser(asUser);
 
 const noop = () => {};
 
+function PdfTest() {
+  const [src, setSrc] = useState("");
+  useEffect(() => {
+    const user = {
+      id: "u", name: "דנה כהן", firstName: "דנה", lastName: "כהן", idNumber: "039285017",
+      dob: "1992-04-15", age: 33, gender: "female", phone: "050-1234567", email: "dana@example.com",
+      address: "הרצל 12, תל אביב-יפו", role: "member", membershipActive: false,
+    } as unknown as User;
+    const form = {
+      heartDisease: true, chestPainRest: false, chestPainDaily: false, chestPainExercise: true,
+      dizziness: false, lostConsciousness: false, asthmaMeds: false, asthmaBreath: false,
+      familyHeartDeath: false, familySuddenDeath: false, medicalSupervision: false,
+      chronicIllness: false, pregnant: false, notes: "כאב גב תחתון מדי פעם, נוטלת ויטמין D",
+      termsAccepted: true, signedName: "דנה כהן", submittedAt: Date.now(),
+    } as never;
+    import("./lib/healthPdf").then(({ buildHealthPdfDataUrl }) =>
+      buildHealthPdfDataUrl(user, form).then(setSrc),
+    );
+  }, []);
+  return src
+    ? <iframe title="pdf" src={src} style={{ width: "100%", height: "100vh", border: "none" }} />
+    : <div style={{ padding: 40 }}>generating…</div>;
+}
+
 // Screens that carry their own `.page` wrapper vs. those App wraps in `.page`.
 const inPage = new Set(["overview", "finance", "home"]);
 const MAP: Record<string, JSX.Element> = {
@@ -48,6 +73,7 @@ const MAP: Record<string, JSX.Element> = {
   bookings: <MyBookings onGoSchedule={noop} />,
   profile: <Profile onSwitchUser={noop} />,
   login: <Login onBack={noop} />,
+  pdftest: <PdfTest />,
   verify: <VerifyEmail email="name@example.com" onVerified={noop} />,
   onboard: (
     <Onboarding

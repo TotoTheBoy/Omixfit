@@ -570,14 +570,18 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
   const user = snap.data();
   const form = user.healthForm;
   if (!form) return { sent: false };
-  const { buildHealthPdf, buildHealthSummary } = require("./healthDoc");
+  const { buildHealthSummary } = require("./healthDoc");
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name || "מתאמן/ת";
   const sum = buildHealthSummary(form);
   const attachments = [];
-  try {
-    attachments.push({ filename: `הצהרת-בריאות-${name}.pdf`, content: await buildHealthPdf(user, form) });
-  } catch (e) {
-    logger.error("health pdf", e);
+  // The declaration PDF is rendered in the browser (perfect Hebrew) and sent here
+  // as a data URL — we just attach it.
+  if (data.pdfDataUrl && typeof data.pdfDataUrl === "string" && data.pdfDataUrl.includes(",")) {
+    attachments.push({
+      filename: `הצהרת-בריאות-${name}.pdf`,
+      content: Buffer.from(data.pdfDataUrl.split(",")[1], "base64"),
+      contentType: "application/pdf",
+    });
   }
   if (data.certDataUrl && typeof data.certDataUrl === "string" && data.certDataUrl.includes(",")) {
     const [meta, b64] = data.certDataUrl.split(",");
