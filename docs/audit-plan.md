@@ -5,6 +5,20 @@ classes of defect** across the whole app — code, security, data, UX, design �
 and lists, per item: **Where**, **Risk (what breaks / what gives a "reject")**,
 and **Fix (what to upgrade)**. Ordered by severity: **P0 critical → P3 polish.**
 
+---
+
+## STATUS (implementation)
+
+- ✅ **P1.1/P1.2 crash-hardening** — shipped (null-safe lookups, empty-state guards).
+- ✅ **P0.5 + P2.3 function cleanup** — shipped (debugUser removed, RESET_KEY isolated, notifyHealthSubmission owner/staff-gated).
+- ✅ **P1.3 + P2.6 guards + validation** — shipped (approved allow-list, amount>0, email normalization, class-type dedupe).
+- ✅ **P2.5 + P2.1 confirmations + await/toast** — shipped (reusable confirm() modal on all destructive actions; write failures surface).
+- ✅ **P2.2 cascade** — shipped (event→signups; the rest already cascaded/blocked).
+- ✅ **P0.1/P0.3/P0.4 rules + staff custom claim (WRITES)** — shipped + deployed. **Self-approval is now impossible**; management collections are staff-write only; owners are staff-by-identity (no lockout).
+- ⏳ **P0.2 read-scoping (health-data READ privacy)** — NOT yet shipped. This is the one item that requires a client data-loading refactor and can't be verified headlessly; deploying it wrong would break member data loading on the live app. Pending a decision on approach + rollout.
+
+---
+
 Legend: 🔴 P0 exploitable/critical · 🟠 P1 crash or gate bypass · 🟡 P2 reliability/
 data/UX · ⚪ P3 polish. "Reject" = the condition that makes the flow fail or be
 unsafe.
