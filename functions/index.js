@@ -522,6 +522,54 @@ async function callerRole(context) {
   return caller.exists ? caller.data().role : null;
 }
 
+// Grant/revoke the `staff` custom claim that the security rules use to authorize
+// management writes (sessions, services, payments, other users). Owners/admins
+// assign roles in the app; this keeps the claim in sync so a promoted
+// instructor/manager can actually write - and a demoted one can't. The 5 owner
+// e-mails are staff by rule regardless, so this is really for non-owner staff.
+exports.setStaffClaim = fnV1.https.onCall(async (data, context) => {
+  const role = await callerRole(context);
+  if (!["admin", "manager"].includes(role)) {
+    throw new fnV1.https.HttpsError("permission-denied", "admin/manager only");
+  }
+  const uid = data && data.uid;
+  const staff = !!(data && data.staff);
+  if (!uid) throw new fnV1.https.HttpsError("invalid-argument", "uid required");
+  const { getAuth } = require("firebase-admin/auth");
+  // {staff:null} removes the claim entirely. Claims propagate on the target's
+  // next token refresh (the client force-refreshes on load).
+  await getAuth().setCustomUserClaims(uid, staff ? { staff: true } : { staff: null });
+  return { ok: true, staff };
+});
+
+// One-time backfill: set the staff claim for every user whose role is staff
+// (or an owner e-mail), clear it for everyone else. Protected by RESET_KEY.
+exports.backfillStaffClaims = fnV1.https.onRequest(async (req, res) => {
+  if (!process.env.RESET_KEY || req.query.key !== process.env.RESET_KEY) {
+    return res.status(403).send("forbidden");
+  }
+  const { getAuth } = require("firebase-admin/auth");
+  const auth = getAuth();
+  const snap = await db.collection("users").get();
+  let staffSet = 0;
+  let cleared = 0;
+  let skipped = 0;
+  for (const d of snap.docs) {
+    const u = d.data();
+    const staff =
+      ["admin", "manager", "instructor"].includes(u.role) ||
+      OWNER_EMAILS.includes(String(u.email || "").toLowerCase());
+    try {
+      await auth.setCustomUserClaims(d.id, staff ? { staff: true } : { staff: null });
+      if (staff) staffSet++;
+      else cleared++;
+    } catch (e) {
+      skipped++; // no auth account for this uid
+    }
+  }
+  return res.json({ staffSet, cleared, skipped });
+});
+
 const ctaButton = (label) =>
   `<p style="margin:22px 0"><a href="${APP_URL}" style="background:#c89b3c;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">${label}</a></p>`;
 

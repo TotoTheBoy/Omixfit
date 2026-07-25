@@ -12,6 +12,7 @@ import {
   setApproval,
   setLeadHandled,
   updateUser,
+  setStaffClaim,
   useStore,
 } from "../lib/store";
 import { clientActivityLight, isNewClient, trialDaysLeft } from "../lib/engine";
@@ -471,9 +472,17 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
                 <button
                   key={r}
                   className={`filter-chip ${u.role === r ? "on" : ""}`}
-                  onClick={() => {
-                    updateUser(u.id, { role: r });
-                    toast(`${u.name} · ${t.roles[r]}`, "ok");
+                  onClick={async () => {
+                    try {
+                      await updateUser(u.id, { role: r });
+                      // Keep the staff custom claim in sync so security rules let
+                      // a promoted instructor/manager actually manage - and revoke
+                      // it on demotion to member.
+                      await setStaffClaim(u.id, r !== "member");
+                      toast(`${u.name} · ${t.roles[r]}`, "ok");
+                    } catch {
+                      toast("שינוי התפקיד נכשל - נסו שוב", "err");
+                    }
                   }}
                 >
                   {t.roles[r]}

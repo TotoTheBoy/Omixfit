@@ -367,6 +367,13 @@ export async function deleteMember(uid: string): Promise<void> {
   await call({ uid });
 }
 
+/** Grant/revoke the `staff` custom claim (rules authorize management writes by
+ *  it). Called when an owner assigns/removes a staff role. */
+export async function setStaffClaim(uid: string, staff: boolean): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "setStaffClaim");
+  await call({ uid, staff });
+}
+
 /** Self-service branded email verification (from office@, with a continueUrl
  *  back to the app). Sent at sign-up and by the "resend" button. */
 export async function sendMyVerificationEmail(): Promise<void> {

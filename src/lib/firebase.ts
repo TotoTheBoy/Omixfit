@@ -70,7 +70,13 @@ export function watchAuth(cb: (identity: AuthIdentity | null) => void): () => vo
     cb(null);
     return () => {};
   }
-  return onAuthStateChanged(auth, (u) => cb(u ? toIdentity(u) : null));
+  return onAuthStateChanged(auth, (u) => {
+    // Force a token refresh so freshly-granted custom claims (e.g. `staff`, set
+    // when an owner assigns a staff role) reach the Firestore SDK's token and the
+    // security rules see them without waiting for the ~1h auto-refresh.
+    if (u) void u.getIdToken(true).catch(() => {});
+    cb(u ? toIdentity(u) : null);
+  });
 }
 
 export async function signIn(email: string, password: string): Promise<void> {

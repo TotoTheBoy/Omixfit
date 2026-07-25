@@ -1,116 +1,159 @@
 rules_version = '2';
 
-// OMIX Firestore security rules (Spark / free plan).
+// OMIX Firestore security rules (Blaze).
 //
-// Every read/write requires a signed-in user. On top of that we add hardening
-// that does NOT depend on a server-verified role (Spark can't do that):
-//   • the admin role can never be granted or edited from a client (console-only)
-//   • the audit log is append-only (entries can't be altered or deleted)
-//   • user/meta docs can't be deleted; unknown paths are denied
+// Authorization model:
+//   • signedIn()      - any authenticated user.
+//   • isOwnerEmail()  - the 5 hardcoded business-owner e-mails (always staff).
+//   • isStaff()       - owner e-mail OR the server-verified `staff` custom claim
+//                       (set by the setStaffClaim Cloud Function when an owner
+//                       assigns an instructor/manager role). This is what makes
+//                       real per-role authorization possible.
 //
-// LIMITATION: because roles aren't server-verifiable on Spark, these rules can't
-// stop a determined *signed-in* user from over-reading or editing data they
-// shouldn't (e.g. another member's profile). Full per-role authorization +
-// protecting the health forms needs Firebase custom claims, which require the
-// Blaze plan + a Cloud Function. See README. When on Blaze, replace the broad
-// signed-in writes below with role/ownership checks.
+// Hardening enforced here:
+//   • a member can NEVER self-approve or self-promote: role / approvalStatus /
+//     membershipActive / memberNo / trainerNotes / coaching / hasPass / email
+//     are immutable on a self-update; only staff may change them.
+//   • the admin role is console-only (no client may grant/hold it but owners).
+//   • sessions, class types, services, payments, locations, lesson plans, task
+//     reminders, announcements and events are STAFF-WRITE ONLY.
+//   • a member may create only their own booking.
+//   • audit log append-only; OAuth tokens client-invisible; unknown paths denied.
+//
+// NOTE (reads): read scoping (members should not read others' health forms /
+// payments) is handled in a follow-up together with the client data-loading
+// refactor; until then reads remain signed-in to avoid breaking the member
+// mirror listeners.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    // The business owners — only these verified emails may hold/grant the admin
-    // role (kept in sync with firestore.ts OWNER_EMAILS).
+
+    // The business owners - only these verified emails are staff-by-identity and
+    // may hold/grant the admin role (kept in sync with firestore.ts OWNER_EMAILS).
     function isOwnerEmail() {
       return signedIn()
         && request.auth.token.email != null
-        && request.auth.token.email.lower() in ['office@omixfit.com', 'omer@omixfit.com', 'omerido20@gmail.com'];
+        && request.auth.token.email.lower() in [
+          'office@omixfit.com',
+          'omer@omixfit.com',
+          'omerido20@gmail.com',
+          'guy.lifshitz98@gmail.com',
+          'help@omixfit.com'
+        ];
     }
+
+    // Server-verified staff: the `staff` custom claim (set on role assignment) or
+    // an owner e-mail. Management writes are gated on this.
+    function isStaff() {
+      return signedIn() && (request.auth.token.staff == true || isOwnerEmail());
+    }
+
     // A client may never create or set the admin role…
     function notSettingAdmin() {
       return !('role' in request.resource.data) || request.resource.data.role != 'admin';
     }
-    // …nor modify an existing admin account.
+    // …nor modify an existing admin account (unless an owner).
     function notEditingAdmin() {
       return resource == null || resource.data.role != 'admin';
+    }
+    // Privileged user fields a member may not change on their own profile.
+    function privilegedUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'role', 'approvalStatus', 'membershipActive', 'memberNo',
+        'trainerNotes', 'coaching', 'hasPass', 'email'
+      ]);
+    }
+    // A self-signup doc must start as a plain pending member.
+    function selfSignupShape() {
+      return request.resource.data.role == 'member'
+        && request.resource.data.approvalStatus == 'pending'
+        && request.resource.data.membershipActive == false;
     }
 
     match /users/{uid} {
       allow read: if signedIn();
-      // Owners may write admin docs / grant admin; everyone else may not touch
-      // the admin role at all.
-      allow create: if signedIn() && (notSettingAdmin() || isOwnerEmail());
+      // Self-signup creates a pending member; owners bootstrap their admin doc;
+      // staff may create any user.
+      allow create: if signedIn()
+        && (notSettingAdmin() || isOwnerEmail())
+        && (isStaff() || (request.auth.uid == uid && selfSignupShape()));
+      // Staff (or an owner) may edit anyone; a member may edit ONLY their own doc
+      // and NOT any privileged field - this is what blocks self-approval.
       allow update: if signedIn()
         && (notSettingAdmin() || isOwnerEmail())
-        && (notEditingAdmin() || isOwnerEmail());
-      allow delete: if false;
+        && (notEditingAdmin() || isOwnerEmail())
+        && (isStaff() || (request.auth.uid == uid && privilegedUnchanged()));
+      allow delete: if false; // deletion goes through the deleteMember function
     }
 
-    match /sessions/{id}   { allow read, write: if signedIn(); }
-    match /classTypes/{id} { allow read, write: if signedIn(); }
-    match /bookings/{id}   { allow read, write: if signedIn(); }
-    match /locations/{id}  { allow read, write: if signedIn(); }
-    // Revenue data (services + payments). On Blaze these tighten to staff-only.
-    match /services/{id}   { allow read, write: if signedIn(); }
-    match /payments/{id}   { allow read, write: if signedIn(); }
+    // ---- management data: staff-write only, signed-in read -------------------
+    match /sessions/{id}      { allow read: if signedIn(); allow write: if isStaff(); }
+    match /classTypes/{id}    { allow read: if signedIn(); allow write: if isStaff(); }
+    match /locations/{id}     { allow read: if signedIn(); allow write: if isStaff(); }
+    match /services/{id}      { allow read: if signedIn(); allow write: if isStaff(); }
+    match /payments/{id}      { allow read: if signedIn(); allow write: if isStaff(); }
+    match /lessonPlans/{id}   { allow read: if signedIn(); allow write: if isStaff(); }
+    match /taskReminders/{id} { allow read: if signedIn(); allow write: if isStaff(); }
+    match /announcements/{id} { allow read: if signedIn(); allow write: if isStaff(); }
 
-    // Special events / retreats — events are PUBLIC (marketing + signup page);
-    // only staff write them.
+    // Bookings: a member may create only their own; updates/deletes stay signed-in
+    // because canceling promotes another member's waitlisted booking client-side.
+    match /bookings/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && (isStaff() || request.resource.data.userId == request.auth.uid);
+      allow update, delete: if signedIn();
+    }
+
+    // Special events / retreats - PUBLIC read (marketing + signup page); staff write.
     match /events/{id} {
       allow read: if true;
-      allow write: if signedIn();
+      allow write: if isStaff();
     }
-    // Event registrations — PUBLIC create (non-members sign up), staff read/manage.
-    // Basic shape validation keeps drive-by writes sane.
+    // Event registrations - PUBLIC create (non-members sign up), staff manage.
     match /eventSignups/{id} {
-      allow read, update, delete: if signedIn();
+      allow read: if signedIn();
+      allow update, delete: if isStaff();
       allow create: if request.resource.data.keys().hasAll(['eventId', 'name', 'phone', 'createdAt'])
         && request.resource.data.name is string && request.resource.data.name.size() <= 80
         && request.resource.data.phone is string && request.resource.data.phone.size() <= 30
         && request.resource.data.eventId is string;
     }
-    // Landing leads — PUBLIC create ("just sign up"), staff read/manage.
+    // Landing leads - PUBLIC create ("just sign up"), staff manage.
     match /leads/{id} {
-      allow read, update, delete: if signedIn();
+      allow read: if signedIn();
+      allow update, delete: if isStaff();
       allow create: if request.resource.data.keys().hasAll(['name', 'phone', 'createdAt'])
         && request.resource.data.name is string && request.resource.data.name.size() <= 80
         && request.resource.data.phone is string && request.resource.data.phone.size() <= 30;
     }
 
-    // Audit log — append-only: created + read, never changed or removed.
+    // Audit log - append-only: created + read, never changed or removed.
     match /audit/{id} {
       allow read, create: if signedIn();
       allow update, delete: if false;
     }
 
-    // Private owner-only billing tracker — only the verified business owners can
-    // read or write it (their financial data stays secret from everyone else),
-    // yet it still syncs live via Firestore. Must precede the general meta rule.
+    // Private owner-only billing tracker - only the verified business owners.
     match /meta/subscriptions {
       allow read, write: if isOwnerEmail();
     }
-
-    // Google Calendar OAuth refresh token — NO client may read/write it; only
-    // the Cloud Functions (admin SDK, which bypasses rules) touch it.
+    // Google Calendar OAuth refresh token - Cloud Functions only.
     match /meta/calendar {
       allow read, write: if false;
     }
-
-    // Per-member personal-calendar OAuth refresh tokens — same lockdown: only
-    // the Cloud Functions may read/write. Clients never see a refresh token.
+    // Per-member personal-calendar OAuth refresh tokens - Cloud Functions only.
     match /calTokens/{uid} {
       allow read, write: if false;
     }
 
-    // Seed marker + facility settings — readable/writable, never deletable.
-    // (subscriptions + calendar are excluded above so the line below can't expose them.)
+    // Seed marker, member counter, facility settings. Kept signed-in-writable
+    // because sign-up increments meta/counters (memberSeq) before the user is
+    // staff. (subscriptions + calendar are matched above.)
     match /meta/{doc} {
       allow read, create, update: if signedIn() && doc != "subscriptions" && doc != "calendar";
       allow delete: if false;
     }
-
-    // Workout planner — the coach's lesson-plan archive + task reminders (#11).
-    match /lessonPlans/{id}    { allow read, write: if signedIn(); }
-    match /taskReminders/{id}  { allow read, write: if signedIn(); }
-    match /announcements/{id}  { allow read, write: if signedIn(); }
 
     // Anything not matched above is denied.
     match /{document=**} { allow read, write: if false; }
