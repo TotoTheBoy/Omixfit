@@ -17,6 +17,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  collectionGroup,
   getDoc,
   getDocs,
   increment,
@@ -31,6 +32,7 @@ import {
   where,
   writeBatch,
 } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { firebaseConfig } from "./firebaseConfig";
 import { getState, hydrate, logout, setCurrentUser } from "./store";
 import * as engine from "./engine";
@@ -96,8 +98,67 @@ export function initFirestore(): Promise<void> {
   return ready;
 }
 
+// Sensitive profile fields kept in a per-user PRIVATE subcollection that only
+// the owner + staff may read (health declaration + PII). They are merged back
+// onto the flat User object in the mirror so every `user.healthForm`/`idNumber`
+// reader keeps working - the protection is purely at the Firestore-read layer.
+const PRIVATE_FIELDS = [
+  "healthForm", "idNumber", "address", "dob", "age",
+  "signedName", "hasMedicalCert", "medicalCertName",
+] as const;
+
+// Two sources feed the users mirror: the main docs (names/roles - readable by
+// any signed-in user) and the private docs (health/PII). We keep them separate
+// and re-merge on every change.
+let usersMain: User[] = [];
+const privateByUid = new Map<string, Record<string, unknown>>();
+function emitUsers(): void {
+  hydrate({
+    users: usersMain.map(
+      (u) => ({ ...u, ...(privateByUid.get(u.id) ?? {}) }) as User,
+    ),
+  });
+}
+
+// A member can't run the collectionGroup query (rules deny it), so they read
+// their OWN private doc directly. Called once the signed-in uid is known (staff
+// get theirs from the collectionGroup too - harmless overlap). Idempotent.
+let ownPrivateUid: string | null = null;
+function subscribeOwnPrivate(): void {
+  const uid = getAuth(app).currentUser?.uid;
+  if (!uid || uid === ownPrivateUid) return;
+  ownPrivateUid = uid;
+  onSnapshot(
+    doc(db, "users", uid, "private", "health"),
+    (d) => {
+      if (d.exists()) privateByUid.set(uid, d.data());
+      emitUsers();
+    },
+    () => {},
+  );
+}
+
 function startListeners(): void {
-  onSnapshot(col.users, (s) => hydrate({ users: s.docs.map((d) => d.data() as User) }));
+  onSnapshot(col.users, (s) => {
+    usersMain = s.docs.map((d) => d.data() as User);
+    emitUsers();
+  });
+  // Staff read every private profile via a collectionGroup query; a member's
+  // query is denied by the rules (error cb no-ops) and they instead get only
+  // their own private doc from the listener below.
+  onSnapshot(
+    collectionGroup(db, "private"),
+    (s) => {
+      privateByUid.clear();
+      s.docs.forEach((d) => {
+        const uid = d.ref.parent.parent?.id;
+        if (uid) privateByUid.set(uid, d.data());
+      });
+      emitUsers();
+    },
+    () => {},
+  );
+  subscribeOwnPrivate();
   onSnapshot(col.classTypes, (s) =>
     hydrate({ classTypes: s.docs.map((d) => d.data() as ClassType) }),
   );
@@ -292,6 +353,7 @@ export async function resolveAuthUser(
     if (Object.keys(patch).length) {
       void updateDoc(doc(db, "users", existing.id), patch).catch(() => {});
     }
+    subscribeOwnPrivate();
     return setCurrentUser(existing.id);
   }
 
@@ -347,6 +409,7 @@ export async function resolveAuthUser(
     prefs: { push: true, email: true, whatsapp: false, reminderHours: 2 },
   };
   await setDoc(doc(db, "users", uid), user);
+  subscribeOwnPrivate();
   setCurrentUser(uid);
 }
 
@@ -355,9 +418,11 @@ export async function submitHealthForm(
   userId: string,
   form: HealthForm,
 ): Promise<void> {
-  await updateDoc(doc(db, "users", userId), {
-    healthForm: form as unknown as Record<string, unknown>,
-  });
+  await setDoc(
+    doc(db, "users", userId, "private", "health"),
+    { healthForm: form as unknown as Record<string, unknown> },
+    { merge: true },
+  );
 }
 
 /** Staff permanently deletes a member (bookings + user doc + auth account, so the
@@ -712,7 +777,18 @@ export async function updateUser(
   }
   if (patch.role === "admin") delete patch.role; // no app action grants admin
   if (Object.keys(patch).length === 0) return;
-  await updateDoc(doc(db, "users", userId), patch as Record<string, unknown>);
+  // Route sensitive fields to the protected private subcollection; the rest to
+  // the main doc.
+  const priv: Record<string, unknown> = {};
+  const main: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if ((PRIVATE_FIELDS as readonly string[]).includes(k)) priv[k] = v;
+    else main[k] = v;
+  }
+  if (Object.keys(priv).length)
+    await setDoc(doc(db, "users", userId, "private", "health"), priv, { merge: true });
+  if (Object.keys(main).length)
+    await updateDoc(doc(db, "users", userId), main);
   if (before && patch.role && patch.role !== before.role) {
     await audit("role_changed", `${before.name}: ${before.role} ← ${patch.role}`);
   } else if (

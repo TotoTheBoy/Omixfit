@@ -542,6 +542,38 @@ exports.setStaffClaim = fnV1.https.onCall(async (data, context) => {
   return { ok: true, staff };
 });
 
+// One-time migration: move sensitive fields (health form + PII) from each user's
+// MAIN doc into users/{uid}/private/health, then delete them from the main doc,
+// so members can no longer read other members' health data. Protected by RESET_KEY.
+exports.migrateHealthPrivate = fnV1.https.onRequest(async (req, res) => {
+  if (!process.env.RESET_KEY || req.query.key !== process.env.RESET_KEY) {
+    return res.status(403).send("forbidden");
+  }
+  const PRIVATE = ["healthForm", "idNumber", "address", "dob", "age", "signedName", "hasMedicalCert", "medicalCertName"];
+  const snap = await db.collection("users").get();
+  let moved = 0;
+  let empty = 0;
+  for (const d of snap.docs) {
+    const u = d.data();
+    const priv = {};
+    const del = {};
+    for (const k of PRIVATE) {
+      if (u[k] !== undefined) {
+        priv[k] = u[k];
+        del[k] = FieldValue.delete();
+      }
+    }
+    if (Object.keys(priv).length === 0) {
+      empty++;
+      continue;
+    }
+    await db.doc("users/" + d.id + "/private/health").set(priv, { merge: true });
+    await d.ref.update(del);
+    moved++;
+  }
+  return res.json({ moved, empty });
+});
+
 // One-time backfill: set the staff claim for every user whose role is staff
 // (or an owner e-mail), clear it for everyone else. Protected by RESET_KEY.
 exports.backfillStaffClaims = fnV1.https.onRequest(async (req, res) => {
@@ -771,7 +803,10 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
   }
   const snap = await db.doc("users/" + userId).get();
   if (!snap.exists) return { sent: false };
-  const user = snap.data();
+  // Health form + PII now live in the protected private subcollection; merge it
+  // over the main doc (falling back to legacy fields during migration).
+  const privSnap = await db.doc("users/" + userId + "/private/health").get();
+  const user = Object.assign({}, snap.data(), privSnap.exists ? privSnap.data() : {});
   const form = user.healthForm;
   if (!form) return { sent: false };
   const { buildHealthSummary } = require("./healthDoc");

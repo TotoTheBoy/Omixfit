@@ -84,6 +84,19 @@ service cloud.firestore {
         && (notEditingAdmin() || isOwnerEmail())
         && (isStaff() || (request.auth.uid == uid && privilegedUnchanged()));
       allow delete: if false; // deletion goes through the deleteMember function
+
+      // Sensitive profile: health declaration + PII. Only the owner (self) and
+      // staff may read/write it - THIS is what hides members' health forms/ID
+      // numbers from other members.
+      match /private/{doc} {
+        allow read, write: if signedIn() && (request.auth.uid == uid || isStaff());
+      }
+    }
+
+    // collectionGroup('private') - lets staff stream every private profile in one
+    // query for the roster/member views. Non-staff queries are denied.
+    match /{path=**}/private/{doc} {
+      allow read: if isStaff();
     }
 
     // ---- management data: staff-write only, signed-in read -------------------
