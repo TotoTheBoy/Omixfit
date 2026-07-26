@@ -19,6 +19,7 @@ import { Avatar, CapacityBar } from "./common";
 import { toast } from "./Toast";
 import { confirm } from "./Confirm";
 import { celebrate } from "./Celebration";
+import { downloadIcs, googleCalendarUrl } from "../lib/ics";
 import { IcClock, IcClose, IcMedical, IcPin, IcUser } from "./icons";
 
 export function SessionDetail({
@@ -217,6 +218,24 @@ export function SessionDetail({
       )}
 
       {!session.cancelled && <CapacityBar booked={booked} capacity={session.capacity} />}
+
+      {/* Opt-in "add to MY calendar" - one chosen class only, never auto-synced. */}
+      {me.role === "member" && !session.cancelled && (() => {
+        const info = {
+          title: `${type.name} · Omix`,
+          location: session.online ? "אונליין" : data.locations[0]?.name,
+          description: `מדריך/ה: ${instructor?.name ?? "-"} · ${session.room}`,
+        };
+        return (
+          <div className="addcal">
+            <span className="addcal-label">📅 הוספה ליומן שלי</span>
+            <div className="addcal-btns">
+              <a className="btn btn-ghost btn-sm" href={googleCalendarUrl(session, info)} target="_blank" rel="noreferrer">Google</a>
+              <button className="btn btn-ghost btn-sm" onClick={() => downloadIcs(session, info)}>Apple / Outlook</button>
+            </div>
+          </div>
+        );
+      })()}
 
       {reasonNote && (
         <div className={`note ${reasonNote.cls}`}>
