@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { t } from "../lib/i18n";
 import { IcClose } from "./icons";
+import { LegalSection } from "./LegalSection";
 
-// Terms / Privacy / EULA / Waiver overlay (template content; see disclaimer).
+// Terms / Privacy / Waiver overlay with hierarchical numbered clauses.
 // The same documents are also served as standalone pages at /legal/<slug>
 // (see screens/LegalPage.tsx) - this modal is the in-app quick view.
 export function Legal({ onClose }: { onClose: () => void }) {
@@ -29,13 +30,9 @@ export function Legal({ onClose }: { onClose: () => void }) {
         </div>
         <h2 className="legal-h">{doc.title}</h2>
         <p className="legal-updated">{L.updated}</p>
-        {doc.sections.map((it) => (
-          <section className="legal-item" key={it.h}>
-            <h3>{it.h}</h3>
-            <p>{it.p}</p>
-          </section>
+        {doc.sections.map((sec, si) => (
+          <LegalSection key={si} n={si + 1} sec={sec} />
         ))}
-        <p className="legal-disclaimer">{L.disclaimer}</p>
       </div>
     </div>
   );

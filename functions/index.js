@@ -813,11 +813,14 @@ exports.notifyHealthSubmission = fnV1.https.onCall(async (data, context) => {
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name || "מתאמן/ת";
   const sum = buildHealthSummary(form);
   const attachments = [];
+  // File name = full name + the trainee's member number, so it's easy to locate
+  // the document later (e.g. "הצהרת בריאות - טוטו ילד - 12.pdf").
+  const memberTag = user.memberNo != null && user.memberNo !== "" ? ` - ${user.memberNo}` : "";
   // The declaration PDF is rendered in the browser (perfect Hebrew) and sent here
   // as a data URL - we just attach it.
   if (data.pdfDataUrl && typeof data.pdfDataUrl === "string" && data.pdfDataUrl.includes(",")) {
     attachments.push({
-      filename: `הצהרת-בריאות-${name}.pdf`,
+      filename: `הצהרת בריאות - ${name}${memberTag}.pdf`,
       content: Buffer.from(data.pdfDataUrl.split(",")[1], "base64"),
       contentType: "application/pdf",
     });

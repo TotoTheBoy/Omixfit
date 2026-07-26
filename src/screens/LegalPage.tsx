@@ -1,5 +1,6 @@
 import { t } from "../lib/i18n";
 import { OmixMark } from "../components/Brand";
+import { LegalSection } from "../components/LegalSection";
 
 // Standalone, path-based legal documents served at real URLs:
 //   /legal            → index of all documents
@@ -42,7 +43,6 @@ export function LegalPage({ slug }: { slug: string }) {
               </li>
             ))}
           </ul>
-          <p className="legal-disclaimer">{L.disclaimer}</p>
         </div>
       </main>
     );
@@ -57,13 +57,9 @@ export function LegalPage({ slug }: { slug: string }) {
       </header>
       <div className="legal-body">
         <p className="legal-updated">{L.updated}</p>
-        {doc.sections.map((it) => (
-          <section className="legal-item" key={it.h}>
-            <h3>{it.h}</h3>
-            <p>{it.p}</p>
-          </section>
+        {doc.sections.map((sec, si) => (
+          <LegalSection key={si} n={si + 1} sec={sec} />
         ))}
-        <p className="legal-disclaimer">{L.disclaimer}</p>
         <p style={{ marginTop: 20 }}>
           <a className="link-btn" href={BASE}>{L.backToApp}</a>
         </p>

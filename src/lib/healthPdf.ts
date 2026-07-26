@@ -34,29 +34,46 @@ function detailRows(user: User): string {
 }
 
 function medicalRows(form: HealthForm): string {
-  const items = HEALTH_GROUPS.flatMap((g) => g.items);
-  return items
-    .map((it, i) => {
-      const yes = (form as unknown as Record<string, boolean>)[it.key] === true;
-      const bg = yes ? "#fbe9e7" : i % 2 ? "#faf7f0" : "#fff";
-      const col = yes ? "#b0402f" : "#241c12";
-      return `<tr style="background:${bg}">
-        <td style="padding:4px 11px;border:1px solid #e6dcc4;color:${col};width:78%">${esc(it.label)}</td>
+  const val = (k: string) => (form as unknown as Record<string, boolean>)[k] === true;
+  let i = 0;
+  // Render each item UNDER its question heading, so an answer like "בזמן מנוחה"
+  // is understood in context ("כאבים בחזה - בזמן מנוחה") rather than standing alone.
+  return HEALTH_GROUPS.map((g) => {
+    const header = `<tr><td colspan="2" style="padding:6px 11px;border:1px solid #e6dcc4;background:#efe7d3;color:#5f4d20;font-weight:700;font-size:11.5px">${esc(g.heading)}</td></tr>`;
+    const rows = g.items
+      .map((it) => {
+        const yes = val(it.key);
+        const bg = yes ? "#fbe9e7" : i++ % 2 ? "#faf7f0" : "#fff";
+        const col = yes ? "#b0402f" : "#241c12";
+        const hint = it.hint ? ` <span style="color:#8a7d63;font-size:9.5px">(${esc(it.hint)})</span>` : "";
+        return `<tr style="background:${bg}">
+        <td style="padding:4px 11px 4px 22px;border:1px solid #e6dcc4;color:${col};width:78%">${esc(it.label)}${hint}</td>
         <td style="padding:4px 11px;border:1px solid #e6dcc4;color:${col};font-weight:800;text-align:center">${yes ? "כן" : "לא"}</td></tr>`;
-    })
-    .join("");
+      })
+      .join("");
+    return header + rows;
+  }).join("");
 }
 
 function summaryBlock(form: HealthForm): string {
-  const items = HEALTH_GROUPS.flatMap((g) => g.items);
-  const flagged = items.filter((it) => (form as unknown as Record<string, boolean>)[it.key] === true);
-  const ok = flagged.length === 0;
+  const val = (k: string) => (form as unknown as Record<string, boolean>)[k] === true;
+  // Group the "yes" answers by their question so the summary references what was
+  // actually asked, e.g. "כאבים בחזה: בזמן מנוחה".
+  const flaggedGroups = HEALTH_GROUPS.map((g) => ({
+    heading: g.heading,
+    hits: g.items.filter((it) => val(it.key)),
+  })).filter((g) => g.hits.length);
+  const count = flaggedGroups.reduce((n, g) => n + g.hits.length, 0);
+  const ok = count === 0;
   const border = ok ? "#2f6b3b" : "#b0402f";
   const bg = ok ? "#eef5ef" : "#fbe9e7";
-  const head = ok ? "✓ תקין לחלוטין - אין דגלים רפואיים" : `⚠️ לתשומת לב - סומן ‏"כן"‏ ל-${flagged.length} סעיפים`;
+  const head = ok ? "✓ תקין לחלוטין - אין דגלים רפואיים" : `⚠️ לתשומת לב - סומן ‏"כן"‏ ל-${count} סעיפים`;
+  const list = flaggedGroups
+    .map((g) => `<b>${esc(g.heading)}</b> ${g.hits.map((h) => esc(h.label)).join(", ")}`)
+    .join("<br>");
   const body = ok
     ? "המתאמן/ת ענה/תה ‏\"לא\"‏ על כל שאלות השאלון. אין צורך בתעודה רפואית לפי ההצהרה."
-    : `סומן ‏"כן"‏ ל: ${flagged.map((f) => f.label).join(" · ")}.<br>לפי תקנות מכוני כושר נדרשת תעודה רפואית מרופא לפני תחילת האימונים. ${
+    : `${list}<br><br>לפי תקנות מכוני כושר נדרשת תעודה רפואית מרופא לפני תחילת האימונים. ${
         form.hasMedicalCert ? "צורפה תעודה רפואית (מצורפת למייל)." : "טרם צורפה תעודה - יש לוודא שתומצא."
       }`;
   return `<div style="margin:4px 0 0;padding:10px 14px;border-radius:9px;background:${bg};border-inline-start:5px solid ${border}">

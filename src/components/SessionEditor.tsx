@@ -26,8 +26,11 @@ interface Props {
 export function SessionEditor({ session, presetDate, onClose, onSaved }: Props) {
   const data = useStore((s) => s);
   const editing = !!session;
+  // Admins (the owners) run classes too, so they're selectable as the
+  // instructor - otherwise a studio whose only staff are admins can't create a
+  // single session.
   const instructors = data.users.filter(
-    (u) => u.role === "instructor" || u.role === "manager",
+    (u) => u.role === "instructor" || u.role === "manager" || u.role === "admin",
   );
 
   const firstType = data.classTypes[0];
