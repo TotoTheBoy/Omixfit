@@ -19,6 +19,11 @@ import { confirm } from "./Confirm";
 const KINDS: ServiceKind[] = ["personal", "group", "zoom", "therapy", "injury"];
 const BILLINGS: BillingModel[] = ["package", "subscription", "session"];
 
+// Order categories are shown in the admin price list.
+const SVC_KIND_ORDER: ServiceKind[] = ["personal", "group", "zoom", "therapy", "injury"];
+// Effective per-session price: a package's total / its units; otherwise the price.
+const perSessionOf = (s: Service) => (s.units && s.units > 1 ? s.price / s.units : s.price);
+
 export function Finance() {
   const [tab, setTab] = useState<"overview" | "balances" | "services" | "reports">("overview");
   const [payOpen, setPayOpen] = useState(false);
@@ -227,16 +232,45 @@ function Services({ onEdit, onNew }: { onEdit: (s: Service) => void; onNew: () =
         </div>
       ) : (
         <div className="svc-list">
-          {sorted.map((s) => (
-            <button key={s.id} className={`svc-row ${s.active ? "" : "off"}`} onClick={() => onEdit(s)}>
-              <span className={`tag kind-${s.kind}`}>{t.finance.kinds[s.kind]}</span>
-              <span className="svc-main">
-                {s.name}
-                <small>{t.finance.billing[s.billing]}{s.units ? ` · ${s.units}` : ""}{s.online ? " · אונליין" : ""}</small>
-              </span>
-              <b className="svc-price">{t.finance.nis(s.price)}</b>
-            </button>
-          ))}
+          {SVC_KIND_ORDER.filter((k) => sorted.some((s) => s.kind === k)).map((kind) => {
+            // Group by category, cheapest-per-session last, so the per-session
+            // price and the saving vs a single session are easy to compare.
+            const group = sorted
+              .filter((s) => s.kind === kind)
+              .sort((a, b) => (a.units ?? 1) - (b.units ?? 1) || Number(b.active) - Number(a.active));
+            const baseline = Math.max(...group.map(perSessionOf));
+            return (
+              <div key={kind} className="svc-group">
+                <div className="svc-group-h">
+                  <span className={`tag kind-${kind}`}>{t.finance.kinds[kind]}</span>
+                </div>
+                {group.map((s) => {
+                  const per = perSessionOf(s);
+                  const isPack = !!(s.units && s.units > 1);
+                  const savePct = isPack && baseline > 0 && per < baseline
+                    ? Math.round((1 - per / baseline) * 100) : 0;
+                  return (
+                    <button key={s.id} className={`svc-row ${s.active ? "" : "off"}`} onClick={() => onEdit(s)}>
+                      <span className="svc-main">
+                        {s.name}
+                        <small>
+                          {s.billing === "subscription"
+                            ? "מנוי חודשי"
+                            : isPack
+                              ? `${t.finance.nis(Math.round(per))} לאימון · ${s.units} אימונים`
+                              : "תשלום לפי אימון"}
+                          {s.online ? " · אונליין" : ""}
+                          {s.active ? "" : " · לא פעיל"}
+                        </small>
+                      </span>
+                      {savePct >= 5 && <span className="svc-save">{savePct}%-</span>}
+                      <b className="svc-price">{t.finance.nis(s.price)}</b>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
           <button className="btn btn-ghost btn-sm svc-reload" onClick={loadCatalog} disabled={loading}>
             {loading ? t.finance.catalogLoading : t.finance.reloadCatalog}
           </button>

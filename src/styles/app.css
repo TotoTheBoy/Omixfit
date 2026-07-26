@@ -2664,6 +2664,20 @@
 .svc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; font-weight: 700; }
 .svc-main small { font-weight: 500; font-size: 0.78rem; color: var(--text-2); }
 .svc-price { font-variant-numeric: tabular-nums; font-weight: 900; font-size: 1.05rem; }
+/* grouped price list */
+.svc-group { display: flex; flex-direction: column; gap: 8px; }
+.svc-group + .svc-group { margin-top: 18px; }
+.svc-group-h { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.svc-save {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2f7d4f;
+  background: rgba(47, 125, 79, 0.1);
+  border-radius: var(--r-pill);
+  padding: 2px 8px;
+  flex: none;
+}
 
 /* service-kind tags */
 .tag.kind-personal { background: #f6ecd2; color: #8a6a1f; }
@@ -3312,6 +3326,33 @@
 .pkg-title { font-weight: 700; font-size: 0.9rem; color: var(--text-2); }
 .pkg-total { font-size: 1.5rem; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
 .pkg-per { font-size: 0.78rem; color: var(--gold-600); font-weight: 700; min-height: 1em; }
+/* value-forward card: big per-session price, total secondary, saving line */
+.pkg-per-big {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.pkg-per-big small { font-size: 0.72rem; font-weight: 700; color: var(--text-3); }
+.pkg-total-sub { font-size: 0.76rem; color: var(--text-3); font-weight: 600; }
+.pkg-save-txt { font-size: 0.74rem; color: #2f7d4f; font-weight: 800; min-height: 1em; }
+.pkg-save-chip {
+  position: absolute;
+  top: -9px;
+  inset-inline-end: 12px;
+  background: #2f7d4f;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-variant-numeric: tabular-nums;
+}
+.pkg-track { margin-bottom: 18px; }
 .pkg-buy {
   margin-top: 10px;
   align-self: stretch;
