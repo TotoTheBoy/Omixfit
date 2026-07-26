@@ -6,7 +6,9 @@ import {
   cancelBooking,
   classTypeOf,
   confirmedCount,
+  freeCancelCutoffHours,
   hasMedicalFlag,
+  isLateCancel,
   joinWaitlist,
   setAttendance,
   useStore,
@@ -15,6 +17,7 @@ import { fmtDayHeading, fmtTime, fromKey } from "../lib/date";
 import { Sheet } from "./Sheet";
 import { Avatar, CapacityBar } from "./common";
 import { toast } from "./Toast";
+import { confirm } from "./Confirm";
 import { celebrate } from "./Celebration";
 import { IcClock, IcClose, IcMedical, IcPin, IcUser } from "./icons";
 
@@ -70,11 +73,29 @@ export function SessionDetail({
     else if (r === "closed") toast(t.closedToast, "err");
   }
   async function doCancel() {
-    const { promotedUserId } = await cancelBooking(session.id, meId);
-    toast(t.cancelledToast, "info");
-    if (promotedUserId) {
-      const promoted = data.users.find((u) => u.id === promotedUserId);
-      toast(t.promotedOtherToast(promoted?.name ?? ""), "ok");
+    // Inside the free-cancel window (12h group / 24h non-group) a cancel is a
+    // full charge - warn and require confirmation, then record it as charged.
+    const late = isLateCancel(session, data.facility);
+    if (late) {
+      const cutoff = freeCancelCutoffHours(session, data.facility);
+      const ok = await confirm({
+        title: "ביטול מאוחר - חיוב מלא",
+        body: `הביטול נעשה בתוך חלון ${cutoff} השעות שלפני האימון, ולכן ייחשב כאימון שנוצל ויקוזז מהכרטיסייה במלואו. להמשיך בביטול?`,
+        danger: true,
+        confirmLabel: "בטל וחייב אותי",
+        cancelLabel: "חזרה",
+      });
+      if (!ok) return;
+    }
+    try {
+      const { promotedUserId } = await cancelBooking(session.id, meId, late);
+      toast(late ? "האימון בוטל וחויב (ביטול מאוחר)" : t.cancelledToast, "info");
+      if (promotedUserId) {
+        const promoted = data.users.find((u) => u.id === promotedUserId);
+        toast(t.promotedOtherToast(promoted?.name ?? ""), "ok");
+      }
+    } catch {
+      toast("ביטול ההרשמה נכשל - נסו שוב", "err");
     }
   }
   async function doJoinWaitlist() {
@@ -201,7 +222,7 @@ export function SessionDetail({
       {mine && (
         <div className="note info">
           <span className="ni">✅</span>
-          {t.booked} - נשמח לראותך! ביטול אפשרי עד {data.facility.cancelCutoffHours} שעות לפני.
+          {t.booked} - נשמח לראותך! ביטול ללא חיוב עד {freeCancelCutoffHours(session, data.facility)} שעות לפני; לאחר מכן האימון מקוזז מהכרטיסייה.
         </div>
       )}
 

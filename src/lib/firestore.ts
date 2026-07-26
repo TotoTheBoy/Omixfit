@@ -603,15 +603,33 @@ export async function joinWaitlist(
 export async function cancelBooking(
   sessionId: string,
   userId: string,
+  late: boolean = false,
 ): Promise<{ promotedUserId: string | null }> {
-  const mine = engine.userBooking(sessionId, userId, getState());
+  const st = getState();
+  const mine = engine.userBooking(sessionId, userId, st);
   if (!mine) return { promotedUserId: null };
   const wasConfirmed = mine.state === "confirmed";
+  // A late cancel of a CONFIRMED seat is a full charge: the booking is recorded
+  // as a no-show (a used session), a punch is deducted from the card, and the
+  // seat is still freed for the waitlist. Waitlist/early cancels stay free.
+  const charge = late && wasConfirmed;
   const sessionRef = doc(db, "sessions", sessionId);
   await runTransaction(db, async (tx) => {
-    tx.update(doc(db, "bookings", mine.id), { state: "cancelled" });
+    tx.update(doc(db, "bookings", mine.id), {
+      state: charge ? "no_show" : "cancelled",
+      ...(charge ? { creditDeducted: true, lateCancelled: true } : {}),
+    });
     if (wasConfirmed) tx.update(sessionRef, { confirmed: increment(-1) });
   });
+  // Deduct a punch on a late cancel (mirrors the attendance charge), if the
+  // member had a balance and it wasn't already deducted.
+  if (charge && !mine.creditDeducted) {
+    const user = st.users.find((u) => u.id === userId);
+    const left = user?.passSessionsLeft;
+    if (typeof left === "number" && left > 0) {
+      await updateDoc(doc(db, "users", userId), { passSessionsLeft: left - 1 });
+    }
+  }
   const promotedUserId = wasConfirmed ? await promoteWaitlist(sessionId) : null;
   return { promotedUserId };
 }

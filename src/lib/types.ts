@@ -187,6 +187,9 @@ export interface Booking {
    *  No-Show override refunds it exactly once (idempotent across the auto-sweep
    *  and manual toggles). */
   creditDeducted?: boolean;
+  /** Marked when a confirmed booking was cancelled inside the free-cancel window
+   *  (recorded as a charged no-show). */
+  lateCancelled?: boolean;
 }
 
 export interface Location {
@@ -283,8 +286,12 @@ export interface Facility {
   bookingWindowDays: number;
   /** Booking closes this many minutes before start. */
   bookingClosesBeforeMin: number;
-  /** Cancellation allowed up to this many hours before start. */
+  /** Cancellation allowed up to this many hours before start (legacy/fallback). */
   cancelCutoffHours: number;
+  /** Free-cancel cutoff for GROUP classes (capacity > 1). Default 12h. */
+  cancelCutoffGroupHours?: number;
+  /** Free-cancel cutoff for non-group (personal/online/1-on-1). Default 24h. */
+  cancelCutoffPrivateHours?: number;
   /** Max concurrent confirmed bookings per member (anti-hoarding). */
   maxActiveBookings: number;
   /** Business payment-request links (Bit / PayBox) for client self-pay. */

@@ -6,7 +6,7 @@
 // free except the local id counter used by the apply* reference transforms.
 // ---------------------------------------------------------------------------
 
-import type { AppData, Booking, ClassSession, ClassType, User } from "./types";
+import type { AppData, Booking, ClassSession, ClassType, Facility, User } from "./types";
 import { fromKey, startOfWeek, toKey, weekDays } from "./date";
 import { HEALTH_KEYS } from "./health";
 
@@ -155,6 +155,29 @@ const UNKNOWN_CLASS_TYPE: ClassType = {
 
 export function classTypeOf(session: ClassSession, s: AppData): ClassType {
   return s.classTypes.find((c) => c.id === session.classTypeId) ?? UNKNOWN_CLASS_TYPE;
+}
+
+// A session is "group" when it seats more than one participant; a 1-capacity
+// session is personal / online 1-on-1. Drives the free-cancel window.
+export function isGroupSession(session: ClassSession): boolean {
+  return session.capacity > 1;
+}
+
+/** Free-cancel cutoff (hours before start): 12h for group, 24h for non-group. */
+export function freeCancelCutoffHours(session: ClassSession, f: Facility): number {
+  return isGroupSession(session)
+    ? f.cancelCutoffGroupHours ?? 12
+    : f.cancelCutoffPrivateHours ?? 24;
+}
+
+/** True if canceling now is a LATE cancel (inside the free window) → full charge. */
+export function isLateCancel(
+  session: ClassSession,
+  f: Facility,
+  now: number = Date.now(),
+): boolean {
+  const minsToStart = (sessionStartDate(session).getTime() - now) / 60000;
+  return minsToStart < freeCancelCutoffHours(session, f) * 60;
 }
 
 export type BookOutcome =

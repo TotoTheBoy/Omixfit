@@ -32,7 +32,9 @@ const EMPTY: AppData = {
     name: "Omix",
     bookingWindowDays: 14,
     bookingClosesBeforeMin: 30,
-    cancelCutoffHours: 3,
+    cancelCutoffHours: 12,
+    cancelCutoffGroupHours: 12,
+    cancelCutoffPrivateHours: 24,
     maxActiveBookings: 6,
   },
   audit: [],
@@ -98,6 +100,9 @@ export const bookability = (session: ClassSession, userId: string, s: AppData = 
 export const actionFor = (session: ClassSession, userId: string, s: AppData = state) =>
   engine.actionFor(session, userId, s);
 export const hasMedicalFlag = engine.hasMedicalFlag;
+export const isLateCancel = engine.isLateCancel;
+export const freeCancelCutoffHours = engine.freeCancelCutoffHours;
+export const isGroupSession = engine.isGroupSession;
 export const adminOverview = engine.adminOverview;
 export const dashboardStats = engine.dashboardStats;
 export const memberStats = (userId: string, s: AppData = state) =>
@@ -113,8 +118,8 @@ const backend = () => import("./firestore");
 
 export const book = (sessionId: string, userId: string) =>
   backend().then((b) => b.book(sessionId, userId));
-export const cancelBooking = (sessionId: string, userId: string) =>
-  backend().then((b) => b.cancelBooking(sessionId, userId));
+export const cancelBooking = (sessionId: string, userId: string, late = false) =>
+  backend().then((b) => b.cancelBooking(sessionId, userId, late));
 export const joinWaitlist = (sessionId: string, userId: string) =>
   backend().then((b) => b.joinWaitlist(sessionId, userId));
 export const upsertSession = (session: ClassSession) =>
