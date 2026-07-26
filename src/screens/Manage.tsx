@@ -1,25 +1,23 @@
 import { useMemo, useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassSession, ClassType } from "../lib/types";
-import { classTypeOf, confirmedCount, notifyScheduleChange, upsertSession, useStore } from "../lib/store";
-import { Sheet } from "../components/Sheet";
-import { toast } from "../components/Toast";
+import { confirmedCount, useStore } from "../lib/store";
+import { moveSession } from "../lib/reschedule";
 import {
   addDays,
-  fmtTime,
   fromKey,
-  HEB_DAYS_LONG,
-  isToday,
   startOfWeek,
   toKey,
   weekDays,
 } from "../lib/date";
-import { WeekNav } from "../components/common";
 import { SessionEditor } from "../components/SessionEditor";
 import { SessionDetail } from "../components/SessionDetail";
 import { TypeEditor } from "../components/TypeEditor";
 import { EventsAdmin } from "../components/EventsAdmin";
+import { CalendarGrid, type CalView } from "../components/CalendarGrid";
 import { IcPlus, IcSpark, IcUsers, IcCalendar } from "../components/icons";
+
+const HE_MONTHS = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
 
 type EditorState =
   | { mode: "closed" }
@@ -31,16 +29,15 @@ type EditorState =
 export function Manage() {
   const data = useStore((s) => s);
   const [tab, setTab] = useState<"schedule" | "catalog" | "events">("schedule");
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [view, setView] = useState<CalView>("week");
+  const [anchor, setAnchor] = useState(() => new Date());
   const [editor, setEditor] = useState<EditorState>({ mode: "closed" });
   const [detail, setDetail] = useState<ClassSession | null>(null);
   const [typeEditor, setTypeEditor] = useState<
     { mode: "closed" } | { mode: "create" } | { mode: "edit"; type: ClassType }
   >({ mode: "closed" });
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
-  const [notify, setNotify] = useState<ClassSession | null>(null);
 
+  const weekStart = startOfWeek(anchor);
   const days = weekDays(weekStart);
   const weekKeys = new Set(days.map(toKey));
 
@@ -64,30 +61,17 @@ export function Manage() {
     };
   }, [weekSessions, data]);
 
-  const byDay = useMemo(() => {
-    const map = new Map<string, ClassSession[]>();
-    for (const s of weekSessions) {
-      if (!map.has(s.date)) map.set(s.date, []);
-      map.get(s.date)!.push(s);
-    }
-    for (const arr of map.values()) arr.sort((a, b) => a.startMin - b.startMin);
-    return map;
-  }, [weekSessions]);
-
-  // #10 Drag a class block onto another day → reschedule it there, then prompt
-  // to notify the booked participants of the change.
-  async function handleDrop(dayKey: string) {
-    const id = dragId;
-    setDragId(null);
-    setDragOverKey(null);
-    if (!id) return;
-    const session = data.sessions.find((s) => s.id === id);
-    if (!session || session.date === dayKey) return; // no-op on the same day
-    const moved = { ...session, date: dayKey };
-    await upsertSession(moved);
-    toast(t.reschedule.moved(`${dayKey.slice(8, 10)}/${dayKey.slice(5, 7)}`), "ok");
-    setNotify(moved); // open the "notify participants?" prompt
+  function shift(dir: -1 | 1) {
+    if (view === "day") setAnchor((a) => addDays(a, dir));
+    else if (view === "week") setAnchor((a) => addDays(a, dir * 7));
+    else setAnchor((a) => new Date(a.getFullYear(), a.getMonth() + dir, 1));
   }
+  const title =
+    view === "month"
+      ? `${HE_MONTHS[anchor.getMonth()]} ${anchor.getFullYear()}`
+      : view === "day"
+        ? `${anchor.getDate()} ב${HE_MONTHS[anchor.getMonth()]}`
+        : `${weekStart.getDate()} ב${HE_MONTHS[weekStart.getMonth()]} - ${days[6].getDate()} ב${HE_MONTHS[days[6].getMonth()]}`;
 
   return (
     <div className="page">
@@ -174,59 +158,33 @@ export function Manage() {
         </div>
       </div>
 
-      <div style={{ margin: "4px 0 18px" }}>
-        <WeekNav
-          weekStart={weekStart}
-          onPrev={() => setWeekStart(addDays(weekStart, -7))}
-          onNext={() => setWeekStart(addDays(weekStart, 7))}
-          onToday={() => setWeekStart(startOfWeek(new Date()))}
-        />
+      <div className="cal-controls" style={{ margin: "4px 0 14px", justifyContent: "space-between" }}>
+        <div className="seg cal-viewseg" role="tablist">
+          {(["day", "week", "month"] as CalView[]).map((v) => (
+            <button key={v} role="tab" aria-selected={view === v}
+              className={view === v ? "on" : ""} onClick={() => setView(v)}>
+              {v === "day" ? "יום" : v === "week" ? "שבוע" : "חודש"}
+            </button>
+          ))}
+        </div>
+        <div className="cal-nav">
+          <button className="iconbtn" onClick={() => shift(-1)} aria-label="הקודם">‹</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setAnchor(new Date())}>היום</button>
+          <button className="iconbtn" onClick={() => shift(1)} aria-label="הבא">›</button>
+        </div>
       </div>
+      <p className="sub" style={{ margin: "0 0 6px" }}>{title}</p>
+      <p className="cal-hint muted">גררו שיעור בין שעות/ימים כדי להעביר אותו · תישאלו איך לעדכן את הנרשמים.</p>
 
-      <div className="mgr-grid">
-        {days.map((d) => {
-          const key = toKey(d);
-          const slots = byDay.get(key) ?? [];
-          return (
-            <div
-              key={key}
-              className={`mgr-col ${dragOverKey === key ? "drag-over" : ""}`}
-              onDragOver={(e) => { if (dragId) { e.preventDefault(); if (dragOverKey !== key) setDragOverKey(key); } }}
-              onDragLeave={() => setDragOverKey((k) => (k === key ? null : k))}
-              onDrop={(e) => { e.preventDefault(); handleDrop(key); }}
-            >
-              <div className={`mgr-col-head ${isToday(key) ? "is-today" : ""}`}>
-                {HEB_DAYS_LONG[d.getDay()]}
-                <small>{d.getDate()}/{d.getMonth() + 1}</small>
-              </div>
-              {slots.map((s) => {
-                const type = classTypeOf(s, data);
-                const booked = confirmedCount(s.id, data);
-                return (
-                  <button
-                    key={s.id}
-                    className={`mgr-slot ${s.cancelled ? "is-cancelled" : ""}`}
-                    style={{ ["--cat-hue" as string]: CATEGORY_META[type.category].hue }}
-                    draggable
-                    onDragStart={() => setDragId(s.id)}
-                    onDragEnd={() => { setDragId(null); setDragOverKey(null); }}
-                    onClick={() => setDetail(s)}
-                  >
-                    <div className="ms-time">{fmtTime(s.startMin)}</div>
-                    <div className="ms-name">{type.name}</div>
-                    <div className="ms-fill">
-                      {booked}/{s.capacity} · {s.room}
-                    </div>
-                  </button>
-                );
-              })}
-              <button className="mgr-add" onClick={() => setEditor({ mode: "create", date: key })}>
-                <IcPlus width={14} height={14} /> {t.newSession}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      <CalendarGrid
+        view={view}
+        anchor={anchor}
+        sessions={data.sessions}
+        data={data}
+        isStaff
+        onOpen={setDetail}
+        onReschedule={(s, dk, sm) => moveSession(s, dk, sm, data)}
+      />
       </>
       )}
 
@@ -245,7 +203,7 @@ export function Manage() {
           session={editor.mode === "edit" ? editor.session : null}
           presetDate={editor.mode === "create" ? editor.date : undefined}
           onClose={() => setEditor({ mode: "closed" })}
-          onSaved={(d) => setWeekStart(startOfWeek(fromKey(d)))}
+          onSaved={(d) => setAnchor(fromKey(d))}
         />
       )}
       {typeEditor.mode !== "closed" && (
@@ -253,32 +211,6 @@ export function Manage() {
           type={typeEditor.mode === "edit" ? typeEditor.type : null}
           onClose={() => setTypeEditor({ mode: "closed" })}
         />
-      )}
-      {notify && (
-        <Sheet
-          title={t.reschedule.notifyTitle}
-          onClose={() => setNotify(null)}
-          footer={
-            <div className="row gap-2" style={{ width: "100%" }}>
-              <button
-                className="btn btn-lime grow"
-                onClick={() => {
-                  notifyScheduleChange(notify.id)
-                    .then((n) => toast(t.reschedule.sent(n), "ok"))
-                    .catch(() => toast(t.reschedule.sendErr, "err"));
-                  setNotify(null);
-                }}
-              >
-                {t.reschedule.notifyYes}
-              </button>
-              <button className="btn btn-ghost" onClick={() => setNotify(null)}>
-                {t.reschedule.notifyNo}
-              </button>
-            </div>
-          }
-        >
-          <p style={{ lineHeight: 1.5 }}>{t.reschedule.notifyBody}</p>
-        </Sheet>
       )}
     </div>
   );

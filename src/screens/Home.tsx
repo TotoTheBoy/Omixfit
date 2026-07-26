@@ -46,7 +46,11 @@ export function Home({ onGo }: { onGo: (v: View) => void }) {
     .filter((se): se is ClassSession => !!se && !se.cancelled && sessionStartDate(se).getTime() > now)
     .sort((a, b) => sessionStartDate(a).getTime() - sessionStartDate(b).getTime())[0];
 
-  const feed = [...data.announcements].sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
+  // Targeted updates (a.userIds) are shown only to their recipients; the rest global.
+  const feed = data.announcements
+    .filter((a) => !a.userIds || a.userIds.includes(me.id))
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 5);
 
   return (
     <div className="home">

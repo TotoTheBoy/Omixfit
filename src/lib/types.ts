@@ -394,6 +394,9 @@ export interface Announcement {
   authorId?: string;
   /** Optional accent for the card: news (default) / event / important. */
   tone?: "news" | "event" | "important";
+  /** If set, the announcement is shown ONLY to these members (targeted update,
+   *  e.g. "your class moved"); global when absent. */
+  userIds?: string[];
 }
 
 export interface AppData {

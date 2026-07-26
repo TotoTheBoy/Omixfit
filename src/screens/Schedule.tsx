@@ -1,13 +1,8 @@
 import { useMemo, useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, ClassSession } from "../lib/types";
-import {
-  classTypeOf,
-  healthDeclarationState,
-  notifyScheduleChange,
-  upsertSession,
-  useStore,
-} from "../lib/store";
+import { classTypeOf, healthDeclarationState, useStore } from "../lib/store";
+import { moveSession } from "../lib/reschedule";
 import { HealthDeclaration } from "./Onboarding";
 import { useNow } from "../lib/useNow";
 import { addDays, fromKey, toKey } from "../lib/date";
@@ -15,7 +10,6 @@ import { SessionDetail } from "../components/SessionDetail";
 import { SessionEditor } from "../components/SessionEditor";
 import { CalendarGrid, type CalView } from "../components/CalendarGrid";
 import { InstallBanner } from "../components/InstallBanner";
-import { toast } from "../components/Toast";
 
 const HE_MONTHS = [
   "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
@@ -84,17 +78,10 @@ export function Schedule() {
     });
   }
 
-  // Staff drag-drop: move ONLY the session's date/time. Bookings are untouched -
-  // a booked member's registration follows the class - and they are notified.
-  async function reschedule(s: ClassSession, newDateKey: string, newStartMin: number) {
-    try {
-      await upsertSession({ ...s, date: newDateKey, startMin: newStartMin });
-      void notifyScheduleChange(s.id);
-      toast("השיעור הועבר וההודעה נשלחה לנרשמים", "ok");
-    } catch {
-      toast("העברת השיעור נכשלה - נסו שוב", "err");
-    }
-  }
+  // Staff drag-drop: move ONLY the session (bookings/client data untouched), then
+  // ask how to update registered members (shared with the admin calendar).
+  const reschedule = (s: ClassSession, newDateKey: string, newStartMin: number) =>
+    moveSession(s, newDateKey, newStartMin, data);
 
   const title =
     view === "month"

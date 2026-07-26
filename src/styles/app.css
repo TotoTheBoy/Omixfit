@@ -1039,6 +1039,9 @@
 .confirm-title { margin: 0 0 8px; font-size: 1.05rem; font-weight: 800; }
 .confirm-body { margin: 0 0 16px; color: var(--text-2); line-height: 1.55; font-size: 0.9rem; }
 .confirm-actions { display: flex; gap: 10px; }
+.confirm-choices { display: flex; flex-direction: column; gap: 8px; }
+.confirm-choices .btn-block { width: 100%; }
+.confirm-choices .confirm-cancel { margin-top: 2px; color: var(--text-3); }
 .confirm-actions .btn { flex: 1; }
 .toast {
   pointer-events: auto;

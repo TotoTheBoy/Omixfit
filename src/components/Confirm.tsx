@@ -1,5 +1,5 @@
-// Module-level confirm bus (mirrors Toast) so any handler can `await confirm(...)`
-// before a destructive action. Renders a single modal via <ConfirmHost/>.
+// Module-level confirm/choose bus (mirrors Toast) so any handler can `await` a
+// decision before acting. Renders a single modal via <ConfirmHost/>.
 import { useEffect, useState } from "react";
 
 export interface ConfirmOpts {
@@ -9,32 +9,59 @@ export interface ConfirmOpts {
   cancelLabel?: string;
   danger?: boolean;
 }
+export interface ChoiceOption {
+  id: string;
+  label: string;
+  danger?: boolean;
+  primary?: boolean;
+}
 
-interface ConfirmState extends ConfirmOpts {
+interface State {
   id: number;
-  resolve: (ok: boolean) => void;
+  title: string;
+  body?: string;
+  // Yes/no confirm:
+  confirmLabel?: string;
+  cancelLabel?: string;
+  danger?: boolean;
+  // Multi-choice:
+  options?: ChoiceOption[];
+  resolve: (v: unknown) => void;
 }
 
 let seq = 1;
-const listeners = new Set<(s: ConfirmState | null) => void>();
-let current: ConfirmState | null = null;
+const listeners = new Set<(s: State | null) => void>();
+let current: State | null = null;
 
 function emit() {
   listeners.forEach((l) => l(current));
 }
 
-/** Show a confirm dialog. Resolves true if the user confirms, false otherwise. */
+/** Yes/no confirm. Resolves true if confirmed, false otherwise. */
 export function confirm(opts: ConfirmOpts): Promise<boolean> {
-  // If one is already open, resolve it false first (avoid stacking).
   if (current) current.resolve(false);
   return new Promise<boolean>((resolve) => {
-    current = { ...opts, id: seq++, resolve };
+    current = { ...opts, id: seq++, resolve: resolve as (v: unknown) => void };
+    emit();
+  });
+}
+
+/** Multiple-choice. Resolves the chosen option id, or null on cancel/backdrop. */
+export function choose(opts: {
+  title: string;
+  body?: string;
+  options: ChoiceOption[];
+  cancelLabel?: string;
+}): Promise<string | null> {
+  if (current) current.resolve(null);
+  return new Promise<string | null>((resolve) => {
+    current = { ...opts, id: seq++, resolve: resolve as (v: unknown) => void };
     emit();
   });
 }
 
 export function ConfirmHost() {
-  const [state, setState] = useState<ConfirmState | null>(current);
+  const [state, setState] = useState<State | null>(current);
   useEffect(() => {
     listeners.add(setState);
     return () => {
@@ -45,37 +72,51 @@ export function ConfirmHost() {
   useEffect(() => {
     if (!state) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") done(false);
+      if (e.key === "Escape") done(state.options ? null : false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
-  function done(ok: boolean) {
-    if (current) current.resolve(ok);
+  function done(v: unknown) {
+    if (current) current.resolve(v);
     current = null;
     emit();
   }
 
   if (!state) return null;
+  const isChoice = !!state.options;
   return (
-    <div className="confirm-overlay" role="dialog" aria-modal="true" aria-label={state.title} onClick={() => done(false)}>
+    <div className="confirm-overlay" role="dialog" aria-modal="true" aria-label={state.title} onClick={() => done(isChoice ? null : false)}>
       <div className="confirm-box" onClick={(e) => e.stopPropagation()}>
         <h3 className="confirm-title">{state.title}</h3>
         {state.body && <p className="confirm-body">{state.body}</p>}
-        <div className="confirm-actions">
-          <button className="btn btn-ghost" onClick={() => done(false)}>
-            {state.cancelLabel ?? "ביטול"}
-          </button>
-          <button
-            className={`btn ${state.danger ? "btn-danger" : "btn-lime"}`}
-            onClick={() => done(true)}
-            autoFocus
-          >
-            {state.confirmLabel ?? "אישור"}
-          </button>
-        </div>
+        {isChoice ? (
+          <div className="confirm-choices">
+            {state.options!.map((o) => (
+              <button
+                key={o.id}
+                className={`btn ${o.primary ? "btn-lime" : o.danger ? "btn-danger" : "btn-ghost"} btn-block`}
+                onClick={() => done(o.id)}
+              >
+                {o.label}
+              </button>
+            ))}
+            <button className="btn btn-ghost btn-block confirm-cancel" onClick={() => done(null)}>
+              {state.cancelLabel ?? "ביטול"}
+            </button>
+          </div>
+        ) : (
+          <div className="confirm-actions">
+            <button className="btn btn-ghost" onClick={() => done(false)}>
+              {state.cancelLabel ?? "ביטול"}
+            </button>
+            <button className={`btn ${state.danger ? "btn-danger" : "btn-lime"}`} onClick={() => done(true)} autoFocus>
+              {state.confirmLabel ?? "אישור"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
