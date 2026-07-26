@@ -60,7 +60,8 @@ service cloud.firestore {
     function privilegedUnchanged() {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
         'role', 'approvalStatus', 'membershipActive', 'memberNo',
-        'trainerNotes', 'coaching', 'hasPass', 'email'
+        'trainerNotes', 'coaching', 'hasPass', 'email',
+        'medicalStatus', 'healthDeclaredAt'
       ]);
     }
     // A self-signup doc must start as a plain pending member.

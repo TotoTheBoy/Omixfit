@@ -2355,6 +2355,21 @@
 .onboard-card.onboard-wide { max-width: 560px; text-align: start; }
 .onboard-wide .login-logo { margin-inline: 0; }
 
+/* health-declaration lock (insurance): shown instead of the booking calendar */
+.health-lock {
+  max-width: 460px;
+  margin: 40px auto;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 34px 26px;
+  box-shadow: var(--sh-2);
+}
+.health-lock-emoji { font-size: 2.6rem; margin-bottom: 8px; }
+.health-lock h1 { margin: 0 0 10px; }
+.health-lock p { margin: 0 0 12px; line-height: 1.6; }
+
 /* On phones the 2-column field rows (esp. the native date input, which refuses
    to shrink) can overlap. Stack every row to a single full-width column so each
    field has room and nothing collides. Overrides the inline min/max-width. */

@@ -100,6 +100,8 @@ export const bookability = (session: ClassSession, userId: string, s: AppData = 
 export const actionFor = (session: ClassSession, userId: string, s: AppData = state) =>
   engine.actionFor(session, userId, s);
 export const hasMedicalFlag = engine.hasMedicalFlag;
+export const healthDeclarationState = engine.healthDeclarationState;
+export const canBookHealth = engine.canBookHealth;
 export const isLateCancel = engine.isLateCancel;
 export const freeCancelCutoffHours = engine.freeCancelCutoffHours;
 export const isGroupSession = engine.isGroupSession;
@@ -183,6 +185,8 @@ export const recordConsent = (data: {
   waiver: boolean;
   marketing: boolean;
 }) => backend().then((b) => b.recordConsent(data));
+export const finalizeHealthDeclaration = () =>
+  backend().then((b) => b.finalizeHealthDeclaration());
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));

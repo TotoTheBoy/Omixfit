@@ -13,6 +13,7 @@ import {
   setLeadHandled,
   updateUser,
   setStaffClaim,
+  healthDeclarationState,
   useStore,
 } from "../lib/store";
 import { clientActivityLight, isNewClient, trialDaysLeft } from "../lib/engine";
@@ -508,6 +509,36 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
               }}
             />
           </div>
+
+          {/* Health-declaration validity + medical clearance (insurance lock). */}
+          {(() => {
+            const hs = healthDeclarationState(u);
+            const label =
+              hs === "valid" ? "בתוקף ✓"
+              : hs === "expired" ? "פג תוקף (מעל 12 חודשים)"
+              : hs === "pending_medical" ? "ממתין לאישור רפואי"
+              : "חסרה";
+            return (
+              <div className="pref-row" style={{ borderBottom: "none" }}>
+                <div className="pr-main">
+                  <b>הצהרת בריאות</b>
+                  <small>
+                    סטטוס: {label}
+                    {u.healthDeclaredAt ? ` · נחתמה ${new Date(u.healthDeclaredAt).toLocaleDateString("he-IL")}` : ""}
+                  </small>
+                </div>
+                {u.medicalStatus === "pending" ? (
+                  <button className="btn btn-lime btn-sm" onClick={() => { updateUser(u.id, { medicalStatus: "cleared" }); toast("אושר רפואית", "ok"); }}>
+                    אישור רפואי
+                  </button>
+                ) : (
+                  <button className="btn btn-ghost btn-sm" onClick={() => { updateUser(u.id, { medicalStatus: "pending" }); toast("סומן כדורש אישור רפואי", "info"); }}>
+                    דרוש אישור
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
           {/* trial → pass: Omer records a punch-card purchase (stops the 7-day
               auto-disconnect and clears the trial clock) */}

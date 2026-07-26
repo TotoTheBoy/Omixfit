@@ -78,6 +78,15 @@ export interface User {
   approvalStatus?: ApprovalStatus;
   /** The signed health declaration + terms (present once the registrant submits). */
   healthForm?: HealthForm;
+  /** When the current health declaration was signed (ms). Booking is blocked once
+   *  it is older than 12 months → forces a dynamic re-declaration (insurance). */
+  healthDeclaredAt?: number;
+  /** Medical clearance gate: set to "pending" when the declaration flags a medical
+   *  "yes" (must upload a doctor's certificate); staff sets "cleared" to unblock. */
+  medicalStatus?: "pending" | "cleared";
+  /** Storage path + URL of the uploaded doctor's certificate (when required). */
+  medicalCertPath?: string;
+  medicalCertUrl?: string;
   /** Q3: booking is gated on this even before a payment engine exists. */
   membershipActive: boolean;
   /** When staff approved this member (ms). Drives the "new client" flag and the

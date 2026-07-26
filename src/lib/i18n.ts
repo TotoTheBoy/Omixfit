@@ -131,6 +131,7 @@ export const t = {
   cancelledToast: "ההזמנה בוטלה",
   fullToast: "מצטערים, השיעור התמלא",
   membershipBlocked: "המנוי שלך אינו פעיל - פנה/י לדלפק",
+  healthBlocked: "הצהרת הבריאות אינה בתוקף - יש לחדש/להשלים אותה כדי להזמין אימון",
   limitReached: "הגעת למספר ההזמנות הפעילות המרבי",
   closedToast: "ההרשמה לשיעור זה נסגרה",
 

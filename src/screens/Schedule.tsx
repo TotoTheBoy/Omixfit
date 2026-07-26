@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { CATEGORY_META, t } from "../lib/i18n";
 import type { ClassCategory, ClassSession } from "../lib/types";
-import { useStore } from "../lib/store";
+import { healthDeclarationState, useStore } from "../lib/store";
+import { HealthDeclaration } from "./Onboarding";
 import { useNow } from "../lib/useNow";
 import {
   addDays,
@@ -18,6 +19,24 @@ import { ClassCard } from "../components/ClassCard";
 import { SessionDetail } from "../components/SessionDetail";
 import { InstallBanner } from "../components/InstallBanner";
 import { IcCalendar } from "../components/icons";
+
+// Shown when a renewed declaration flagged a medical item and the doctor's
+// certificate is awaiting staff clearance - booking stays locked until then.
+function HealthClearancePending() {
+  return (
+    <div className="page">
+      <div className="health-lock">
+        <div className="health-lock-emoji" aria-hidden="true">🩺</div>
+        <h1 className="h1">ממתין לאישור רפואי</h1>
+        <p className="muted">
+          סימנת סעיף רפואי בהצהרת הבריאות. כדי להמשיך להזמין אימונים יש להמציא
+          תעודה רפואית מרופא המתירה פעילות גופנית, ולהמתין לאישור הצוות.
+        </p>
+        <p className="muted">לשליחת התעודה או לבירור: <a href="mailto:office@omixfit.com">office@omixfit.com</a></p>
+      </div>
+    </div>
+  );
+}
 
 export function Schedule() {
   const data = useStore((s) => s);
@@ -91,6 +110,16 @@ export function Schedule() {
   function goToday() {
     setWeekStart(startOfWeek(new Date()));
     setActiveKey(toKey(new Date()));
+  }
+
+  // Insurance lock: a member may not access the booking view without a valid,
+  // in-date, cleared health declaration. Expired/missing → re-declare; a flagged
+  // renewal waits for staff clearance. Staff (role !== member) are unaffected.
+  const me = data.users.find((u) => u.id === data.currentUserId);
+  if (me && me.role === "member") {
+    const hs = healthDeclarationState(me);
+    if (hs === "expired" || hs === "missing") return <HealthDeclaration user={me} />;
+    if (hs === "pending_medical") return <HealthClearancePending />;
   }
 
   return (

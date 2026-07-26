@@ -256,6 +256,9 @@ function u(
     // Seeded users are pre-approved; only fresh sign-ups go through approval.
     approvalStatus: "approved" as const,
     membershipActive: true,
+    // Valid, in-date, cleared health declaration (insurance lock passes).
+    healthDeclaredAt: Date.now(),
+    medicalStatus: "cleared" as const,
     membershipPlan: role === "member" ? "מנוי חופשי חודשי" : "צוות",
     membershipValidUntil: "2026-12-31",
     avatarColor: color,

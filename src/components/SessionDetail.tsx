@@ -69,6 +69,7 @@ export function SessionDetail({
     }
     else if (r === "full") toast(t.fullToast, "err");
     else if (r === "membership") toast(t.membershipBlocked, "err");
+    else if (r === "health") toast(t.healthBlocked, "err");
     else if (r === "limit") toast(t.limitReached, "err");
     else if (r === "closed") toast(t.closedToast, "err");
   }
@@ -117,7 +118,12 @@ export function SessionDetail({
       case "blocked":
         return {
           cls: "warn",
-          text: action.reason === "membership" ? t.membershipBlocked : t.limitReached,
+          text:
+            action.reason === "membership"
+              ? t.membershipBlocked
+              : action.reason === "health"
+                ? t.healthBlocked
+                : t.limitReached,
         };
       case "waitlist":
         return { cls: "warn", text: t.waitlistNote };
@@ -181,7 +187,7 @@ export function SessionDetail({
             </button>
           ) : (
             <button className="btn btn-ghost btn-lg btn-block" disabled>
-              {action.kind === "closed" ? t.closed : action.kind === "blocked" && action.reason === "membership" ? t.membershipBlocked : t.full}
+              {action.kind === "closed" ? t.closed : action.kind === "blocked" && action.reason === "membership" ? t.membershipBlocked : action.kind === "blocked" && action.reason === "health" ? t.healthBlocked : t.full}
             </button>
           )
         ) : onEdit ? (

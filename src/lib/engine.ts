@@ -187,7 +187,33 @@ export type BookOutcome =
   | "closed"
   | "membership"
   | "limit"
+  | "health"
   | "cancelled";
+
+// ---- health-declaration validity (insurance lock) ---------------------------
+const HEALTH_VALID_MS = 365 * 24 * 60 * 60 * 1000; // 12 months
+
+export type HealthDeclState = "missing" | "pending_medical" | "expired" | "valid";
+
+/** Insurance precondition: a member may only book with a signed health
+ *  declaration that is not medically-blocked and not older than 12 months. */
+export function healthDeclarationState(
+  user: User | undefined,
+  now: number = Date.now(),
+): HealthDeclState {
+  // healthDeclaredAt lives on the MAIN user doc (loads immediately, no private
+  // dependency), so the gate never flashes before the private data streams in.
+  const declaredAt = user?.healthDeclaredAt;
+  if (!user || !declaredAt) return "missing";
+  if (user.medicalStatus === "pending") return "pending_medical";
+  if (now - declaredAt > HEALTH_VALID_MS) return "expired";
+  return "valid";
+}
+
+/** True only when the member has a valid, in-date, cleared health declaration. */
+export function canBookHealth(user: User | undefined, now: number = Date.now()): boolean {
+  return healthDeclarationState(user, now) === "valid";
+}
 
 /** Can this user currently book this session, and why not. */
 export function bookability(
@@ -212,6 +238,10 @@ export function bookability(
 
   if (!user || !user.membershipActive)
     return { canBook: false, reason: "membership", alreadyBooked: false };
+
+  // Insurance lock: no booking without a valid, in-date, cleared health declaration.
+  if (!canBookHealth(user))
+    return { canBook: false, reason: "health", alreadyBooked: false };
 
   const active = activeBookingCount(userId, s);
   if (active >= s.facility.maxActiveBookings)
@@ -239,7 +269,7 @@ export type ActionState =
   | { kind: "waitlisted"; pos: number }
   | { kind: "closed" }
   | { kind: "cancelled" }
-  | { kind: "blocked"; reason: "membership" | "limit" };
+  | { kind: "blocked"; reason: "membership" | "limit" | "health" };
 
 export function actionFor(
   session: ClassSession,
@@ -257,6 +287,7 @@ export function actionFor(
 
   const user = s.users.find((u) => u.id === userId);
   if (!user || !user.membershipActive) return { kind: "blocked", reason: "membership" };
+  if (!canBookHealth(user)) return { kind: "blocked", reason: "health" };
 
   // Full → offer the waitlist (joining doesn't consume a confirmed slot).
   if (confirmedCount(session.id, s) >= session.capacity)

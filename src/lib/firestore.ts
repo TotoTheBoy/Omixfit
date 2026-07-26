@@ -439,6 +439,12 @@ export async function setStaffClaim(uid: string, staff: boolean): Promise<void> 
   await call({ uid, staff });
 }
 
+/** Server stamps healthDeclaredAt + medicalStatus from the saved declaration. */
+export async function finalizeHealthDeclaration(): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "finalizeHealthDeclaration");
+  await call({});
+}
+
 /** Record click-wrap consent evidence (server stamps timestamp + IP). */
 export async function recordConsent(data: {
   version: string;
@@ -482,6 +488,13 @@ export async function setApproval(
   if (status === "approved") {
     patch.membershipActive = true; // approval activates membership (trial)
     patch.approvedAt = Date.now(); // starts the "new client" + 7-day trial window
+    // Approving a member IS the medical clearance (staff reviewed the declaration
+    // + any certificate). Stamp the declaration date if it's missing so the
+    // 12-month insurance clock starts and booking unlocks.
+    patch.medicalStatus = "cleared";
+    if (!before?.healthDeclaredAt) {
+      patch.healthDeclaredAt = before?.healthForm?.submittedAt ?? Date.now();
+    }
   }
   await updateDoc(doc(db, "users", userId), patch as Record<string, unknown>);
   await audit(

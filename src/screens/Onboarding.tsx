@@ -172,7 +172,7 @@ export function VerifyEmail({ email, onVerified }: { email: string; onVerified: 
   );
 }
 
-function HealthDeclaration({ user }: { user: User }) {
+export function HealthDeclaration({ user }: { user: User }) {
   const H = t.health;
   // Prefill everything already known (fill-once) - address is stored "street, city".
   const savedAddr = user.address ?? "";
@@ -244,6 +244,12 @@ function HealthDeclaration({ user }: { user: User }) {
       };
       if (age !== undefined) patch.age = age;
       await updateUser(user.id, patch);
+      // Server stamps the declaration date + medical-clearance gate from the ACTUAL
+      // saved form (the member can't self-set these fields → can't bypass the lock).
+      try {
+        const { finalizeHealthDeclaration } = await import("../lib/store");
+        await finalizeHealthDeclaration();
+      } catch { /* setApproval also stamps these at approval time */ }
       // Click-wrap evidence: server-stamped timestamp + IP + doc version + which
       // boxes were ticked. Best-effort - never block the registration on it.
       void (async () => {

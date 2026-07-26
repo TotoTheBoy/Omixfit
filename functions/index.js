@@ -542,6 +542,24 @@ exports.setStaffClaim = fnV1.https.onCall(async (data, context) => {
   return { ok: true, staff };
 });
 
+// Insurance lock: stamp the health-declaration date + medical-clearance gate from
+// the ACTUAL saved declaration (server-side), so a member can't self-set these
+// fields to bypass the medical block or the 12-month re-validation.
+exports.finalizeHealthDeclaration = fnV1.https.onCall(async (data, context) => {
+  if (!context.auth) throw new fnV1.https.HttpsError("unauthenticated", "sign in");
+  const uid = context.auth.uid;
+  const priv = await db.doc("users/" + uid + "/private/health").get();
+  const form = priv.exists ? priv.data().healthForm : null;
+  if (!form) return { ok: false };
+  const { HEALTH_ITEMS } = require("./healthDoc");
+  const flagged = HEALTH_ITEMS.some(([k]) => form[k] === true);
+  await db.doc("users/" + uid).set(
+    { healthDeclaredAt: Date.now(), medicalStatus: flagged ? "pending" : "cleared" },
+    { merge: true },
+  );
+  return { ok: true, flagged };
+});
+
 // Record click-wrap consent evidence. The IP + timestamp are stamped SERVER-side
 // (a browser can't reliably read its own public IP) so we have a solid record of
 // what the user agreed to, when, from where, and against which document version.
@@ -599,6 +617,36 @@ exports.migrateHealthPrivate = fnV1.https.onRequest(async (req, res) => {
     moved++;
   }
   return res.json({ moved, empty });
+});
+
+// One-time backfill for the health-declaration insurance lock: stamp
+// healthDeclaredAt (from the private declaration's submittedAt, else approvedAt)
+// and medicalStatus="cleared" on already-approved members, so existing members
+// aren't suddenly forced to re-declare. Protected by RESET_KEY.
+exports.migrateHealthDeclared = fnV1.https.onRequest(async (req, res) => {
+  if (!process.env.RESET_KEY || req.query.key !== process.env.RESET_KEY) {
+    return res.status(403).send("forbidden");
+  }
+  const snap = await db.collection("users").get();
+  let updated = 0;
+  let skipped = 0;
+  for (const d of snap.docs) {
+    const u = d.data();
+    if (u.role !== "member" || u.approvalStatus !== "approved" || u.healthDeclaredAt) {
+      skipped++;
+      continue;
+    }
+    let declaredAt = u.approvedAt || Date.now();
+    try {
+      const priv = await db.doc("users/" + d.id + "/private/health").get();
+      if (priv.exists && priv.data().healthForm && priv.data().healthForm.submittedAt) {
+        declaredAt = priv.data().healthForm.submittedAt;
+      }
+    } catch (e) { /* keep the fallback */ }
+    await d.ref.update({ healthDeclaredAt: declaredAt, medicalStatus: "cleared" });
+    updated++;
+  }
+  return res.json({ updated, skipped });
 });
 
 // One-time backfill: set the staff claim for every user whose role is staff
