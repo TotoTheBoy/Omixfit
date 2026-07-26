@@ -554,7 +554,10 @@ export async function book(
 ): Promise<engine.BookOutcome> {
   const s = getState();
   const session = s.sessions.find((x) => x.id === sessionId);
-  if (!session) return "full";
+  // A missing/deleted session is "gone", not "full" (the old catch-all wrongly
+  // showed "the class is full" for a class that no longer exists).
+  if (!session) return "gone";
+  if (session.cancelled) return "cancelled";
   // Fast client-side gates for nice messages (capacity is re-checked in the tx).
   const check = engine.bookability(session, userId, s);
   if (check.alreadyBooked) return "already";
@@ -564,10 +567,13 @@ export async function book(
   try {
     const outcome = await runTransaction(db, async (tx): Promise<engine.BookOutcome> => {
       const sd = await tx.get(sessionRef);
-      if (!sd.exists()) return "full";
+      if (!sd.exists()) return "gone";
       const data = sd.data() as ClassSession;
       if (data.cancelled) return "cancelled";
-      if ((data.confirmed ?? 0) >= data.capacity) return "full";
+      // Robust capacity: only block when capacity is a real positive number.
+      const cap = Number(data.capacity);
+      const conf = Number(data.confirmed) || 0;
+      if (Number.isFinite(cap) && cap > 0 && conf >= cap) return "full";
       const bRef = doc(col.bookings);
       const booking: Booking = {
         id: bRef.id,

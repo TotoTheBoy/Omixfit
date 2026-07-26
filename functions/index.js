@@ -851,12 +851,18 @@ exports.sendMyVerificationEmail = fnV1.https.onCall(async (data, context) => {
     handleCodeInApp: false,
   });
   const name = String(context.auth.token.name || email.split("@")[0] || "").split(" ")[0];
-  await sendMail(email, "אימות המייל שלך ל-Omix 📧",
+  // A fresh timestamp in the subject makes every (re)send a DISTINCT message, so
+  // Gmail can't collapse identical repeats into one thread (which looked "empty").
+  const now = new Date().toLocaleTimeString("he-IL", { timeZone: "Asia/Jerusalem", hour: "2-digit", minute: "2-digit" });
+  await sendMail(email, `אימות המייל שלך ל-Omix · ${now} 📧`,
     `<h2 style="color:#a9842f">רק צעד אחד אחרון 📧</h2>
      <p>היי ${name},</p>
      <p>כדי להשלים את ההרשמה ל-Omix יש לאמת את כתובת המייל. לאחר האימות תוחזר/י אוטומטית להשלמת הרישום:</p>
      <p style="margin:22px 0"><a href="${link}" style="background:#c5a059;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:bold">אימות מייל והמשך</a></p>
-     <p style="font-size:13px;color:#6b5d47">אם קיבלת כמה מיילים - השתמש/י בקישור מהמייל האחרון בלבד (הקודמים כבר לא בתוקף).<br>לא נרשמת ל-Omix? אפשר להתעלם מהמייל.</p>
+     <div style="background:#fff;border:1px solid #e6dcc4;border-radius:10px;padding:10px 14px;font-size:13px;color:#6b5d47">
+       ✅ זהו הקישור העדכני (נשלח בשעה ${now}). אם קיבלת כמה מיילים - זה התקף, והקודמים כבר לא בתוקף.
+     </div>
+     <p style="font-size:13px;color:#6b5d47;margin-top:12px">לא נרשמת ל-Omix? אפשר להתעלם מהמייל.</p>
      <p>נתראה באימון!<br><b>עומר · Omix</b></p>`);
   return { sent: true };
 });

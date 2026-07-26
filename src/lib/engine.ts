@@ -188,7 +188,8 @@ export type BookOutcome =
   | "membership"
   | "limit"
   | "health"
-  | "cancelled";
+  | "cancelled"
+  | "gone";
 
 // ---- health-declaration validity (insurance lock) ---------------------------
 const HEALTH_VALID_MS = 365 * 24 * 60 * 60 * 1000; // 12 months

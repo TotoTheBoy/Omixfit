@@ -72,6 +72,8 @@ export function SessionDetail({
     else if (r === "membership") toast(t.membershipBlocked, "err");
     else if (r === "health") toast(t.healthBlocked, "err");
     else if (r === "limit") toast(t.limitReached, "err");
+    else if (r === "cancelled") toast("השיעור בוטל ואינו זמין להרשמה", "err");
+    else if (r === "gone") toast("השיעור כבר לא קיים במערכת", "err");
     else if (r === "closed") toast(t.closedToast, "err");
   }
   async function doCancel() {
@@ -188,7 +190,7 @@ export function SessionDetail({
             </button>
           ) : (
             <button className="btn btn-ghost btn-lg btn-block" disabled>
-              {action.kind === "closed" ? t.closed : action.kind === "blocked" && action.reason === "membership" ? t.membershipBlocked : action.kind === "blocked" && action.reason === "health" ? t.healthBlocked : t.full}
+              {action.kind === "cancelled" ? t.cancelled : action.kind === "closed" ? t.closed : action.kind === "blocked" && action.reason === "membership" ? t.membershipBlocked : action.kind === "blocked" && action.reason === "health" ? t.healthBlocked : t.full}
             </button>
           )
         ) : onEdit ? (
