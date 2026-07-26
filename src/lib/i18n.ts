@@ -316,6 +316,8 @@ export const t = {
   // audit log (plan.md §4.6)
   auditLog: "יומן פעילות",
   auditEmpty: "אין עדיין פעילות מתועדת",
+  auditBy: "בוצע ע\"י",
+  auditSystem: "המערכת",
   auditActions: {
     session_created: "יצירת שיעור",
     session_updated: "עודכן לאחרונה: יולי 2026",

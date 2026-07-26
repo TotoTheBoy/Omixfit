@@ -790,7 +790,12 @@ export async function updateUser(
   if (Object.keys(main).length)
     await updateDoc(doc(db, "users", userId), main);
   if (before && patch.role && patch.role !== before.role) {
-    await audit("role_changed", `${before.name}: ${before.role} ← ${patch.role}`);
+    const ROLE_HE: Record<string, string> = {
+      member: "מתאמן/ת", instructor: "מדריך/ה", manager: "מנהל/ת", admin: "אדמין",
+    };
+    const from = ROLE_HE[before.role] ?? before.role;
+    const to = ROLE_HE[patch.role] ?? patch.role;
+    await audit("role_changed", `${before.name} · מ${from} ל${to}`);
   } else if (
     before &&
     patch.membershipActive !== undefined &&
@@ -798,7 +803,7 @@ export async function updateUser(
   ) {
     await audit(
       "membership_changed",
-      `${before.name}: מנוי ${patch.membershipActive ? "הופעל" : "הושהה"}`,
+      `${before.name} · מנוי ${patch.membershipActive ? "הופעל" : "הושהה"}`,
     );
   }
 }

@@ -1698,20 +1698,36 @@
 .audit-row .ab {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 .audit-row .ab .at {
   font-weight: 700;
   font-size: 0.9rem;
+  line-height: 1.25;
 }
 .audit-row .ab .asum {
   color: var(--text-2);
-  font-size: 0.84rem;
-  margin-top: 1px;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  word-break: break-word;
 }
 .audit-row .ab .actor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--text-3);
   font-size: 0.76rem;
-  margin-top: 2px;
+  margin-top: 1px;
+}
+.audit-row .ab .actor::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
 }
 .audit-row .awhen {
   color: var(--text-3);

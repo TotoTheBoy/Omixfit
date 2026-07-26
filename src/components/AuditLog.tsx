@@ -36,8 +36,8 @@ export function AuditLog({ limit = 20 }: { limit?: number }) {
                 <span className={`ai ${ico.cls}`} aria-hidden="true">{ico.glyph}</span>
                 <span className="ab">
                   <span className="at">{t.auditActions[en.action]}</span>
-                  <span className="asum">{en.summary}</span>
-                  <span className="actor">{actor?.name ?? "-"}</span>
+                  {en.summary && <span className="asum">{en.summary}</span>}
+                  <span className="actor">{t.auditBy} {actor?.name ?? t.auditSystem}</span>
                 </span>
                 <span className="awhen">{fmtRelative(en.ts)}</span>
               </div>
