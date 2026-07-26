@@ -542,6 +542,33 @@ exports.setStaffClaim = fnV1.https.onCall(async (data, context) => {
   return { ok: true, staff };
 });
 
+// Record click-wrap consent evidence. The IP + timestamp are stamped SERVER-side
+// (a browser can't reliably read its own public IP) so we have a solid record of
+// what the user agreed to, when, from where, and against which document version.
+exports.recordConsent = fnV1.https.onCall(async (data, context) => {
+  if (!context.auth) throw new fnV1.https.HttpsError("unauthenticated", "sign in");
+  const req = context.rawRequest || {};
+  const fwd = (req.headers && (req.headers["x-forwarded-for"] || req.headers["fastly-client-ip"])) || "";
+  const ip = String(fwd || req.ip || (req.connection && req.connection.remoteAddress) || "")
+    .split(",")[0]
+    .trim() || null;
+  const consent = {
+    version: (data && data.version) || null,
+    terms: !!(data && data.terms),
+    privacy: !!(data && data.privacy),
+    waiver: !!(data && data.waiver),
+    marketing: !!(data && data.marketing),
+    ip,
+    at: Date.now(),
+    userAgent: (req.headers && req.headers["user-agent"]) || null,
+  };
+  await db.doc("users/" + context.auth.uid).set(
+    { consent, marketingConsent: consent.marketing },
+    { merge: true },
+  );
+  return { ok: true };
+});
+
 // One-time migration: move sensitive fields (health form + PII) from each user's
 // MAIN doc into users/{uid}/private/health, then delete them from the main doc,
 // so members can no longer read other members' health data. Protected by RESET_KEY.

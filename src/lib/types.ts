@@ -88,6 +88,19 @@ export interface User {
   /** Set true once Omer records that the member bought a pass (punch-card); the
    *  trial auto-disconnect leaves passholders alone. */
   hasPass?: boolean;
+  /** Optional marketing consent (SMS/WhatsApp/email) - anti-spam-law evidence. */
+  marketingConsent?: boolean;
+  /** Click-wrap consent evidence, stamped server-side at registration. */
+  consent?: {
+    version: string | null;
+    terms: boolean;
+    privacy: boolean;
+    waiver: boolean;
+    marketing: boolean;
+    ip: string | null;
+    at: number;
+    userAgent?: string | null;
+  };
   /** Sessions remaining on the current punch-card (כרטיסייה), shown on the
    *  membership card in gold when set. */
   passSessionsLeft?: number;

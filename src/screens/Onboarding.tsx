@@ -4,6 +4,7 @@ import { updateUser } from "../lib/store";
 import { isValidILPhone, isValidIsraeliID } from "../lib/validate";
 import { CityPicker, isValidCity } from "../components/CityPicker";
 import { VersionTag } from "../components/common";
+import { Legal } from "../components/Legal";
 import { OmixMark } from "../components/Brand";
 import { Toaster, toast } from "../components/Toast";
 import { IcCheck } from "../components/icons";
@@ -191,7 +192,12 @@ function HealthDeclaration({ user }: { user: User }) {
   const [ans, setAns] = useState<Partial<Record<HealthQKey, boolean>>>({});
   const [notes, setNotes] = useState("");
   const [certFile, setCertFile] = useState<File | null>(null);
-  const [terms, setTerms] = useState(false);
+  // Click-wrap: three SEPARATE required consents (un-pre-ticked) + optional marketing.
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeWaiver, setAgreeWaiver] = useState(false);
+  const [agreeMarketing, setAgreeMarketing] = useState(false);
+  const [legalDoc, setLegalDoc] = useState<string | null>(null);
   const [signed, setSigned] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -207,7 +213,7 @@ function HealthDeclaration({ user }: { user: User }) {
     if (!isValidILPhone(phone)) return toast(H.invalidPhone, "err");
     if (!isValidCity(city)) return toast(H.invalidCity, "err");
     if (!allAnswered) return toast(H.qIntro, "err");
-    if (!terms) return toast(H.needTerms, "err");
+    if (!agreeTerms || !agreePrivacy || !agreeWaiver) return toast(H.needConsent, "err");
     if (!signed) return toast(H.needSign, "err");
     setBusy(true);
     const answers = Object.fromEntries(HEALTH_KEYS.map((k) => [k, !!ans[k]])) as HealthAnswers;
@@ -234,9 +240,25 @@ function HealthDeclaration({ user }: { user: User }) {
         dob,
         address,
         healthForm: form,
+        marketingConsent: agreeMarketing,
       };
       if (age !== undefined) patch.age = age;
       await updateUser(user.id, patch);
+      // Click-wrap evidence: server-stamped timestamp + IP + doc version + which
+      // boxes were ticked. Best-effort - never block the registration on it.
+      void (async () => {
+        try {
+          const { recordConsent } = await import("../lib/store");
+          const { LEGAL_VERSION } = await import("../lib/legal");
+          await recordConsent({
+            version: LEGAL_VERSION,
+            terms: agreeTerms,
+            privacy: agreePrivacy,
+            waiver: agreeWaiver,
+            marketing: agreeMarketing,
+          });
+        } catch { /* best-effort */ }
+      })();
       toast(H.sentToast, "ok");
       // Background, best-effort: render the declaration PDF in the browser (perfect
       // Hebrew) and e-mail Omer the PDF + smart summary (+ certificate if attached).
@@ -403,15 +425,33 @@ function HealthDeclaration({ user }: { user: User }) {
           <h2 className="onboard-h2">{H.sectionTerms}</h2>
           <p className="health-terms">{H.termsText}</p>
           <label className="health-check">
-            <input
-              type="checkbox"
-              checked={terms}
-              onChange={(e) => setTerms(e.target.checked)}
-            />
-            <span className="hc-box" aria-hidden="true">
-              {terms && <IcCheck width={15} height={15} />}
+            <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
+            <span className="hc-box" aria-hidden="true">{agreeTerms && <IcCheck width={15} height={15} />}</span>
+            <span>
+              {H.consentTermsPre}
+              <button type="button" className="legal-link" onClick={() => setLegalDoc("terms")}>{H.consentTermsLink}</button>
             </span>
-            <span>{H.termsCheckbox}</span>
+          </label>
+          <label className="health-check">
+            <input type="checkbox" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} />
+            <span className="hc-box" aria-hidden="true">{agreePrivacy && <IcCheck width={15} height={15} />}</span>
+            <span>
+              {H.consentPrivacyPre}
+              <button type="button" className="legal-link" onClick={() => setLegalDoc("privacy")}>{H.consentPrivacyLink}</button>
+            </span>
+          </label>
+          <label className="health-check">
+            <input type="checkbox" checked={agreeWaiver} onChange={(e) => setAgreeWaiver(e.target.checked)} />
+            <span className="hc-box" aria-hidden="true">{agreeWaiver && <IcCheck width={15} height={15} />}</span>
+            <span>
+              {H.consentWaiverPre}
+              <button type="button" className="legal-link" onClick={() => setLegalDoc("waiver")}>{H.consentWaiverLink}</button>
+            </span>
+          </label>
+          <label className="health-check health-check-optional">
+            <input type="checkbox" checked={agreeMarketing} onChange={(e) => setAgreeMarketing(e.target.checked)} />
+            <span className="hc-box" aria-hidden="true">{agreeMarketing && <IcCheck width={15} height={15} />}</span>
+            <span>{H.consentMarketing}</span>
           </label>
 
           <div className="field">
@@ -441,6 +481,7 @@ function HealthDeclaration({ user }: { user: User }) {
           {t.signOut}
         </button>
       </div>
+      {legalDoc && <Legal onClose={() => setLegalDoc(null)} defaultSlug={legalDoc} />}
       <Toaster />
     </div>
   );

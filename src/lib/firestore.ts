@@ -439,6 +439,18 @@ export async function setStaffClaim(uid: string, staff: boolean): Promise<void> 
   await call({ uid, staff });
 }
 
+/** Record click-wrap consent evidence (server stamps timestamp + IP). */
+export async function recordConsent(data: {
+  version: string;
+  terms: boolean;
+  privacy: boolean;
+  waiver: boolean;
+  marketing: boolean;
+}): Promise<void> {
+  const call = httpsCallable(getFunctions(app, "us-central1"), "recordConsent");
+  await call(data);
+}
+
 /** Self-service branded email verification (from office@, with a continueUrl
  *  back to the app). Sent at sign-up and by the "resend" button. */
 export async function sendMyVerificationEmail(): Promise<void> {

@@ -6,9 +6,9 @@ import { LegalSection } from "./LegalSection";
 // Terms / Privacy / Waiver overlay with hierarchical numbered clauses.
 // The same documents are also served as standalone pages at /legal/<slug>
 // (see screens/LegalPage.tsx) - this modal is the in-app quick view.
-export function Legal({ onClose }: { onClose: () => void }) {
+export function Legal({ onClose, defaultSlug }: { onClose: () => void; defaultSlug?: string }) {
   const L = t.legal;
-  const [active, setActive] = useState(L.docs[0].slug);
+  const [active, setActive] = useState(defaultSlug ?? L.docs[0].slug);
   const doc = L.docs.find((d) => d.slug === active) ?? L.docs[0];
   return (
     <div className="legal-screen" role="dialog" aria-label={L.open}>

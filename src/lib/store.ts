@@ -176,6 +176,13 @@ export const deleteMember = (uid: string) =>
   backend().then((b) => b.deleteMember(uid));
 export const setStaffClaim = (uid: string, staff: boolean) =>
   backend().then((b) => b.setStaffClaim(uid, staff));
+export const recordConsent = (data: {
+  version: string;
+  terms: boolean;
+  privacy: boolean;
+  waiver: boolean;
+  marketing: boolean;
+}) => backend().then((b) => b.recordConsent(data));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));
