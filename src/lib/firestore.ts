@@ -105,6 +105,7 @@ export function initFirestore(): Promise<void> {
 const PRIVATE_FIELDS = [
   "healthForm", "idNumber", "address", "dob", "age",
   "signedName", "hasMedicalCert", "medicalCertName", "guardian",
+  "medicalCertPath", "medicalCertUrl",
 ] as const;
 
 // Two sources feed the users mirror: the main docs (names/roles - readable by
@@ -437,6 +438,24 @@ export async function deleteMember(uid: string): Promise<void> {
 export async function setStaffClaim(uid: string, staff: boolean): Promise<void> {
   const call = httpsCallable(getFunctions(app, "us-central1"), "setStaffClaim");
   await call({ uid, staff });
+}
+
+/** Upload a medical certificate to Storage (own folder) and save its path+URL to
+ *  the private profile. Returns the download URL. */
+export async function uploadMedicalCert(userId: string, file: File): Promise<string> {
+  const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+  const storage = getStorage(app);
+  const ext = (file.name.split(".").pop() || "dat").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = `medicalCerts/${userId}/${Date.now()}.${ext}`;
+  const r = ref(storage, path);
+  await uploadBytes(r, file, { contentType: file.type });
+  const url = await getDownloadURL(r);
+  await setDoc(
+    doc(db, "users", userId, "private", "health"),
+    { medicalCertPath: path, medicalCertUrl: url, hasMedicalCert: true, medicalCertName: file.name },
+    { merge: true },
+  );
+  return url;
 }
 
 /** Server stamps healthDeclaredAt + medicalStatus from the saved declaration. */

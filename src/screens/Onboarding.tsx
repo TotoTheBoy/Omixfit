@@ -294,6 +294,11 @@ export function HealthDeclaration({ user }: { user: User }) {
           const pdfDataUrl = await buildHealthPdfDataUrl(merged, form).catch(() => undefined);
           const certData = certFile ? await fileToDataUrl(certFile) : undefined;
           await notifyHealthSubmission(user.id, pdfDataUrl, certData, certFile?.name);
+          // Also persist the certificate on file (Storage) for the audit trail.
+          if (certFile) {
+            const { uploadMedicalCert } = await import("../lib/store");
+            await uploadMedicalCert(user.id, certFile).catch(() => {});
+          }
         } catch { /* best-effort */ }
       })();
     } catch {

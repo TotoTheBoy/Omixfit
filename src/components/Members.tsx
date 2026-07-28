@@ -525,6 +525,10 @@ function MemberDetail({ userId, onClose }: { userId: string; onClose: () => void
                   <small>
                     סטטוס: {label}
                     {u.healthDeclaredAt ? ` · נחתמה ${new Date(u.healthDeclaredAt).toLocaleDateString("he-IL")}` : ""}
+                    {u.medicalCertUrl ? " · " : ""}
+                    {u.medicalCertUrl && (
+                      <a href={u.medicalCertUrl} target="_blank" rel="noreferrer">📎 תעודה רפואית</a>
+                    )}
                   </small>
                 </div>
                 {u.medicalStatus === "pending" ? (

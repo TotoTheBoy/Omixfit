@@ -191,6 +191,8 @@ export const recordConsent = (data: {
 }) => backend().then((b) => b.recordConsent(data));
 export const finalizeHealthDeclaration = () =>
   backend().then((b) => b.finalizeHealthDeclaration());
+export const uploadMedicalCert = (userId: string, file: File) =>
+  backend().then((b) => b.uploadMedicalCert(userId, file));
 export const newEventId = () => engine.genId("ev");
 export const fetchEventSignups = (eventId: string) =>
   backend().then((b) => b.fetchEventSignups(eventId));
