@@ -142,6 +142,34 @@ export function waitlistPosition(
   return idx < 0 ? 0 : idx + 1;
 }
 
+// Substitute-instructor 30-day policy limit. Counts, per NON-owner instructor
+// (role instructor/manager - admins are the owners), the distinct dates they run
+// a session within the policy year, so staff can see who nears the 30-day cover.
+export interface SubstituteLoad {
+  user: User;
+  days: number;
+  dates: string[];
+}
+export function substituteInstructorLoad(
+  s: AppData,
+  policyYearStartKey: string,
+): SubstituteLoad[] {
+  const subs = s.users.filter((u) => u.role === "instructor" || u.role === "manager");
+  return subs
+    .map((user) => {
+      const dates = new Set<string>();
+      for (const sess of s.sessions) {
+        if (sess.cancelled) continue;
+        if (sess.instructorId !== user.id) continue;
+        if (sess.date < policyYearStartKey) continue;
+        dates.add(sess.date);
+      }
+      return { user, days: dates.size, dates: [...dates].sort() };
+    })
+    .filter((r) => r.days > 0)
+    .sort((a, b) => b.days - a.days);
+}
+
 // Fallback used when a session references a class type that has since been
 // deleted - keeps every card/schedule/report render alive instead of throwing.
 const UNKNOWN_CLASS_TYPE: ClassType = {

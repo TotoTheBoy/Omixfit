@@ -343,9 +343,51 @@ exports.sendReminders = fnV1.https.onRequest(async (req, res) => {
   const sessionsFinalized = await finalizeAttendance().catch((e) => { logger.error("finalizeAttendance", e); return 0; });
   const membersNudged = await sweepRetention().catch((e) => { logger.error("sweepRetention", e); return 0; });
   const orphansCleaned = await sweepOrphanAuth().catch((e) => { logger.error("sweepOrphanAuth", e); return 0; });
+  const subAlerts = await sweepSubstituteLimit().catch((e) => { logger.error("sweepSubstituteLimit", e); return 0; });
   void orphansCleaned;
-  res.json({ sent, trialsDisconnected, sessionsFinalized, membersNudged });
+  res.json({ sent, trialsDisconnected, sessionsFinalized, membersNudged, subAlerts });
 });
+
+// Substitute-instructor 30-day cover: e-mail the owners once when a non-owner
+// instructor crosses 25 distinct training days in the current policy year. A
+// per-instructor flag (substituteAlertYear) prevents daily re-sends.
+const SUBSTITUTE_WARN_AT = 25;
+const SUBSTITUTE_DAY_LIMIT = 30;
+const POLICY_EXPIRY = "2026-08-31";
+function policyYearStartKey() {
+  const [y, m, d] = POLICY_EXPIRY.split("-").map(Number);
+  return `${y - 1}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+async function sweepSubstituteLimit() {
+  const startKey = policyYearStartKey();
+  const [us, ss] = await Promise.all([
+    db.collection("users").where("role", "in", ["instructor", "manager"]).get(),
+    db.collection("sessions").get(),
+  ]);
+  const datesByInstructor = {};
+  ss.docs.forEach((d) => {
+    const s = d.data();
+    if (s.cancelled || !s.instructorId || !s.date || s.date < startKey) return;
+    (datesByInstructor[s.instructorId] = datesByInstructor[s.instructorId] || new Set()).add(s.date);
+  });
+  let alerts = 0;
+  for (const ud of us.docs) {
+    const u = ud.data();
+    const days = (datesByInstructor[ud.id] || new Set()).size;
+    if (days < SUBSTITUTE_WARN_AT) continue;
+    if (u.substituteAlertYear === startKey) continue; // already alerted this year
+    for (const to of OWNER_EMAILS) {
+      await sendMail(to, `⚠️ מדריך מחליף מתקרב למגבלת הביטוח (${days}/${SUBSTITUTE_DAY_LIMIT})`,
+        `<h2 style="color:#a9842f">מגבלת מדריך מחליף</h2>
+         <p>המדריך/ה <b>${u.name || ud.id}</b> העביר/ה <b>${days}</b> ימי אימון בשנת הפוליסה הנוכחית (מגבלה: ${SUBSTITUTE_DAY_LIMIT} ימים).</p>
+         <p>מומלץ לעדכן את פוליסת הביטוח או להיערך בהתאם לפני חריגה.</p>
+         <p><b>עומר · Omix</b></p>`).catch((e) => logger.error("sub alert mail", e));
+    }
+    await ud.ref.update({ substituteAlertYear: startKey }).catch(() => {});
+    alerts++;
+  }
+  return alerts;
+}
 
 // Trial → pass rule: a member approved > 7 days ago who never bought a pass is
 // disconnected (back to pending, membership off) and e-mailed to buy a pass.

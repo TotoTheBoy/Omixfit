@@ -15,8 +15,36 @@ import { SessionDetail } from "../components/SessionDetail";
 import { TypeEditor } from "../components/TypeEditor";
 import { EventsAdmin } from "../components/EventsAdmin";
 import { CalendarGrid, type CalView } from "../components/CalendarGrid";
-import { POLICY_EXPIRY, policyDaysLeft } from "../lib/legal";
+import { substituteInstructorLoad } from "../lib/store";
+import {
+  POLICY_EXPIRY,
+  policyDaysLeft,
+  policyYearStartKey,
+  SUBSTITUTE_DAY_LIMIT,
+  SUBSTITUTE_WARN_AT,
+} from "../lib/legal";
 import { IcPlus, IcSpark, IcUsers, IcCalendar } from "../components/icons";
+
+function SubstituteLimitCard() {
+  const data = useStore((s) => s);
+  const loads = substituteInstructorLoad(data, policyYearStartKey());
+  const flagged = loads.filter((l) => l.days >= SUBSTITUTE_WARN_AT);
+  if (flagged.length === 0) return null;
+  return (
+    <div className="policy-banner" style={{ background: "#fdf2d8", borderColor: "#e5c675" }}>
+      <span aria-hidden="true">🧑‍🏫</span>
+      <div>
+        <b>מדריך מחליף מתקרב למגבלת הביטוח (30 ימים/שנה)</b>
+        {flagged.map((l) => (
+          <small key={l.user.id} style={{ display: "block" }}>
+            {l.user.name}: {l.days}/{SUBSTITUTE_DAY_LIMIT} ימי אימון בשנת הפוליסה
+            {l.days >= SUBSTITUTE_DAY_LIMIT ? " · חריגה! יש לעדכן פוליסה" : ""}
+          </small>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function PolicyBanner() {
   const left = policyDaysLeft();
@@ -110,6 +138,7 @@ export function Manage() {
       </div>
 
       <PolicyBanner />
+      <SubstituteLimitCard />
 
       <div className="seg" style={{ marginBottom: 18 }}>
         <button className={tab === "schedule" ? "on" : ""} onClick={() => setTab("schedule")}>

@@ -103,6 +103,8 @@ export const hasMedicalFlag = engine.hasMedicalFlag;
 export const healthDeclarationState = engine.healthDeclarationState;
 export const canBookHealth = engine.canBookHealth;
 export const isLateCancel = engine.isLateCancel;
+export const substituteInstructorLoad = (s: AppData = state, startKey: string) =>
+  engine.substituteInstructorLoad(s, startKey);
 export const freeCancelCutoffHours = engine.freeCancelCutoffHours;
 export const isGroupSession = engine.isGroupSession;
 export const adminOverview = engine.adminOverview;
