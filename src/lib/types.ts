@@ -99,6 +99,15 @@ export interface User {
   hasPass?: boolean;
   /** Optional marketing consent (SMS/WhatsApp/email) - anti-spam-law evidence. */
   marketingConsent?: boolean;
+  /** Set when the trainee is a minor (<18); the guardian is the contracting party. */
+  isMinor?: boolean;
+  /** Legal guardian who registers/consents on a minor's behalf (contracting party). */
+  guardian?: {
+    name: string;
+    idNumber: string;
+    phone: string;
+    relationship: string;
+  };
   /** Click-wrap consent evidence, stamped server-side at registration. */
   consent?: {
     version: string | null;

@@ -584,6 +584,22 @@ exports.recordConsent = fnV1.https.onCall(async (data, context) => {
     { consent, marketingConsent: consent.marketing },
     { merge: true },
   );
+  // Minor registration: store the guardian's court-grade verification record
+  // (name + ID + server timestamp + IP) - the legal proof of parental consent.
+  const g = data && data.guardian;
+  if (g && g.idNumber) {
+    await db.collection("parent_verifications").add({
+      uid: context.auth.uid,
+      minorName: (data && data.minorName) || null,
+      parent_name: g.name || null,
+      parent_id: g.idNumber || null,
+      parent_phone: g.phone || null,
+      parent_relationship: g.relationship || null,
+      parent_approved_timestamp: Date.now(),
+      parent_ip_address: ip,
+      version: consent.version,
+    });
+  }
   return { ok: true };
 });
 

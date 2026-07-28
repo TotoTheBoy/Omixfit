@@ -15,7 +15,24 @@ import { SessionDetail } from "../components/SessionDetail";
 import { TypeEditor } from "../components/TypeEditor";
 import { EventsAdmin } from "../components/EventsAdmin";
 import { CalendarGrid, type CalView } from "../components/CalendarGrid";
+import { POLICY_EXPIRY, policyDaysLeft } from "../lib/legal";
 import { IcPlus, IcSpark, IcUsers, IcCalendar } from "../components/icons";
+
+function PolicyBanner() {
+  const left = policyDaysLeft();
+  if (left > 45) return null;
+  const expired = left < 0;
+  const exp = POLICY_EXPIRY.split("-").reverse().join("/");
+  return (
+    <div className={`policy-banner ${expired ? "expired" : ""}`}>
+      <span aria-hidden="true">{expired ? "⛔" : "⚠️"}</span>
+      <div>
+        <b>{expired ? "פוליסת הביטוח פגה!" : `פוליסת הביטוח פגה בעוד ${left} ימים`}</b>
+        <small>תוקף עד {exp}. יש לחדש את הפוליסה כדי לשמור על הכיסוי לפעילות ולמתאמנים.</small>
+      </div>
+    </div>
+  );
+}
 
 const HE_MONTHS = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
 
@@ -91,6 +108,8 @@ export function Manage() {
           </button>
         )}
       </div>
+
+      <PolicyBanner />
 
       <div className="seg" style={{ marginBottom: 18 }}>
         <button className={tab === "schedule" ? "on" : ""} onClick={() => setTab("schedule")}>

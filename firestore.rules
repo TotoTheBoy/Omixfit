@@ -148,6 +148,14 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Parental-consent records for minors (name + ID + timestamp + IP). Written
+    // ONLY by the recordConsent Cloud Function (admin SDK bypasses rules); staff
+    // may read them as legal proof. No client may write or alter them.
+    match /parent_verifications/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
     // Private owner-only billing tracker - only the verified business owners.
     match /meta/subscriptions {
       allow read, write: if isOwnerEmail();

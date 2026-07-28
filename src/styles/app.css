@@ -4077,3 +4077,25 @@
   .cmc { min-height: 68px; }
   .cmc-ev { font-size: 0.64rem; }
 }
+
+/* insurance policy-expiry reminder (staff) */
+.policy-banner {
+  display: flex; align-items: center; gap: 12px;
+  background: #fdf2d8; border: 1px solid #e5c675; border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 16px;
+}
+.policy-banner.expired { background: #fbe4e2; border-color: #e0a59e; }
+.policy-banner span { font-size: 1.4rem; flex: none; }
+.policy-banner b { display: block; font-size: 0.92rem; }
+.policy-banner small { color: var(--text-2); font-size: 0.8rem; }
+
+/* guardian (minor) block on the registration form */
+.guardian-box {
+  border: 1px solid #e5c675; background: #fdf8ec; border-radius: 14px;
+  padding: 14px 16px; margin: 4px 0 16px;
+}
+.guardian-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.guardian-head span { font-size: 1.5rem; flex: none; }
+.guardian-head b { display: block; font-size: 0.95rem; }
+.guardian-head small { color: var(--text-2); font-size: 0.8rem; line-height: 1.35; }
+.guardian-note { font-size: 0.78rem; color: var(--text-2); line-height: 1.5; margin: 4px 0 0; }

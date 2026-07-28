@@ -185,6 +185,12 @@ export function HealthDeclaration({ user }: { user: User }) {
   const [gender, setGender] = useState<Gender | "">(user.gender ?? "");
   const [dob, setDob] = useState(user.dob ?? "");
   const age = ageFromDob(dob);
+  const isMinor = age !== undefined && age < 18;
+  // Guardian (contracting party) for a minor trainee.
+  const [gName, setGName] = useState(user.guardian?.name ?? "");
+  const [gId, setGId] = useState(user.guardian?.idNumber ?? "");
+  const [gPhone, setGPhone] = useState(user.guardian?.phone ?? "");
+  const [gRel, setGRel] = useState(user.guardian?.relationship ?? "");
   const [phone, setPhone] = useState(user.phone || "");
   const [city, setCity] = useState(savedCity);
   const [street, setStreet] = useState(savedStreet);
@@ -212,6 +218,8 @@ export function HealthDeclaration({ user }: { user: User }) {
     if (!isValidIsraeliID(idNumber)) return toast(H.invalidId, "err");
     if (!isValidILPhone(phone)) return toast(H.invalidPhone, "err");
     if (!isValidCity(city)) return toast(H.invalidCity, "err");
+    if (isMinor && (!gName.trim() || !gRel.trim() || !isValidIsraeliID(gId) || !isValidILPhone(gPhone)))
+      return toast(H.needGuardian, "err");
     if (!allAnswered) return toast(H.qIntro, "err");
     if (!agreeTerms || !agreePrivacy || !agreeWaiver) return toast(H.needConsent, "err");
     if (!signed) return toast(H.needSign, "err");
@@ -241,8 +249,12 @@ export function HealthDeclaration({ user }: { user: User }) {
         address,
         healthForm: form,
         marketingConsent: agreeMarketing,
+        isMinor,
       };
       if (age !== undefined) patch.age = age;
+      if (isMinor) {
+        patch.guardian = { name: gName.trim(), idNumber: gId.trim(), phone: gPhone.trim(), relationship: gRel.trim() };
+      }
       await updateUser(user.id, patch);
       // Server stamps the declaration date + medical-clearance gate from the ACTUAL
       // saved form (the member can't self-set these fields → can't bypass the lock).
@@ -262,6 +274,10 @@ export function HealthDeclaration({ user }: { user: User }) {
             privacy: agreePrivacy,
             waiver: agreeWaiver,
             marketing: agreeMarketing,
+            minorName: isMinor ? fullName : undefined,
+            guardian: isMinor
+              ? { name: gName.trim(), idNumber: gId.trim(), phone: gPhone.trim(), relationship: gRel.trim() }
+              : undefined,
           });
         } catch { /* best-effort */ }
       })();
@@ -346,6 +362,50 @@ export function HealthDeclaration({ user }: { user: User }) {
               <small className="field-err">{H.invalidPhone}</small>
             )}
           </div>
+
+          {isMinor && (
+            <div className="guardian-box">
+              <div className="guardian-head">
+                <span aria-hidden="true">👨‍👩‍👧</span>
+                <div>
+                  <b>{H.guardianTitle}</b>
+                  <small>{H.guardianSub}</small>
+                </div>
+              </div>
+              <div className="row gap-3 wrap">
+                <div className="field grow" style={{ minWidth: 150 }}>
+                  <label htmlFor="rg-gname">{H.guardianName}</label>
+                  <input id="rg-gname" className="input" value={gName} onChange={(e) => setGName(e.target.value)} autoComplete="name" />
+                </div>
+                <div className="field grow" style={{ minWidth: 130 }}>
+                  <label htmlFor="rg-grel">{H.guardianRel}</label>
+                  <select id="rg-grel" className="select" value={gRel} onChange={(e) => setGRel(e.target.value)}>
+                    <option value="">{H.selectGender}</option>
+                    <option value="הורה">{H.guardianRelParent}</option>
+                    <option value="אפוטרופוס">{H.guardianRelLegal}</option>
+                  </select>
+                </div>
+              </div>
+              <div className="row gap-3 wrap">
+                <div className="field grow" style={{ minWidth: 130 }}>
+                  <label htmlFor="rg-gid">{H.guardianId}</label>
+                  <input id="rg-gid" className="input" inputMode="numeric" dir="ltr" maxLength={9} value={gId}
+                    onChange={(e) => setGId(e.target.value.replace(/\D/g, ""))}
+                    aria-invalid={gId.length > 0 && !isValidIsraeliID(gId)} />
+                  {gId.length > 0 && !isValidIsraeliID(gId) && <small className="field-err">{H.invalidId}</small>}
+                </div>
+                <div className="field grow" style={{ minWidth: 130 }}>
+                  <label htmlFor="rg-gphone">{H.guardianPhone}</label>
+                  <input id="rg-gphone" className="input" type="tel" inputMode="tel" dir="ltr" maxLength={15}
+                    placeholder="050-1234567" value={gPhone} onChange={(e) => setGPhone(e.target.value)}
+                    aria-invalid={gPhone.length > 0 && !isValidILPhone(gPhone)} />
+                  {gPhone.length > 0 && !isValidILPhone(gPhone) && <small className="field-err">{H.invalidPhone}</small>}
+                </div>
+              </div>
+              <p className="guardian-note">{H.guardianConsentNote}</p>
+            </div>
+          )}
+
           <div className="row gap-3 wrap">
             <div className="field grow" style={{ minWidth: 130 }}>
               <label htmlFor="rg-city">{H.cityLabel}</label>

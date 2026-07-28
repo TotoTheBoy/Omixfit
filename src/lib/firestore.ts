@@ -104,7 +104,7 @@ export function initFirestore(): Promise<void> {
 // reader keeps working - the protection is purely at the Firestore-read layer.
 const PRIVATE_FIELDS = [
   "healthForm", "idNumber", "address", "dob", "age",
-  "signedName", "hasMedicalCert", "medicalCertName",
+  "signedName", "hasMedicalCert", "medicalCertName", "guardian",
 ] as const;
 
 // Two sources feed the users mirror: the main docs (names/roles - readable by
@@ -452,6 +452,8 @@ export async function recordConsent(data: {
   privacy: boolean;
   waiver: boolean;
   marketing: boolean;
+  minorName?: string;
+  guardian?: { name: string; idNumber: string; phone: string; relationship: string };
 }): Promise<void> {
   const call = httpsCallable(getFunctions(app, "us-central1"), "recordConsent");
   await call(data);

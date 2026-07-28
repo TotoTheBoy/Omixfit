@@ -184,6 +184,8 @@ export const recordConsent = (data: {
   privacy: boolean;
   waiver: boolean;
   marketing: boolean;
+  minorName?: string;
+  guardian?: { name: string; idNumber: string; phone: string; relationship: string };
 }) => backend().then((b) => b.recordConsent(data));
 export const finalizeHealthDeclaration = () =>
   backend().then((b) => b.finalizeHealthDeclaration());
